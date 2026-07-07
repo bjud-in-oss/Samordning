@@ -16,22 +16,37 @@ export interface SubscriptionRecord {
   subscription: ClientPushSubscription;
   tags: {
     areas: string[];
+    languages?: string[];
+    organization?: string;
     formats: ("physical" | "telephone")[];
     alwaysNotify: boolean;
     spiritualTips: boolean;
+    requireInteraction?: boolean;
   };
+}
+
+export interface ChatMessage {
+  id: string;
+  sender: "volunteer" | "missionary";
+  senderName: string;
+  text: string;
+  timestamp: number;
 }
 
 export interface ActiveAlert {
   id: string;
+  missionaryPhone: string;
+  rawText: string;
   scrubbedText: string;
   area: string;
   time: string;
   gender: string;
   language: string;
   locationName: string;
+  coords: { lat: number; lng: number };
   cloakedCoords: { lat: number; lng: number };
   timestamp: number;
+  chat: ChatMessage[];
 }
 
 export interface SimLog {

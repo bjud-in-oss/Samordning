@@ -1,45 +1,70 @@
-# 2_Blueprint: System Specification & Contracts
+# Ge stöd: System Specification & Contracts
 
-## 1. Data Contracts (Stateless & Anonymized)
+This specification outlines the technical design, schemas, and endpoints for **"Ge stöd"** (formerly Stateless Mission Router).
 
-### A. Web Push Subscription Store (Persistent but Anonymous)
-We save ONLY the Web Push subscription object and tags.
-```typescript
-interface SubscriptionRecord {
-  id: string; // Random UUID
-  subscription: webpush.PushSubscription;
-  tags: {
-    areas: string[];          // e.g. ["Kortedala", "Majorna", "Frölunda"]
-    languages?: string[];     // e.g. ["Svenska", "English"]
-    organization?: string;    // e.g. "bror" | "syster"
-    formats: ("physical" | "telephone")[];
-    alwaysNotify: boolean;    // "Skicka larm alltid, jag avgör i stunden"
-    spiritualTips: boolean;   // "Veckans andliga tips"
-  }
-}
+## 1. Domain Modularization Strategy (FSD Structure)
+To keep the server clean and maintainable, all logical subdomains are separated under `src/features/mission_router/domain/`:
+
+```
+src/features/mission_router/
+├── 1_Scan/
+│   └── scan_report.md
+├── 2_Blueprint/
+│   └── blueprint_spec.md
+├── 3_Council_Impact/
+│   └── council_debate.md
+├── domain/
+│   ├── parser.ts          # Text parsing, geocoding & spatial-cloaking
+│   ├── pushService.ts     # Web push keys, subscribers & trigger alerts
+│   └── whatsappBot.ts     # WhatsApp gateway, smart cancellations & quote-routing
+├── components/
+│   ├── AlertDetail.tsx    # Details view, calendar download & chat client
+│   ├── Disclaimer.tsx
+│   ├── OnboardingForm.tsx # Subscription preferences (inc. requireInteraction)
+│   └── SimulatorPanel.tsx # High-fidelity test panel (inc. simulated reply-quote)
+├── translations.ts        # Fully internationalized dictionary
+└── types.ts               # Shared TypeScript types
 ```
 
-### B. In-Memory Alert Store (Active Lifecycle - Cleared on Response/Amnesia)
-Lives 100% in backend memory (`Record<string, ActiveAlert>`).
+---
+
+## 2. In-Memory Data Structures (RAM Only)
+
 ```typescript
-interface ActiveAlert {
-  id: string;               // UUID / generated larm_id
-  missionaryPhone: string;  // Raw phone number of missionary pair
-  rawText: string;          // Original un-scrubbed message
+export interface ChatMessage {
+  id: string;          // Unique WhatsApp or client message ID
+  sender: "volunteer" | "missionary";
+  senderName: string;
+  text: string;
+  timestamp: number;
+}
+
+export interface ActiveAlert {
+  id: string;               // Unique random alert_id (e.g., "ab39d1f")
+  missionaryPhone: string;  // Raw phone number for anonymous communication broker
+  rawText: string;          // Original raw message from missionary
   scrubbedText: string;     // Parsed bracketed info only
   area: string;             // Parsed area
   time: string;             // Parsed time
   gender: string;           // Parsed gender ("bror" | "syster")
   language: string;         // Parsed language ("engelska" etc.)
-  locationName: string;     // e.g. "Kortedala Torg"
+  locationName: string;     // Geocoded location (approximated on map)
   coords: { lat: number; lng: number };
-  cloakedCoords: { lat: number; lng: number }; // Math.round(Coord / 0.02) * 0.02
-  timestamp: number;        // Created time
-  ttl: number;              // Expiry time (e.g., alert time + 2 hours)
+  cloakedCoords: { lat: number; lng: number }; // Rounded to 0.02 decimal degrees
+  timestamp: number;
+  chat: ChatMessage[];      // Real-time conversation thread
+}
+
+// In-memory mappings for anonymized chat routing
+// Maps sent WhatsApp message ID to Alert ID
+export interface MessageCorrelation {
+  alertId: string;
 }
 ```
 
-## 2. Spatial Cloaking & Geometry
+---
+
+## 3. Spatial Cloaking & Geometry
 * **Formel**: `Avrundat = Math.round(Coord / 0.02) * 0.02;`
 * This rounds latitude and longitude to steps of `0.02` degrees, covering roughly a 2.2 km box. This protects the exact location of the investigator (undersökaren) while giving the volunteer the correct neighborhood.
 
@@ -66,39 +91,49 @@ For Gothenburg (Latitude ~57.7):
 * `d^2 = (dx * 0.53)^2 + dy^2`
 where `dx = lng1 - lng2` and `dy = lat1 - lat2`. The factor `0.53` compensates for the narrowing of longitude lines at Gothenburg's latitude.
 
-## 3. Parsing Regex (WhatsApp Multi-bracket)
-Message Format: `"Vi ska till [Kortedala Torg] kl [18:00]. Behöver en [bror] för [engelska]."`
-* **Scrubbing Regex**: Matches text inside brackets `\[(.*?)\]`
-* Output details:
-  1. Plats/Location: `brackets[0]` -> `"Kortedala Torg"`
-  2. Tid/Time: `brackets[1]` -> `"18:00"`
-  3. Kön/Gender: `brackets[2]` -> `"bror"` (or syster)
-  4. Språk/Language: `brackets[3]` -> `"engelska"`
+---
 
-Any text outside brackets is discarded instantly to protect privacy.
+## 4. Communication Bridge & Quote-Based Routing Protocol
+Volunteers (Web UI) and Missionaries (WhatsApp) engage in secure, anonymized chat without disclosing volunteer phone numbers or personal names:
 
-## 4. API Endpoints
-* `POST /api/subscription` - Register anonymous subscription + tags.
-* `GET /api/alerts/:id` - Fetch scrubbed alert information (or returns 404 if expired or wiped by amnesia).
-* `POST /api/alerts/:id/respond` - Send response text back to WhatsApp missionary pair, then instantly trigger Amnesia (wipe record).
-* `POST /api/sim/whatsapp` - Mock receiving a WhatsApp message from a missionary (triggers push notification + console output).
-* `GET /api/sim/messages` - Fetch list of mock messages sent/received for the high-fidelity dashboard.
+1. **Web to WhatsApp**:
+   - Volunteer types a message. UI calls `POST /api/alerts/:id/chat` with `{ text, senderName, senderPhone }`.
+   - Backend forwards to the missionary's real phone number using `whatsapp-web.js`:
+     `Ge stöd: [Kortedala Torg] Volontär (${senderName}): "${text}" (Svara direkt på detta meddelande för att skriva till volontären)`
+   - The returned WhatsApp message's `id._serialized` is saved in the global correlation map:
+     `messageCorrelation[serializedId] = { alertId: alert.id }`
 
-## 5. Silent Cancel Push & Amnesia Lifecycle
-To prevent multiple volunteers from pursuing the same completed request, and to maintain strict data minimisation:
-* **Response Trigger**: When a volunteer taps "Jag kan följa med" (I can come), the backend forwards the notification/text to the missionary pair.
-* **Amnesia Wipe**: Immediately after the response is sent, the `ActiveAlert` record is wiped entirely from the server's in-memory storage (`delete alerts[id]`).
-* **Silent Cancel Broadcast**: The server sends a silent Web Push payload to all subscribers:
-  ```json
-  {
-    "type": "CANCEL",
-    "id": "larm_id_here"
-  }
-  ```
-* **Service Worker Action**: Upon receiving `type: 'CANCEL'`, the background Service Worker (`public/sw.js`) locates any active visible notification with `tag: larm_id` and calls `notification.close()`, silently removing the notification from the user's lock screen/notification drawer without making a sound.
+2. **WhatsApp to Web (Contextual Quote Routing)**:
+   - When a missionary replies to that specific message on WhatsApp, `whatsapp-web.js` receives `msg`.
+   - The backend checks `msg.hasQuotedMsg`.
+   - It fetches the quoted message using `const quotedMsg = await msg.getQuotedMessage()`.
+   - It checks `messageCorrelation[quotedMsg.id._serialized]`.
+   - If a correlation exists, the reply is securely appended to `activeAlerts[alertId].chat` and streamed/polled in the volunteer's active UI session.
+   - **Smart Fallback**: If the missionary sends a message without a quote, and they only have *exactly one* active alert, the message is routed to that alert's chat log. If they have *multiple* active alerts, they receive a prompt:
+     `Ge stöd: Jag kan tyvärr inte se vilket möte du svarar på. Vänligen svara genom att hålla in och "citera" (Reply) det specifika meddelandet du vill besvara.`
 
-## 6. i18n & Gateway Architecture
-To support the diverse language demographics of Gothenburg's wards and supporting members:
-* **The Gateway Pattern**: On initial load, the app detects if a preferred `uiLanguage` exists in storage. If absent, it presents a minimal Language Gateway displaying only language selection flags.
-* **Full Localization Mapping**: The chosen `uiLanguage` dynamically maps text keys through the structured `TRANSLATIONS` dictionary, covering all steps of Onboarding, Dashboard status messages, and Simulator panels.
-* **Fallback Resolution**: If a translation is missing, the system gracefully falls back to the default Swedish/English translation to ensure the volunteer always understands the UI.
+---
+
+## 5. Smart Cancellation (No ID Codes Required)
+* Missionaries send "avboka" or "avbryt" to cancel an active support request.
+* **Single Alert Case**: If they have exactly 1 active alert, it is cancelled instantly. The database is cleared, and a silent `{ type: 'CANCEL' }` push notification is broadcast to volunteers to dismiss browser notifications.
+* **Multi-Alert Case**: If they have more than 1 active alert, the bot replies with a numbered list:
+  `Ge stöd: Du har flera aktiva möten. Svara med siffran för det möte du vill ta bort:`
+  `1. Kortedala kl 18:00`
+  `2. Angered Centrum kl 19:15`
+* Sending the number (or "avboka 1") immediately cancels the corresponding alert.
+
+---
+
+## 6. Web Push & Sticky Notifications
+* **Sticky Notifications (`requireInteraction: true`)**: Configured in `sw.js` so that alerts persist on screen until dismissed by the user. Subscriptions can opt out via Onboarding settings.
+* **Immediate Feedback**: The alert trigger counts matching subscribers and immediately responds on WhatsApp:
+  `Ge stöd: Larmet har skickats ut! Det har nått ${pushCount} aktiva volontärer i ${resolvedArea}.`
+
+---
+
+## 7. Client-Side iCal Calendar Generation
+Users can click "Spara i Kalender" to instantly download a `.ics` file generated on the fly in the browser. It details:
+* Date and time mapped to the alert's scheduled time slot.
+* Detailed description including a deep link back to the alert page: `/?alertId=${alert.id}`.
+* Encrypted deep-linked URL field to streamline re-accessing the active chat bridge.

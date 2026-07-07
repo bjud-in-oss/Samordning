@@ -1,22 +1,28 @@
 # 3_Council_Impact: Dialectical Debate & Architectural Synchronization
 
-## Adversarial Perspectives
+## Adversarial Perspectives on "Ge stöd" Features
 
 ### 1. The Innovator (Att förändra)
-* **Argument**: Let's build a dual-layer WhatsApp connection. Use `whatsapp-web.js` for production, and integrate a high-fidelity Web UI WhatsApp simulator console in the app so that anyone can run, trigger, and review the entire regex cleaning, spatial-cloaking, and push notification process instantly inside the browser. This ensures that even if Chrome sandboxing restricts headless WhatsApp in the testing container, the entire logic works flawlessly and can be validated by anyone!
-* **UX Idea**: Let's design a split-screen dashboard layout for the administrative and developer view, where a developer can simulate being a missionary on one side, and see the webpush triggers, area matches, and responding volunteer actions occur in real time. We should support custom VAPID keys that generate automatically on server boot if not specified, making the push integration "just work" right out of the box.
+* **Argument**: Let's build a fully real-time bidirectional anonymous chat. We should push the envelope of WhatsApp's reply mechanics. When a volunteer sends a chat from the Web UI, it lands on the missionary's phone. By replying using the native quote-reply feature in WhatsApp, the missionary initiates an ongoing conversation thread without installing any special app. This allows them to coordinate things like "where should we meet exactly?" or "should I wear a suit?" in real time.
+* **UX Concept**: Let's construct a beautiful chat panel on the `/larm/:id` view that mimics a clean SMS/chat interface. When a volunteer sends a message, they get live visual indicators. Let's also build a simulated quoting interface in the developer `SimulatorPanel` so the feature can be tested instantly!
 
 ### 2. The Reflector (Att vända)
-* **Argument**: We must remain extremely cautious about security, privacy, and simplicity. The user strictly specified: *"Noll permanent personuppgiftslagring."* We must ensure absolutely no database records are kept that link any real phone numbers, names, or locations of investigators to any identifiable information. All alert records `larm_id` in RAM must be completely destroyed the millisecond a volunteer responds. There must be zero leakage in console logs or Express error handling. We must disable Express access logs or strip parameters entirely in production mode.
-* **Architecture Alarm**: For the React UI, we must design specifically for elderly users. This means extremely large touch targets (at least 48px), clean high-contrast off-whites/grays, simple checklist forms, and zero multi-column confusion. Do not overcomplicate the volunteer screen with technical details like coordinates or distances in miles; show the name of the nearest District (e.g. Kortedala Torg in Kortedala) and a simple input field for the text response.
+* **Argument**: We must ensure absolute GDPR compliance and prevent any data leaks. The user strictly specified: *"Noll permanent personuppgiftslagring."* We must make sure that when a volunteer inputs their name and phone number on the `/larm/:id` page, this data is *only* held in RAM for the active alert session, or used as the display header for the WhatsApp message. Once the session is closed via the **Amnesi-utlösning** (Amnesia Trigger), all chat records and correlation mappings are completely purged from memory.
+* **Edge Case Alarm**: What happens if a missionary pair has *multiple* active alerts running simultaneously, and they reply to a volunteer's message but *forget* to use the WhatsApp Quote/Reply feature?
+  - If they reply without a quote, and we blindly forward it to *all* active chats, we have a massive security/privacy breach! An investigator or volunteer of one alert will see communication meant for another.
+  - To prevent this leakage, if the missionary has **multiple** active alerts and sends a non-quote message, the bot **MUST NOT** route the message to any chat. Instead, the bot must intercept it and reply with a strict warning:
+    `Ge stöd: Jag kan tyvärr inte se vilket möte du svarar på. Vänligen svara genom att hålla in och "citera" (Reply) det specifika meddelandet du vill besvara.`
+  - If they have **exactly one** active alert, we can safely and gracefully fall back to routing the message to that single active alert, ensuring a smooth UX for the common single-alert scenario!
 
 ### 3. The Mediator (Att förlika)
-* **Argument**: We will implement the dual-mode WhatsApp adapter. The backend will attempt to spin up a mockable WhatsApp gateway. If `whatsapp-web.js` initializes, it works; otherwise, it gracefully logs and defaults to our web-based simulator, which perfectly exercises the real regex, Nominatim spatial lookup, cloaking calculations, and Push routing.
-* **Layout Compromise**:
-  - The Main App serves the elder-focused Onboarding/Registration view and the Active Alert Respond view (`/larm/:id`) cleanly.
-  - An "Integrations & Testing Dashboard" is available via a clear, toggleable testing drawer/panel or tab to demonstrate the simulator and QR-code pairing (if real whatsapp-web.js is generating a QR).
-  - Footer always renders the mandatory disclaimer: *"Fristående inofficiell tjänst, ej sponsrad av kyrkan."*
-  - Express server shuts off logging of request queries or path parameters containing alert answers or phone numbers.
+* **Resolution**:
+  - We will implement the quote-reply mapping in memory via `MessageCorrelation` map.
+  - The "forgot to quote" edge case is handled cleanly:
+    - 0 active alerts: Respond "Du har inga aktiva möten just nu."
+    - 1 active alert: Route the message to that alert's chat log as a fallback.
+    - >1 active alerts: Block the message and reply on WhatsApp prompting the missionary to hold down and "Quote" the specific message they want to answer.
+  - We will introduce a clear, highly visible "Avsluta & radera larm (Amnesi-utlösning)" button in the `/larm/:id` view, allowing either the volunteer or missionary to trigger immediate purging of the session.
+  - All occurrences of "Stateless Mission Router" are officially rebranded to **"Ge stöd"**, giving a warm, loving, and community-centered feeling.
 
 ---
 
@@ -24,23 +30,33 @@
 
 ### Operative Files to Modify, Split, or Create
 
-1. **`server.ts`** (Create): Full-stack entry point. Integrates Vite middleware in dev, serves `/dist` in prod. Houses:
-   - In-memory active alert registry (`Record<string, ActiveAlert>`).
-   - Anonymous push token storage (stored in a JSON file `subscriptions.json` or in-memory array. Since we want persistent subscriptions but anonymous, storing them in a local lightweight file `data/subscriptions.json` prevents subscription loss when the server restarts, complying with "Databasen sparar ENDAST anonyma Webpush-tokens kopplade till generiska taggar").
-   - Regex cleaning of bracketed strings.
-   - Pythagoras distance lookup against 15 fasta stöddistrikt.
-   - Spatial cloaking (0.02 rounding).
-   - Mock/real WhatsApp broker (listening to incoming SMS/WhatsApp patterns and returning responses).
-   - Web Push triggers using VAPID keys.
+1. **`src/features/mission_router/types.ts`** (Modify):
+   - Update interfaces (`ActiveAlert`, `ChatMessage`) to support in-memory chat histories, correlation IDs, and onboarding tags (including `requireInteraction`).
 
-2. **`package.json`** (Modify): Update build scripts to use `esbuild server.ts --bundle` for production as defined in the guidelines, and set the dev script to `tsx server.ts`.
+2. **`src/features/mission_router/domain/parser.ts`** (Create):
+   - Modularized geocoding tables, Pythagoras calculation, and regex parsing logic.
 
-3. **`src/App.tsx`** (Modify): Setup client router and state management. Renders:
-   - Onboarding View (for elderly members).
-   - Active Alert View (`/larm/:id`).
-   - Mock Simulator Panel (simulates WhatsApp interaction and lets the user test push notifications).
-   - Pairing Console (visual QR code display if real WhatsApp-web is connecting).
+3. **`src/features/mission_router/domain/pushService.ts`** (Create):
+   - Modularized Web Push configuration, subscriber storage (`subscriptions.json` persistence), subscription filtering, and real-time push feedback awaiting.
 
-4. **`public/sw.js`** (Create): Service worker for Web Push notification handling. Receives the push payload and displays a native browser notification, which links to `/larm/:id` when clicked.
+4. **`src/features/mission_router/domain/whatsappBot.ts`** (Create):
+   - Modularized `whatsapp-web.js` configuration, smart cancellation parser, quote-reply routing logic, and simulated reply triggers.
 
-5. **`tsconfig.json`** & **`vite.config.ts`**: Verify they can compile everything cleanly.
+5. **`server.ts`** (Modify):
+   - Strip monolith business logic. Import and delegate to `parser.ts`, `pushService.ts`, and `whatsappBot.ts`.
+   - Update API routes to serve chat log fetching, chat sending (`POST /api/alerts/:id/chat`), and immediate push-volunteers count feedback.
+
+6. **`src/features/mission_router/translations.ts`** (Modify):
+   - Complete rebranding of "Missionshjälpen" / "Stateless Mission Router" to "Ge stöd" and update all language dictionaries with chat strings, persistent notifications, and calendar prompts.
+
+7. **`src/features/mission_router/components/OnboardingForm.tsx`** (Modify):
+   - Add "Envisa aviseringar" (`requireInteraction`) setting and update labels to match "Ge stöd".
+
+8. **`src/features/mission_router/components/AlertDetail.tsx`** (Modify):
+   - Add the dynamic, anonymous Chat interface.
+   - Add clientside `.ics` calendar generation download button.
+   - Introduce "Avsluta och radera larm" button (Immediate Amnesia purge).
+   - Improve name and phone prompts with helpful guidance.
+
+9. **`src/features/mission_router/components/SimulatorPanel.tsx`** (Modify):
+   - Upgrade simulated WhatsApp inbox. Allow developers to mock "Quotes" by clicking "Svara" on simulated outgoing volunteer chat logs!

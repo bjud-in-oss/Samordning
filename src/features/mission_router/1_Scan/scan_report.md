@@ -1,30 +1,40 @@
-# 1_Scan: Context, Constraints & Baselines
+# 1_Scan: Context, Constraints & Baselines (Ge stöd)
 
 ## Objective
-Analyze the current baseline system, map environmental constraints, identify required API endpoints, and establish dependencies for the Stateless Mission Router.
+Analyze the current baseline system, map environmental constraints, identify required API endpoints, and establish dependencies for **Project "Ge stöd"** (formerly Stateless Mission Router), focusing on domain modularization, context-aware WhatsApp chat routing via quotes, and frictionless volunteer interactions.
 
-## Environment & Baseline Check
-* **Frontend Runtime**: React 19 + Vite 6
-* **Backend Runtime**: Node.js + Express
-* **Stateless Mandate**: NO permanent user data. Ram-only storage for alert/larm data.
-* **Privacy Boundary**: Anonymized webpush subscriptions (only areas, preferred format, flexibility tags). No names, no logins, no persistent phone numbers of missionary pairs.
-* **Compliance Details**:
-  - Hårdkodad bot-identifier: `Hjälp-Bot (NO PERSONAL INFO)`.
-  - Ingen logs för inkommande nätverkstrafik (off-switch or clear in-memory).
-  - Disclaimer i footer: *"Fristående inofficiell tjänst, ej sponsrad av kyrkan."*
+## 1. Rebranding Strategy: "Ge stöd"
+* **Scope**: Eradicate all instances of "Stateless Mission Router" from code, comments, titles, and documentation.
+* **UI Tone**: Soft, warm, welcoming, and community-driven. Focuses on support (stöd) rather than routing or technical telemetry.
+* **Visual Identity**: Clean, supportive layout with teal accents.
 
-## Feature-Sliced Design (FSD) Structure mapping
-The feature `mission_router` houses all components, state mechanisms, and styles related to:
-1. **Onboarding**: High-contrast checklist UI for elder volunteers.
-2. **Alert Monitoring / Active Alerts (`/larm/:id`)**: Response form for selected alerts.
-3. **Simulation Terminal**: Dashboard for testing WhatsApp messages (bypassing headless browser limits or sandbox blocks).
+## 2. Domain Modularization (FSD Alignment)
+To eliminate the server monolith, `server.ts` will be stripped to its HTTP framework shell and delegate business logic to clean domain sub-modules:
+1. **`parser.ts`**:
+   - Location geocoding table (`GEOMAP`).
+   - Pythagorean distance & district matching (`STODDISTRIKT`).
+   - Bracket regex parsing of incoming messages.
+   - Spatial cloaking formulation.
+2. **`pushService.ts`**:
+   - VAPID key initialization.
+   - Subscription persistence (`subscriptions.json`) and active subscription array.
+   - Language, area, and organization-based filtering.
+   - **`triggerPushAlert(alert: ActiveAlert): Promise<number>`**: Awaits and returns the number of reached volunteers in real time to provide immediate feedback to missionaries.
+   - Silent cancel push broadcaster.
+3. **`whatsappBot.ts`**:
+   - Initialization and connection state management for `whatsapp-web.js`.
+   - Handling of incoming messages, including routing to `parser.ts` or triggering smart cancellation.
+   - **Smart Cancellation Logic**: Processes "avboka"/"avbryt" by searching `activeAlerts` for the sender's phone. Handles single or multi-request cancellation using a numbered index reply list, with no persistent session DB required.
+   - **Anonymous Quote-Based Chat Routing**: Maps sent message IDs to alert IDs (`Record<string, string>`). Resolves replies to specific alerts via `msg.getQuotedMessage()`, appending to the alert's RAM-based chat log and routing to the active volunteer's browser view.
 
-### Files in Feature Domain
-* `src/features/mission_router/components/OnboardingForm.tsx` - Big-button layout for elder members.
-* `src/features/mission_router/components/AlertDetail.tsx` - Clear, single-column detail display of the scrubbed alert + response input.
-* `src/features/mission_router/components/SimulatorPanel.tsx` - High-fidelity WhatsApp bot console for testing.
-* `src/features/mission_router/components/Disclaimer.tsx` - Mandatory foot disclaimers.
-* `src/features/mission_router/store/subscriptionStore.ts` - Local/session storage and Web Push registration.
-* `src/features/mission_router/1_Scan/scan_report.md` - (This file)
-* `src/features/mission_router/2_Blueprint/blueprint_spec.md` - Technical specification and schema contracts.
-* `src/features/mission_router/3_Council_Impact/council_debate.md` - Dialectical Council review and alignment.
+## 3. Persistent Notifications & Calendar Utilities
+* **`requireInteraction: true`**: Native Service Worker configuration for sticky notifications that require user dismissal. Enabled by default with an optional opt-out checkbox in Onboarding.
+* **iCal Calendar Generator**: Clientside generator of standard `.ics` files in `AlertDetail.tsx` providing a direct deep link back to the alert in the description/URL fields.
+
+## 4. Operational File Plan
+* Update `/src/features/mission_router/1_Scan/scan_report.md` (This file)
+* Update `/src/features/mission_router/2_Blueprint/blueprint_spec.md` with complete architecture schemas.
+* Update `/src/features/mission_router/3_Council_Impact/council_debate.md` with adversarial safety/GDPR checks.
+* Implement `/src/features/mission_router/domain/parser.ts`, `pushService.ts`, `whatsappBot.ts`.
+* Update `/server.ts` to utilize these domain modules.
+* Update UI components to conform with "Ge stöd" rebranding, chat interface, calendar downloads, and name/phone prompts.

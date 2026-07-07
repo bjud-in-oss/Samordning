@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Check, Heart, HelpCircle, Bell, Info } from "lucide-react";
 import { SubscriptionRecord } from "../types";
+import { TRANSLATIONS, UiLanguage } from "../translations";
 
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
@@ -23,31 +24,46 @@ const GOTEBORG_AREAS = [
   "Härryda"
 ];
 
+const LANGUAGE_OPTIONS = [
+  { code: "Svenska", label: "Svenska / Swedish" },
+  { code: "English", label: "English / English" },
+  { code: "Español", label: "Español / Spanish" },
+  { code: "Kiswahili", label: "Kiswahili / Swahili" },
+  { code: "Tiếng Việt", label: "Tiếng Việt / Vietnamese" }
+];
+
 interface OnboardingFormProps {
   onSave: (tags: {
     areas: string[];
+    languages: string[];
     formats: ("physical" | "telephone")[];
     alwaysNotify: boolean;
     spiritualTips: boolean;
   }) => void;
   savedTags?: {
     areas: string[];
+    languages?: string[];
     formats: ("physical" | "telephone")[];
     alwaysNotify: boolean;
     spiritualTips: boolean;
   };
   pushEnabled: boolean;
   onEnablePush: () => void;
+  uiLanguage: UiLanguage;
 }
 
 export default function OnboardingForm({
   onSave,
   savedTags,
   pushEnabled,
-  onEnablePush
+  onEnablePush,
+  uiLanguage
 }: OnboardingFormProps) {
   const [selectedAreas, setSelectedAreas] = useState<string[]>(
     savedTags?.areas || ["Kortedala"]
+  );
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
+    savedTags?.languages || ["Svenska"]
   );
   const [formats, setFormats] = useState<("physical" | "telephone")[]>(
     savedTags?.formats || ["physical"]
@@ -61,9 +77,17 @@ export default function OnboardingForm({
 
   const [feedback, setFeedback] = useState<string | null>(null);
 
+  const t = TRANSLATIONS[uiLanguage];
+
   const toggleArea = (area: string) => {
     setSelectedAreas(prev =>
       prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area]
+    );
+  };
+
+  const toggleLanguage = (lang: string) => {
+    setSelectedLanguages(prev =>
+      prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]
     );
   };
 
@@ -79,11 +103,12 @@ export default function OnboardingForm({
     e.preventDefault();
     onSave({
       areas: selectedAreas,
+      languages: selectedLanguages,
       formats,
       alwaysNotify,
       spiritualTips
     });
-    setFeedback("Dina inställningar sparades tryggt och anonymt!");
+    setFeedback(t.saveFeedback);
     setTimeout(() => setFeedback(null), 4000);
   };
 
@@ -97,15 +122,15 @@ export default function OnboardingForm({
           </div>
           <div>
             <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
-              Anmälan som stödmedlem
+              {t.onboardingHeader}
             </h2>
             <p className="text-sm text-slate-600 font-medium">
-              Ett varmt, helt anonymt sätt att hjälpa våra unga missionärer.
+              {t.onboardingSubtitle}
             </p>
           </div>
         </div>
         <p className="text-slate-700 text-sm md:text-base leading-relaxed">
-          Välkommen till vår trygga och enkla samordningstjänst. Genom att fylla i dina val underlättar du för våra missionärer att snabbt hitta en vuxen stödmedlem. Du får en mjuk avisering (notis) i din telefon eller dator så fort en förfrågan skapas i något av dina valda områden.
+          {t.onboardingIntro}
         </p>
       </div>
 
@@ -113,14 +138,11 @@ export default function OnboardingForm({
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
         <div className="mb-5">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-            Steg 1 av 4
+            {t.step1Title}
           </span>
           <h3 className="text-xl font-bold text-slate-950 mt-2 mb-1">
-            Välj områden där du kan hjälpa till
+            {t.step1Subtitle}
           </h3>
-          <p className="text-slate-500 text-sm">
-            Klicka på de områden i Göteborg där du har möjlighet att stötta. Sorterat geografiskt från norr till söder.
-          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -154,18 +176,75 @@ export default function OnboardingForm({
         </div>
       </div>
 
-      {/* Val 2: Hur vill du hjälpa? */}
+      {/* NYTT Steg 2: Samarbetande organisationer & Språkstöd (Sekundära språk) */}
+      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+            {t.step2Title}
+          </span>
+          <h3 className="text-xl font-bold text-slate-950 mt-2 mb-1">
+            {t.step2Subtitle}
+          </h3>
+        </div>
+
+        {/* Pedagogiska organisationstexter */}
+        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+          <h4 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-teal-600 rounded-full"></span>
+            {t.step2OrgHeader}
+          </h4>
+          <p className="text-slate-600 text-xs md:text-sm leading-relaxed">
+            {t.step2OrgText}
+          </p>
+        </div>
+
+        {/* Multi-select för Sekundära språk */}
+        <div className="space-y-3">
+          <div>
+            <h4 className="text-base font-bold text-slate-900">{t.step2LangHeader}</h4>
+            <p className="text-xs text-slate-500">{t.step2LangSubtitle}</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {LANGUAGE_OPTIONS.map(lang => {
+              const isSelected = selectedLanguages.includes(lang.code);
+              return (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => toggleLanguage(lang.code)}
+                  className={`flex items-center justify-between p-4 rounded-2xl border-2 text-left transition-all cursor-pointer min-h-[58px] ${
+                    isSelected
+                      ? "border-teal-600/70 bg-teal-50/30 text-teal-950"
+                      : "border-slate-100 bg-slate-50/40 hover:border-slate-200 text-slate-700"
+                  }`}
+                >
+                  <span className="text-base font-semibold text-slate-800">{lang.label}</span>
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border ${
+                      isSelected
+                        ? "bg-teal-600 border-teal-600 text-white"
+                        : "border-slate-300 bg-white"
+                    }`}
+                  >
+                    {isSelected && <Check size={14} strokeWidth={3} />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Val 3: Hur vill du hjälpa? */}
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
         <div className="mb-5">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-            Steg 2 av 4
+            {t.step3Title}
           </span>
           <h3 className="text-xl font-bold text-slate-950 mt-2 mb-1">
-            Hur vill du delta?
+            {t.step3Subtitle}
           </h3>
-          <p className="text-slate-500 text-sm">
-            Välj de format som passar din livssituation bäst.
-          </p>
         </div>
 
         <div className="space-y-3">
@@ -189,10 +268,10 @@ export default function OnboardingForm({
             </div>
             <div>
               <div className="text-base font-bold text-slate-800 leading-none mb-1">
-                Fysiskt på plats
+                {t.formatPhysicalTitle}
               </div>
               <div className="text-xs md:text-sm text-slate-500 leading-relaxed">
-                Jag kan möta upp missionärer ute i staden för att närvara vid möten eller lektioner.
+                {t.formatPhysicalDesc}
               </div>
             </div>
           </button>
@@ -217,28 +296,25 @@ export default function OnboardingForm({
             </div>
             <div>
               <div className="text-base font-bold text-slate-800 leading-none mb-1">
-                Via telefon / video
+                {t.formatDigitalTitle}
               </div>
               <div className="text-xs md:text-sm text-slate-500 leading-relaxed">
-                Jag deltar gärna via telefon eller videosamtal på Zoom eller WhatsApp.
+                {t.formatDigitalDesc}
               </div>
             </div>
           </button>
         </div>
       </div>
 
-      {/* Val 3 & 4: Inställningar */}
+      {/* Val 4 & 5: Aviseringar */}
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
         <div className="mb-5">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-            Steg 3 & 4 av 4
+            {t.step4Title}
           </span>
           <h3 className="text-xl font-bold text-slate-950 mt-2 mb-1">
-            Anpassa dina aviseringar
+            {t.step4Subtitle}
           </h3>
-          <p className="text-slate-500 text-sm">
-            Finjustera hur och när du vill bli meddelad.
-          </p>
         </div>
 
         <div className="space-y-4">
@@ -251,10 +327,10 @@ export default function OnboardingForm({
             />
             <div>
               <div className="text-base font-bold text-slate-800 leading-tight">
-                Skicka aviseringar direkt till min enhet
+                {t.notifyOptionTitle}
               </div>
               <div className="text-xs text-slate-500 mt-1 leading-normal">
-                Du får ett vänligt meddelande när ett missionsbehov uppstår i dina valda områden. Du avgör helt i stunden om du har möjlighet att delta eller ej.
+                {t.notifyOptionDesc}
               </div>
             </div>
           </label>
@@ -268,10 +344,10 @@ export default function OnboardingForm({
             />
             <div>
               <div className="text-base font-bold text-slate-800 leading-tight">
-                Prenumerera på veckovisa andliga tankar
+                {t.spiritualOptionTitle}
               </div>
               <div className="text-xs text-slate-500 mt-1 leading-normal">
-                Få en kort, upplyftande tanke skickad som en tyst notis en gång i veckan.
+                {t.spiritualOptionDesc}
               </div>
             </div>
           </label>
@@ -284,10 +360,8 @@ export default function OnboardingForm({
           <Info size={22} />
         </div>
         <div className="text-slate-700 text-sm leading-relaxed space-y-1">
-          <h4 className="font-bold text-slate-900">Viktigt tips för iPhone/iOS-användare:</h4>
-          <p>
-            Denna tjänst fungerar bäst i din mobiltelefon. Om du använder en iPhone måste du först trycka på Dela-knappen (fyrkanten med en pil uppåt) i webbläsaren och välja <strong className="text-slate-900">"Lägg till på hemskärmen"</strong>. Öppna sedan appen från din hemskärm för att kunna aktivera aviseringarna.
-          </p>
+          <h4 className="font-bold text-slate-900">{t.iosTipHeader}</h4>
+          <p>{t.iosTipBody}</p>
         </div>
       </div>
 
@@ -296,11 +370,11 @@ export default function OnboardingForm({
         <div>
           <div className="flex items-center gap-2 text-teal-400 font-bold text-xs tracking-wider uppercase mb-1">
             <Bell size={16} />
-            <span>Meddelandeinställningar</span>
+            <span>{t.pushHeader}</span>
           </div>
-          <h3 className="text-xl md:text-2xl font-bold text-slate-50">Slå på aviseringar</h3>
+          <h3 className="text-xl md:text-2xl font-bold text-slate-50">{t.pushHeader}</h3>
           <p className="text-slate-300 text-xs md:text-sm mt-1 leading-relaxed max-w-md">
-            För att kunna ta emot förfrågningar i samma sekund som de skapas behöver du godkänna aviseringar.
+            {t.pushSubtitle}
           </p>
         </div>
 
@@ -309,20 +383,20 @@ export default function OnboardingForm({
             type="button"
             onClick={onEnablePush}
             disabled={pushEnabled}
-            className={`px-5 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+            className={`px-5 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
               pushEnabled
                 ? "bg-emerald-600/20 text-emerald-300 border border-emerald-500/20"
                 : "bg-teal-600 hover:bg-teal-700 text-white shadow-sm active:scale-[0.98]"
             }`}
           >
-            {pushEnabled ? "✓ Notiser aktiverade" : "Aktivera aviseringar"}
+            {pushEnabled ? t.pushBtnActive : t.pushBtnInactive}
           </button>
 
           <button
             type="submit"
-            className="px-5 py-3 bg-white/10 hover:bg-white/15 border border-white/10 rounded-2xl font-semibold text-xs text-white transition-all active:scale-[0.98]"
+            className="px-5 py-3 bg-white/10 hover:bg-white/15 border border-white/10 rounded-2xl font-semibold text-xs text-white transition-all active:scale-[0.98] cursor-pointer"
           >
-            Spara inställningar
+            {t.saveBtn}
           </button>
         </div>
       </div>

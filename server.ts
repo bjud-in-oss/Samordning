@@ -288,6 +288,19 @@ function parseMissionaryMessage(text: string): CleanedData | null {
 }
 
 // Router trigger for Web Push notifications to matching volunteers
+//
+// FUTURE AI TRANSLATION INTEGRATION (GEMINI API) NOTES:
+// In the future, to fully internationalize missionary requests, we can integrate the Gemini API here.
+// When a new push alert is triggered, instead of sending the same text to all volunteers:
+// 1. Look up each subscriber's primary language (`uiLanguage` tag saved during onboarding).
+// 2. If the subscriber's language differs from the alert's native language (e.g., Svenska vs Tiếng Việt),
+//    we can use Gemini to translate the `scrubbedText` (e.g., "Möte på kafé, Kl 18:00, Kvinnor, Español") into their target language.
+// 3. Example implementation using @google/genai:
+//    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+//    const prompt = `Translate this structured missionary request into ${subscriber.uiLanguage} with warm, supportive, and respectful terminology: "${alert.scrubbedText}"`;
+//    const response = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: prompt });
+//    const translatedBody = response.text;
+// 4. This ensures that every volunteer receives a push notification and views the alert details in their own mother tongue, maximizing response rates while preserving full privacy.
 async function triggerPushAlert(alert: ActiveAlert) {
   let pushCount = 0;
   addSimLog("system", `Router matchar larm i [${alert.area}] mot anonyma prenumeranter.`);

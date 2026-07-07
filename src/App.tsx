@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { ShieldAlert, Users, Radio, Smartphone, AlertCircle, Sparkles, Heart } from "lucide-react";
+import { ShieldAlert, Users, Radio, Smartphone, AlertCircle, Sparkles, Heart, Languages, Globe } from "lucide-react";
 import OnboardingForm from "./features/mission_router/components/OnboardingForm";
 import AlertDetail from "./features/mission_router/components/AlertDetail";
 import SimulatorPanel from "./features/mission_router/components/SimulatorPanel";
 import Disclaimer from "./features/mission_router/components/Disclaimer";
+import { TRANSLATIONS, UiLanguage } from "./features/mission_router/translations";
 
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
@@ -22,6 +23,11 @@ function urlBase64ToUint8Array(base64String: string) {
 export default function App() {
   // Views: 'volunteer' | 'simulator'
   const [activeTab, setActiveTab] = useState<"volunteer" | "simulator">("volunteer");
+  
+  // UI Language for translation (null triggers Gateway screen)
+  const [uiLanguage, setUiLanguage] = useState<UiLanguage | null>(() => {
+    return localStorage.getItem("mission_router_ui_language") as UiLanguage | null;
+  });
   
   // Alert ID matched from pathname, e.g., `/larm/abc123`
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
@@ -157,6 +163,56 @@ export default function App() {
     }
   };
 
+  if (!uiLanguage) {
+    return (
+      <div className="min-h-screen bg-[#FDFDFD] flex flex-col items-center justify-center p-6 text-slate-800">
+        <div className="max-w-md w-full text-center space-y-8">
+          <div className="space-y-3">
+            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
+              Missionshjälpen
+            </h1>
+            <p className="text-sm text-slate-500 font-medium">
+              Ett tryggt stöd för våra unga missionärer i Göteborg
+            </p>
+          </div>
+
+          {/* Centered Large Translation Symbol with hover effect */}
+          <div className="w-32 h-32 bg-teal-50 text-teal-600 rounded-3xl flex items-center justify-center mx-auto shadow-sm border border-teal-100/60 transition-transform hover:scale-105 duration-300">
+            <Languages size={64} className="stroke-[1.5]" />
+          </div>
+
+          <p className="text-xs uppercase font-extrabold tracking-wider text-slate-400">
+            Välj ditt språk för att fortsätta • Choose your language
+          </p>
+
+          <div className="grid grid-cols-1 gap-3 pt-2">
+            {[
+              { code: "sv", label: "Svenska" },
+              { code: "en", label: "English" },
+              { code: "es", label: "Español" },
+              { code: "sw", label: "Kiswahili" },
+              { code: "vi", label: "Tiếng Việt" }
+            ].map(lang => (
+              <button
+                key={lang.code}
+                onClick={() => {
+                  localStorage.setItem("mission_router_ui_language", lang.code);
+                  setUiLanguage(lang.code as UiLanguage);
+                }}
+                className="w-full py-4 px-6 bg-white hover:bg-slate-50 text-slate-800 hover:text-slate-900 font-bold text-lg rounded-2xl border-2 border-slate-100 hover:border-teal-500/30 transition-all shadow-sm active:scale-[0.99] flex items-center justify-between cursor-pointer"
+              >
+                <span>{lang.label}</span>
+                <span className="text-xs font-mono font-semibold text-slate-400 uppercase">
+                  {lang.code}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const isVolunteerMode = activeTab === "volunteer" || !!activeAlertId;
 
   return (
@@ -197,6 +253,19 @@ export default function App() {
               isVolunteerMode ? `Ditt ID: ${subscriptionId.substring(0, 8)}...` : `Token: ${subscriptionId.substring(0, 8)}...`
             ) : "Ej ansluten"}
           </div>
+
+          {uiLanguage && (
+            <button
+              onClick={() => {
+                localStorage.removeItem("mission_router_ui_language");
+                setUiLanguage(null);
+              }}
+              className="h-10 w-10 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-full flex items-center justify-center text-slate-600 transition-all active:scale-95 cursor-pointer shrink-0"
+              title="Ändra språk / Change language"
+            >
+              <Globe size={18} />
+            </button>
+          )}
         </div>
       </header>
 
@@ -254,6 +323,7 @@ export default function App() {
             onBack={() => {
               navigateTo("/");
             }}
+            uiLanguage={uiLanguage || "sv"}
           />
         ) : activeTab === "volunteer" ? (
           <OnboardingForm
@@ -261,6 +331,7 @@ export default function App() {
             savedTags={savedTags}
             pushEnabled={pushEnabled}
             onEnablePush={handleEnablePush}
+            uiLanguage={uiLanguage || "sv"}
           />
         ) : (
           <SimulatorPanel />
@@ -268,7 +339,7 @@ export default function App() {
       </main>
 
       {/* Foot Disclaimers */}
-      <Disclaimer />
+      <Disclaimer uiLanguage={uiLanguage || "sv"} />
     </div>
   );
 }

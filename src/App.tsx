@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ShieldAlert, Users, Radio, Smartphone, AlertCircle, Sparkles } from "lucide-react";
+import { ShieldAlert, Users, Radio, Smartphone, AlertCircle, Sparkles, Heart } from "lucide-react";
 import OnboardingForm from "./features/mission_router/components/OnboardingForm";
 import AlertDetail from "./features/mission_router/components/AlertDetail";
 import SimulatorPanel from "./features/mission_router/components/SimulatorPanel";
@@ -76,18 +76,18 @@ export default function App() {
   const handleEnablePush = async () => {
     setPushError(null);
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      setPushError("Din webbläsare stöder tyvärr inte Web Push-notiser.");
+      setPushError("Din enhet stöder tyvärr inte Web Push-aviseringar.");
       return;
     }
 
     try {
       // 1. Fetch VAPID Public Key from server
       const keyRes = await fetch("/api/vapid-public-key");
-      if (!keyRes.ok) throw new Error("Misslyckades att hämta VAPID-nyckel från servern.");
+      if (!keyRes.ok) throw new Error("Misslyckades att hämta anslutningsnyckel från servern.");
       const { publicKey } = await keyRes.json();
 
       if (!publicKey) {
-        throw new Error("Ingen giltig VAPID-nyckel returnerades från servern.");
+        throw new Error("Ingen giltig anslutningsnyckel returnerades från servern.");
       }
 
       // 2. Register Service Worker
@@ -117,7 +117,7 @@ export default function App() {
         })
       });
 
-      if (!response.ok) throw new Error("Kunde inte registrera push-notiser på servern.");
+      if (!response.ok) throw new Error("Kunde inte slutföra registreringen på servern.");
       const data = await response.json();
 
       // 5. Save subscription identity in localStorage
@@ -157,19 +157,27 @@ export default function App() {
     }
   };
 
+  const isVolunteerMode = activeTab === "volunteer" || !!activeAlertId;
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800">
+    <div className="min-h-screen bg-[#FDFDFD] flex flex-col font-sans text-slate-800">
       {/* Top Header matching Clean Minimalism theme */}
-      <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-10 shrink-0">
+      <header className="h-20 bg-white border-b border-slate-100 flex items-center justify-between px-6 md:px-10 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shrink-0">
-            <Radio size={22} className="animate-pulse" />
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 ${
+            isVolunteerMode ? "bg-teal-600" : "bg-blue-600"
+          }`}>
+            {isVolunteerMode ? (
+              <Heart size={22} className="fill-white/10" />
+            ) : (
+              <Radio size={22} className="animate-pulse" />
+            )}
           </div>
           <div>
-            <h1 className="text-lg md:text-2xl font-black tracking-tight text-slate-950 flex items-center gap-2">
-              Stateless Mission Router
-              <span className="hidden sm:inline text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
-                Amnesi v1.0
+            <h1 className="text-lg md:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+              {isVolunteerMode ? "Missionsstöd & Samordning" : "Stateless Mission Router"}
+              <span className="hidden sm:inline text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+                {isVolunteerMode ? "Helt anonymt" : "Amnesi v1.0"}
               </span>
             </h1>
           </div>
@@ -177,52 +185,56 @@ export default function App() {
 
         {/* Dynamic Header Badges */}
         <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
-            <span>SECURE RAM MODE</span>
+          <div className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
+            <div className={`w-2 h-2 rounded-full ${
+              isVolunteerMode ? "bg-emerald-500" : "bg-blue-500 animate-ping"
+            }`}></div>
+            <span>{isVolunteerMode ? "Säker anslutning aktiv" : "SECURE RAM MODE"}</span>
           </div>
 
-          <div className="h-10 px-3 md:px-4 bg-slate-100 border border-slate-200/60 rounded-full flex items-center text-xs md:text-sm font-semibold text-slate-600">
-            {subscriptionId ? `Token: ${subscriptionId.substring(0, 8)}...` : "Ej ansluten"}
+          <div className="h-10 px-3 md:px-4 bg-slate-50 border border-slate-100 rounded-full flex items-center text-xs md:text-sm font-semibold text-slate-600">
+            {subscriptionId ? (
+              isVolunteerMode ? `Ditt ID: ${subscriptionId.substring(0, 8)}...` : `Token: ${subscriptionId.substring(0, 8)}...`
+            ) : "Ej ansluten"}
           </div>
         </div>
       </header>
 
       {/* Mode navigation / system tabs */}
-      <nav className="bg-white border-b border-slate-200/80 px-4 md:px-10 py-3 flex items-center justify-between">
-        <div className="flex bg-slate-100 p-1 rounded-xl">
+      <nav className="bg-white border-b border-slate-100 px-4 md:px-10 py-3 flex items-center justify-between">
+        <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-100">
           <button
             onClick={() => {
               setActiveTab("volunteer");
               navigateTo("/");
             }}
-            className={`px-5 py-2.5 rounded-lg text-sm font-bold tracking-wide transition-all ${
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
               activeTab === "volunteer" && !activeAlertId
-                ? "bg-white text-slate-950 shadow-sm"
+                ? "bg-white text-slate-950 shadow-sm border border-slate-100/50"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            Volontär-Onboarding
+            Volontärsportal
           </button>
           <button
             onClick={() => {
               setActiveTab("simulator");
               navigateTo("/");
             }}
-            className={`px-5 py-2.5 rounded-lg text-sm font-bold tracking-wide transition-all ${
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
               activeTab === "simulator" && !activeAlertId
-                ? "bg-white text-slate-950 shadow-sm"
+                ? "bg-white text-slate-950 shadow-sm border border-slate-100/50"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            Integrations-Simulator
+            Simuleringspanel
           </button>
         </div>
 
         {activeAlertId && (
-          <div className="flex items-center gap-1.5 text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-teal-800 bg-teal-50 px-3 py-1.5 rounded-lg border border-teal-100">
             <AlertCircle size={14} />
-            <span>Du visar larm: {activeAlertId}</span>
+            <span>Aktiv förfrågan: {activeAlertId}</span>
           </div>
         )}
       </nav>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Trash2, Send, MapPin, Calendar, Users, Languages, ShieldCheck, ArrowLeft, RotateCcw } from "lucide-react";
+import { Trash2, Send, MapPin, Calendar, Users, Languages, ShieldCheck, ArrowLeft } from "lucide-react";
 import { ActiveAlert } from "../types";
 
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
@@ -26,12 +26,11 @@ export default function AlertDetail({ alertId, onBack }: AlertDetailProps) {
         const res = await fetch(`/api/alerts/${alertId}`);
         if (!res.ok) {
           const body = await res.json();
-          throw new Error(body.error || "Misslyckades att hämta larm.");
+          throw new Error(body.error || "Misslyckades att hämta förfrågan.");
         }
         const data = await res.json();
         if (active) {
           setAlert(data);
-          // Set some standard elder-friendly templates as default response options
           setResponseText("Jag kan vara med!");
         }
       } catch (err: any) {
@@ -64,7 +63,7 @@ export default function AlertDetail({ alertId, onBack }: AlertDetailProps) {
 
       if (!res.ok) {
         const body = await res.json();
-        throw new Error(body.error || "Misslyckades att skicka svar.");
+        throw new Error(body.error || "Misslyckades att skicka ditt svar.");
       }
 
       setSuccess(true);
@@ -77,39 +76,39 @@ export default function AlertDetail({ alertId, onBack }: AlertDetailProps) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-600 font-bold">Hämtar larmdata från volatile server-RAM...</p>
+      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-600 font-semibold">Hämtar information om förfrågan...</p>
       </div>
     );
   }
 
   if (error || success) {
     return (
-      <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6 max-w-xl mx-auto text-center">
+      <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-6 max-w-xl mx-auto text-center">
         {success ? (
           <>
-            <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+            <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <ShieldCheck size={48} />
             </div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Svar skickat & Amnesi triggad!</h2>
-            <div className="text-sm bg-slate-50 text-slate-600 p-5 rounded-2xl border border-slate-100 text-left leading-relaxed space-y-3">
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Ditt svar har skickats!</h2>
+            <div className="text-sm bg-slate-50 text-slate-600 p-6 rounded-2xl border border-slate-100 text-left leading-relaxed space-y-3">
               <p>
-                <strong>1. Svar levererat:</strong> Ditt svar har vidarebefordrats anonymt till rätt missionärspar.
+                <strong>1. Svaret har levererats:</strong> Ditt meddelande har vidarebefordrats helt anonymt till rätt missionärspar.
               </p>
               <p>
-                <strong>2. Amnesi-protokoll fullbordat:</strong> Larmdata och tillfälliga spårningskopplingar har raderats permanent från serverns RAM. Det finns absolut noll historik sparad.
+                <strong>2. Förfrågan har stängts:</strong> För allas trygghet har detta behov och tillhörande data raderats permanent. Inga spår eller personuppgifter lagras i systemet.
               </p>
             </div>
           </>
         ) : (
           <>
-            <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <Trash2 size={40} />
             </div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Larmet är borta</h2>
-            <p className="text-slate-500 leading-relaxed text-sm">
-              Larmet hittades inte. Det har antingen tagits bort permanent via Amnesi-protokollet av en annan volontär, eller så har det automatiskt förfallit efter utgånget tidsspann (TTL).
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Förfrågan har redan besvarats</h2>
+            <p className="text-slate-600 leading-relaxed text-sm">
+              Denna förfrågan är inte längre tillgänglig. Antingen har en annan stödmedlem redan tackat ja och tagit sig an mötet (vilket stänger och raderar förfrågan direkt), eller så har tiden för mötet redan passerat.
             </p>
           </>
         )}
@@ -117,10 +116,10 @@ export default function AlertDetail({ alertId, onBack }: AlertDetailProps) {
         <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={onBack}
-            className="px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-2xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+            className="px-6 py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
           >
             <ArrowLeft size={18} />
-            Tillbaka till onboarding
+            Tillbaka till startsidan
           </button>
         </div>
       </div>
@@ -132,59 +131,59 @@ export default function AlertDetail({ alertId, onBack }: AlertDetailProps) {
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-12">
       {/* Header card with back button */}
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex items-center justify-between">
+      <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex items-center justify-between">
         <button
           onClick={onBack}
-          className="px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-xl transition-all flex items-center gap-2"
+          className="px-4 py-2 hover:bg-slate-50 text-slate-600 font-bold rounded-xl transition-all flex items-center gap-2"
         >
           <ArrowLeft size={18} />
           <span>Tillbaka</span>
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping"></div>
-          <span className="text-xs font-mono font-bold text-slate-500">LARM: {alert.id}</span>
+          <div className="w-2.5 h-2.5 rounded-full bg-teal-600 animate-ping"></div>
+          <span className="text-xs font-semibold text-slate-500">Aktiv förfrågan</span>
         </div>
       </div>
 
       {/* Main Alert Card */}
-      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 space-y-6">
+      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-3 py-1 rounded-full">
-            Aktivt Behov
+          <span className="text-xs font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-3 py-1 rounded-full">
+            Aktuellt missionsbehov
           </span>
-          <h2 className="text-2xl md:text-3xl font-black text-slate-950 mt-3 tracking-tight">
-            Behov i {alert.area}
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-3 tracking-tight">
+            Missionsbehov i {alert.area}
           </h2>
         </div>
 
         {/* Clean, scrubbed details in human readable rows */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <MapPin className="text-blue-600" size={24} />
+          <div className="flex items-center gap-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
+            <MapPin className="text-teal-600 shrink-0" size={24} />
             <div>
               <div className="text-[10px] uppercase font-bold text-slate-400">Plats (Ungefärlig)</div>
               <div className="text-base font-bold text-slate-800">{alert.locationName}</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <Calendar className="text-blue-600" size={24} />
+          <div className="flex items-center gap-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
+            <Calendar className="text-teal-600 shrink-0" size={24} />
             <div>
               <div className="text-[10px] uppercase font-bold text-slate-400">Tidpunkt</div>
               <div className="text-base font-bold text-slate-800">{alert.time}</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <Users className="text-blue-600" size={24} />
+          <div className="flex items-center gap-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
+            <Users className="text-teal-600 shrink-0" size={24} />
             <div>
-              <div className="text-[10px] uppercase font-bold text-slate-400">Kategori</div>
+              <div className="text-[10px] uppercase font-bold text-slate-400">Deltagare</div>
               <div className="text-base font-bold text-slate-800">{alert.gender}</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <Languages className="text-blue-600" size={24} />
+          <div className="flex items-center gap-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
+            <Languages className="text-teal-600 shrink-0" size={24} />
             <div>
               <div className="text-[10px] uppercase font-bold text-slate-400">Språk</div>
               <div className="text-base font-bold text-slate-800">{alert.language}</div>
@@ -192,40 +191,20 @@ export default function AlertDetail({ alertId, onBack }: AlertDetailProps) {
           </div>
         </div>
 
-        {/* Spatial Cloaking Section */}
-        <div className="bg-slate-900 text-white rounded-2xl p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="text-blue-400" size={20} />
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-blue-400">
-              Spatial Cloaking skydd
-            </h4>
-          </div>
-          <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
-            Undersökarens exakta position skyddas genom att avrunda GPS-koordinaterna till jämna 0.02-steg (~2x2 km geobox). 
-            Din app ser endast det allmänna grannskapet.
+        {/* Friendly Integrity Note (Replacing scary Spatial Cloaking) */}
+        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-2 text-sm text-slate-600 leading-relaxed">
+          <p>
+            <strong className="text-slate-800">För allas trygghet och integritet:</strong> Tjänsten visar endast den ungefärliga mötesplatsen och det allmänna grannskapet, inte exakta adresser. Det ger tillräcklig information för att du ska veta om du kan delta, samtidigt som medlemmens integritet värnas till fullo.
           </p>
-          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-mono">
-            <div>
-              <div className="text-slate-500 text-[10px]">AVRUNDADE GPS KOORDINATER</div>
-              <div className="text-slate-200 mt-0.5">
-                Lat: {alert.cloakedCoords?.lat?.toFixed(3) || "N/A"}, Lng: {alert.cloakedCoords?.lng?.toFixed(3) || "N/A"}
-              </div>
-            </div>
-            <div className="text-right">
-              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20">
-                SÄKER GEOBOX AKTIV
-              </span>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* Svarsformulär */}
-      <form onSubmit={handleRespond} className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 space-y-6">
+      <form onSubmit={handleRespond} className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
         <div>
-          <h3 className="text-xl font-bold text-slate-950">Skicka ditt svar</h3>
+          <h3 className="text-xl font-bold text-slate-950">Besvara förfrågan</h3>
           <p className="text-slate-500 text-sm mt-1">
-            Skriv ditt meddelande eller välj ett av de föreslagna snabbsvaren nedan.
+            Skriv ett kort svar eller välj ett av de färdiga alternativen nedan.
           </p>
         </div>
 
@@ -234,7 +213,7 @@ export default function AlertDetail({ alertId, onBack }: AlertDetailProps) {
           {[
             "Jag kan vara med!",
             "Jag deltar gärna via video/telefon.",
-            "Min fru syster Y är på väg!",
+            "Min man/fru/vän följer också med!",
             "Jag möter upp er vid angiven tid."
           ].map(quick => (
             <button
@@ -250,13 +229,13 @@ export default function AlertDetail({ alertId, onBack }: AlertDetailProps) {
 
         <div className="space-y-2">
           <label className="text-xs uppercase font-extrabold text-slate-400 tracking-wider">
-            Svarsmeddelande till missionärerna
+            Ditt meddelande till missionärerna
           </label>
           <textarea
             value={responseText}
             onChange={e => setResponseText(e.target.value)}
             rows={3}
-            className="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none text-base font-medium placeholder-slate-400 transition-all resize-none"
+            className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-teal-600 focus:outline-none text-base font-semibold placeholder-slate-400 transition-all resize-none text-slate-800"
             placeholder="Skriv svar här..."
             required
           />
@@ -265,20 +244,20 @@ export default function AlertDetail({ alertId, onBack }: AlertDetailProps) {
         <button
           type="submit"
           disabled={sending || !responseText.trim()}
-          className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 text-white font-black text-lg rounded-2xl transition-all shadow-lg shadow-emerald-600/10 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-4 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-200 text-white font-bold text-lg rounded-2xl transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
         >
           {sending ? (
             <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           ) : (
             <>
               <Send size={20} />
-              Skicka svar & Trigger Amnesi
+              Skicka svar och hjälp till
             </>
           )}
         </button>
 
         <p className="text-[11px] text-slate-400 text-center leading-relaxed">
-          När du klickar på Skicka vidarebefordras ditt svar direkt till missionärernas WhatsApp. I samma ögonblick raderas detta larm, dess koordinater och kopplingar permanent och oåterkalleligt från serverns RAM.
+          Ditt svar skickas helt anonymt och säkert vidare till missionärerna. För att skydda allas integritet raderas denna förfrågan permanent från vårt tillfälliga minne så snart du klickat på skicka.
         </p>
       </form>
     </div>

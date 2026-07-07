@@ -83,3 +83,22 @@ Any text outside brackets is discarded instantly to protect privacy.
 * `POST /api/alerts/:id/respond` - Send response text back to WhatsApp missionary pair, then instantly trigger Amnesia (wipe record).
 * `POST /api/sim/whatsapp` - Mock receiving a WhatsApp message from a missionary (triggers push notification + console output).
 * `GET /api/sim/messages` - Fetch list of mock messages sent/received for the high-fidelity dashboard.
+
+## 5. Silent Cancel Push & Amnesia Lifecycle
+To prevent multiple volunteers from pursuing the same completed request, and to maintain strict data minimisation:
+* **Response Trigger**: When a volunteer taps "Jag kan följa med" (I can come), the backend forwards the notification/text to the missionary pair.
+* **Amnesia Wipe**: Immediately after the response is sent, the `ActiveAlert` record is wiped entirely from the server's in-memory storage (`delete alerts[id]`).
+* **Silent Cancel Broadcast**: The server sends a silent Web Push payload to all subscribers:
+  ```json
+  {
+    "type": "CANCEL",
+    "id": "larm_id_here"
+  }
+  ```
+* **Service Worker Action**: Upon receiving `type: 'CANCEL'`, the background Service Worker (`public/sw.js`) locates any active visible notification with `tag: larm_id` and calls `notification.close()`, silently removing the notification from the user's lock screen/notification drawer without making a sound.
+
+## 6. i18n & Gateway Architecture
+To support the diverse language demographics of Gothenburg's wards and supporting members:
+* **The Gateway Pattern**: On initial load, the app detects if a preferred `uiLanguage` exists in storage. If absent, it presents a minimal Language Gateway displaying only language selection flags.
+* **Full Localization Mapping**: The chosen `uiLanguage` dynamically maps text keys through the structured `TRANSLATIONS` dictionary, covering all steps of Onboarding, Dashboard status messages, and Simulator panels.
+* **Fallback Resolution**: If a translation is missing, the system gracefully falls back to the default Swedish/English translation to ensure the volunteer always understands the UI.

@@ -339,6 +339,31 @@ async function triggerPushAlert(alert: ActiveAlert) {
         continue;
       }
 
+      // Language-based filtering
+      const alertLang = alert.language.toLowerCase();
+      const subLangs = s.tags.languages || [];
+      
+      const normalize = (l: string) => {
+        const s = l.toLowerCase();
+        if (s.includes("sven") || s.includes("swe")) return "svenska";
+        if (s.includes("eng") || s.includes("en")) return "english";
+        if (s.includes("span") || s.includes("esp") || s.includes("spa")) return "español";
+        if (s.includes("swah") || s.includes("kisw") || s.includes("swa")) return "kiswahili";
+        if (s.includes("viet") || s.includes("tiếng") || s.includes("tieng")) return "tiếng việt";
+        return s;
+      };
+
+      const normAlert = normalize(alertLang);
+      const isMatched = subLangs.some(lang => {
+        const normSub = normalize(lang);
+        return normSub === normAlert || lang.toLowerCase().includes(alertLang) || alertLang.includes(lang.toLowerCase());
+      });
+
+      if (!isMatched) {
+        addSimLog("system", `Hoppar över prenumerant ${s.id.substring(0, 6)}... då prenumeranten inte stödjer det önskade språket [${alert.language}].`);
+        continue;
+      }
+
       try {
         await webpush.sendNotification(s.subscription, payload, { TTL: ttlSeconds });
         pushCount++;

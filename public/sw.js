@@ -1,5 +1,7 @@
+// [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
+
 self.addEventListener('push', function(event) {
-  let data = { title: 'Nytt larm', body: 'Ett nytt larm har inkommit', id: '' };
+  let data = {};
   if (event.data) {
     try {
       data = event.data.json();
@@ -8,20 +10,32 @@ self.addEventListener('push', function(event) {
     }
   }
 
+  // Handle Silent Cancel Push
+  if (data.type === 'CANCEL' && data.id) {
+    event.waitUntil(
+      self.registration.getNotifications({ tag: 'larm-' + data.id }).then(function(notifications) {
+        notifications.forEach(function(notification) {
+          notification.close();
+        });
+      })
+    );
+    return;
+  }
+
+  const alertId = data.id || '';
   const options = {
-    body: data.body,
-    icon: '/assets/icon.png', // Fallback or standard icon
+    body: data.body || 'Ett nytt larm har inkommit',
+    icon: '/assets/icon.png',
     badge: '/assets/badge.png',
     data: {
-      url: data.id ? '/larm/' + data.id : '/'
+      url: alertId ? '/larm/' + alertId : '/'
     },
-    // Set TTL/expiration for the notification directly using standard properties
-    tag: data.id ? 'larm-' + data.id : 'mission-larm',
+    tag: alertId ? 'larm-' + alertId : 'mission-larm',
     renotify: true
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    self.registration.showNotification(data.title || 'Nytt larm', options)
   );
 });
 

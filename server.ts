@@ -163,6 +163,33 @@ const GEOMAP: Record<string, { lat: number; lng: number }> = {
   "centralstationen": { lat: 57.7086, lng: 11.9731 }
 };
 
+// Extrahera tid i sekunder till angiven tidpunkt för TTL-beräkning
+function calculateSecondsUntilTime(timeStr: string): number {
+  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) {
+    // Standard-TTL på 2 timmar om formatet är ospecifikt
+    return 7200;
+  }
+
+  const hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+
+  const now = new Date();
+  const target = new Date(now);
+  target.setHours(hours, minutes, 0, 0);
+
+  // Om tiden redan passerat idag, antar vi samma tidpunkt imorgon
+  if (target.getTime() <= now.getTime()) {
+    target.setDate(target.getDate() + 1);
+  }
+
+  const diffMs = target.getTime() - now.getTime();
+  const diffSec = Math.ceil(diffMs / 1000);
+
+  // Returnera mellan 1 minut och 24 timmar
+  return Math.max(60, Math.min(86400, diffSec));
+}
+
 // Pythagoras Distance for Gothenburg latitude (57.7 deg)
 // d^2 = (dx * 0.53)^2 + dy^2
 function getDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -271,13 +298,16 @@ async function triggerPushAlert(alert: ActiveAlert) {
     id: alert.id
   });
 
+  const ttlSeconds = calculateSecondsUntilTime(alert.time);
+  addSimLog("system", `Beräknat larm TTL: ${ttlSeconds} sekunder fram till kl ${alert.time}.`);
+
   for (const s of subscriptions) {
     const areaMatch = s.tags.areas.includes(alert.area);
     const hasMatch = areaMatch || s.tags.alwaysNotify;
 
     if (hasMatch) {
       try {
-        await webpush.sendNotification(s.subscription, payload);
+        await webpush.sendNotification(s.subscription, payload, { TTL: ttlSeconds });
         pushCount++;
       } catch (err: any) {
         // If subscription has expired, remove it to prevent clutter
@@ -290,7 +320,7 @@ async function triggerPushAlert(alert: ActiveAlert) {
     }
   }
 
-  addSimLog("push", `Skickat ${pushCount} push-notiser till matchade volontärer.`);
+  addSimLog("push", `Skickat ${pushCount} larm-push-notiser till matchade volontärer.`);
 }
 
 // In-Memory processing pipeline
@@ -498,6 +528,31 @@ app.post("/api/alerts/:id/respond", async (req, res) => {
   } else {
     addSimLog("outgoing", `Svar vidarebefordrat till missionär (SIMULATOR): ${responseMessage}`, { to: alert.missionaryPhone });
   }
+
+  // Silent Cancel Push to matching subscribers
+  const cancelPayload = JSON.stringify({
+    type: "CANCEL",
+    id: alert.id
+  });
+
+  let cancelPushCount = 0;
+  for (const s of subscriptions) {
+    const areaMatch = s.tags.areas.includes(alert.area);
+    const hasMatch = areaMatch || s.tags.alwaysNotify;
+
+    if (hasMatch) {
+      try {
+        await webpush.sendNotification(s.subscription, cancelPayload, { TTL: 60 });
+        cancelPushCount++;
+      } catch (err: any) {
+        if (err.statusCode === 410) {
+          subscriptions = subscriptions.filter(sub => sub.id !== s.id);
+          saveSubscriptions();
+        }
+      }
+    }
+  }
+  addSimLog("push", `Skickat tyst avbeställnings-push till ${cancelPushCount} volontärer för larm ${alert.id}.`);
 
   // Amnesia Protocol - Wipe larm data completely from memory
   delete activeAlerts[req.params.id];

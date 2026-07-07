@@ -36,6 +36,7 @@ interface OnboardingFormProps {
   onSave: (tags: {
     areas: string[];
     languages: string[];
+    organization: string;
     formats: ("physical" | "telephone")[];
     alwaysNotify: boolean;
     spiritualTips: boolean;
@@ -43,6 +44,7 @@ interface OnboardingFormProps {
   savedTags?: {
     areas: string[];
     languages?: string[];
+    organization?: string;
     formats: ("physical" | "telephone")[];
     alwaysNotify: boolean;
     spiritualTips: boolean;
@@ -64,6 +66,9 @@ export default function OnboardingForm({
   );
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
     savedTags?.languages || ["Svenska"]
+  );
+  const [organization, setOrganization] = useState<string>(
+    savedTags?.organization || "bror"
   );
   const [formats, setFormats] = useState<("physical" | "telephone")[]>(
     savedTags?.formats || ["physical"]
@@ -104,6 +109,7 @@ export default function OnboardingForm({
     onSave({
       areas: selectedAreas,
       languages: selectedLanguages,
+      organization,
       formats,
       alwaysNotify,
       spiritualTips
@@ -196,6 +202,56 @@ export default function OnboardingForm({
           <p className="text-slate-600 text-xs md:text-sm leading-relaxed">
             {t.step2OrgText}
           </p>
+        </div>
+
+        {/* Organisation Choice (Radio) */}
+        <div className="space-y-3">
+          <div>
+            <h4 className="text-base font-bold text-slate-900">{t.orgChoiceLabel}</h4>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setOrganization("bror")}
+              className={`flex items-center justify-between p-4 rounded-2xl border-2 text-left transition-all cursor-pointer min-h-[58px] ${
+                organization === "bror"
+                  ? "border-teal-600/70 bg-teal-50/30 text-teal-950"
+                  : "border-slate-100 bg-slate-50/40 hover:border-slate-200 text-slate-700"
+              }`}
+            >
+              <span className="text-base font-semibold text-slate-800">{t.orgBror}</span>
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border ${
+                  organization === "bror"
+                    ? "bg-teal-600 border-teal-600 text-white"
+                    : "border-slate-300 bg-white"
+                }`}
+              >
+                {organization === "bror" && <Check size={14} strokeWidth={3} />}
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setOrganization("syster")}
+              className={`flex items-center justify-between p-4 rounded-2xl border-2 text-left transition-all cursor-pointer min-h-[58px] ${
+                organization === "syster"
+                  ? "border-teal-600/70 bg-teal-50/30 text-teal-950"
+                  : "border-slate-100 bg-slate-50/40 hover:border-slate-200 text-slate-700"
+              }`}
+            >
+              <span className="text-base font-semibold text-slate-800">{t.orgSyster}</span>
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border ${
+                  organization === "syster"
+                    ? "bg-teal-600 border-teal-600 text-white"
+                    : "border-slate-300 bg-white"
+                }`}
+              >
+                {organization === "syster" && <Check size={14} strokeWidth={3} />}
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Multi-select för Sekundära språk */}

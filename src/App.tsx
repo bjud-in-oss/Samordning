@@ -116,6 +116,8 @@ export default function App() {
           subscription,
           tags: savedTags || {
             areas: ["Kortedala"],
+            languages: ["Svenska"],
+            organization: "bror",
             formats: ["physical"],
             alwaysNotify: true,
             spiritualTips: false

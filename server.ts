@@ -38,6 +38,8 @@ interface SubscriptionRecord {
   subscription: webpush.PushSubscription;
   tags: {
     areas: string[];
+    languages?: string[];
+    organization?: string;
     formats: ("physical" | "telephone")[];
     alwaysNotify: boolean;
     spiritualTips: boolean;
@@ -314,11 +316,29 @@ async function triggerPushAlert(alert: ActiveAlert) {
   const ttlSeconds = calculateSecondsUntilTime(alert.time);
   addSimLog("system", `Beräknat larm TTL: ${ttlSeconds} sekunder fram till kl ${alert.time}.`);
 
+  const alertGenderLower = alert.gender.toLowerCase();
+  const isBrorRequest = alertGenderLower.includes("bror") || alertGenderLower.includes("broder") || alertGenderLower.includes("äldste");
+  const isSysterRequest = alertGenderLower.includes("syster") || alertGenderLower.includes("systrar") || alertGenderLower.includes("hjälpförening");
+
   for (const s of subscriptions) {
     const areaMatch = s.tags.areas.includes(alert.area);
     const hasMatch = areaMatch || s.tags.alwaysNotify;
 
     if (hasMatch) {
+      // Organization-based filtering
+      const subOrg = s.tags.organization || "bror";
+      let orgMatches = true;
+      if (isBrorRequest && !isSysterRequest) {
+        orgMatches = subOrg === "bror";
+      } else if (isSysterRequest && !isBrorRequest) {
+        orgMatches = subOrg === "syster";
+      }
+
+      if (!orgMatches) {
+        addSimLog("system", `Hoppar över prenumerant ${s.id.substring(0, 6)}... då larmet kräver ${alert.gender} och prenumeranten tillhör ${subOrg === "bror" ? "Äldstekvorum" : "Hjälpförening"}.`);
+        continue;
+      }
+
       try {
         await webpush.sendNotification(s.subscription, payload, { TTL: ttlSeconds });
         pushCount++;
@@ -474,6 +494,8 @@ app.post("/api/subscription", (req, res) => {
     subscription,
     tags: {
       areas: tags?.areas || [],
+      languages: tags?.languages || [],
+      organization: tags?.organization || "bror",
       formats: tags?.formats || ["physical"],
       alwaysNotify: !!tags?.alwaysNotify,
       spiritualTips: !!tags?.spiritualTips

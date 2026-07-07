@@ -19,6 +19,9 @@ export interface TranslationDict {
   step2Subtitle: string;
   step2OrgHeader: string;
   step2OrgText: string;
+  orgChoiceLabel: string;
+  orgBror: string;
+  orgSyster: string;
   step2LangHeader: string;
   step2LangSubtitle: string;
 
@@ -93,6 +96,9 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     step2Subtitle: "Våra organisationer samarbetar för att stötta missionärerna på deras modersmål.",
     step2OrgHeader: "Samarbetande Organisationer",
     step2OrgText: "Missionshjälpen samordnar behov i Göteborg genom ett nära samarbete med Hjälpföreningen (kyrkans kvinnoorganisation) och Äldstekvorumet (kyrkans herrorganisation) för att säkerställa att missionärerna alltid har en pålitlig, vuxen stödmedlem med sig.",
+    orgChoiceLabel: "Min organisation (välj en):",
+    orgBror: "Äldstekvorum (Broder)",
+    orgSyster: "Hjälpförening (Syster)",
     step2LangHeader: "Språk jag kan hjälpa till med",
     step2LangSubtitle: "Klicka på de språk du talar och kan tänka dig att stötta på under möten (du kan välja flera).",
 
@@ -161,6 +167,9 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     step2Subtitle: "Our organizations work together to support the missionaries in their native languages.",
     step2OrgHeader: "Collaborating Organizations",
     step2OrgText: "The Missionary Support service coordinates needs in Gothenburg through close cooperation with the Relief Society (the church's women's organization) and the Elders Quorum (the church's men's organization) to ensure that missionaries always have a reliable, adult support member with them.",
+    orgChoiceLabel: "My organization (select one):",
+    orgBror: "Elders Quorum (Brother)",
+    orgSyster: "Relief Society (Sister)",
     step2LangHeader: "Languages I can help with",
     step2LangSubtitle: "Click on the languages you speak and are willing to support in during meetings (you can select multiple).",
 
@@ -229,6 +238,9 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     step2Subtitle: "Nuestras organizaciones trabajan juntas para apoyar a los misioneros en sus idiomas nativos.",
     step2OrgHeader: "Organizaciones Colaboradoras",
     step2OrgText: "El servicio de Soporte Misionero coordina las necesidades en Gotemburgo mediante una estrecha cooperación con la Sociedad de Socorro (la organización de mujeres de la iglesia) y el Quórum de Élderes (la organización de hombres de la iglesia) para garantizar que los misioneros siempre tengan un miembro de apoyo adulto confiable con ellos.",
+    orgChoiceLabel: "Mi organización (seleccione una):",
+    orgBror: "Quórum de Élderes (Hermano)",
+    orgSyster: "Sociedad de Socorro (Hermana)",
     step2LangHeader: "Idiomas con los que puedo ayudar",
     step2LangSubtitle: "Haga clic en los idiomas que habla y está dispuesto a apoyar durante las reuniones (puede seleccionar varios).",
 
@@ -296,7 +308,10 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     step2Title: "Hatua ya 2 ya 5: Ushirikiano & Usaidizi wa Lugha",
     step2Subtitle: "Mashirika yetu yanafanya kazi pamoja ili kusaidia wamisionari katika lugha zao za asili.",
     step2OrgHeader: "Mashirika Yanayoshirikiana",
-    step2OrgText: "Huduma ya Msaada wa Wamisionari inaratibu mahitaji huko Gothenburg kupitia ushirikiano wa karibu na Muungano wa Usaidizi wa Kina Mama (shirika la wanawake la kanisa) na Ukidi wa Wazee (shirika la wanaume la kanisa) ili kuhakikisha kuwa wamisionari daima wana mwanachama mzee wa msaada anayeaminika pamoja nao.",
+    step2OrgText: "Huduma ya Msaada wa Wamisionari inaratibu mahitaji huko Gothenburg kupitia ushirikiano wa karibu na Muungano wa Usaidizi wa Kina Mama (shirika la wanawake la kanisa) na Ukidi wa Wazee (shirika la wanaume la kanisa) utakaohakikisha kuwa wamisionari daima wana mwanachama mzee wa msaada anayeaminika pamoja nao.",
+    orgChoiceLabel: "Shirika langu (chagua moja):",
+    orgBror: "Akidi ya Wazee (Kaka)",
+    orgSyster: "Muungano wa Usaidizi (Dada)",
     step2LangHeader: "Lugha ninazoweza kusaidia nazo",
     step2LangSubtitle: "Bofya kwenye lugha unazozungumza na uko tayari kusaidia nazo wakati wa mikutano (unaweza kuchagua nyingi).",
 
@@ -365,6 +380,9 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     step2Subtitle: "Các tổ chức của chúng tôi hợp tác cùng nhau để hỗ trợ các truyền giáo bằng ngôn ngữ bản xứ của họ.",
     step2OrgHeader: "Các Tổ chức Hợp tác",
     step2OrgText: "Dịch vụ Hỗ trợ Truyền giáo điều phối các nhu cầu tại Göteborg thông qua sự hợp tác chặt chẽ với Hội Cứu trợ (tổ chức phụ nữ của giáo hội) và Nhóm túc số Trưởng lão (tổ chức nam giới của giáo hội) nhằm đảm bảo các truyền giáo luôn có một thành viên hỗ trợ trưởng thành đáng tin cậy đi cùng.",
+    orgChoiceLabel: "Tổ chức của tôi (chọn một):",
+    orgBror: "Nhóm túc số Trưởng lão (Anh em)",
+    orgSyster: "Hội Cứu trợ (Chị em)",
     step2LangHeader: "Ngôn ngữ tôi có thể giúp đỡ",
     step2LangSubtitle: "Nhấp vào các ngôn ngữ bạn nói và sẵn sàng hỗ trợ trong các buổi họp (bạn có thể chọn nhiều ngôn ngữ).",
 

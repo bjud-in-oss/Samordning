@@ -10,6 +10,8 @@ interface SubscriptionRecord {
   subscription: webpush.PushSubscription;
   tags: {
     areas: string[];          // e.g. ["Kortedala", "Majorna", "Frölunda"]
+    languages?: string[];     // e.g. ["Svenska", "English"]
+    organization?: string;    // e.g. "bror" | "syster"
     formats: ("physical" | "telephone")[];
     alwaysNotify: boolean;    // "Skicka larm alltid, jag avgör i stunden"
     spiritualTips: boolean;   // "Veckans andliga tips"

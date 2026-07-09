@@ -1,6 +1,6 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
-export type StreamItemType = "missionary_alert" | "leader_announcement";
+export type StreamItemType = "missionary_alert" | "leader_invitation";
 
 export interface PushSubscriptionKeys {
   p256dh: string;

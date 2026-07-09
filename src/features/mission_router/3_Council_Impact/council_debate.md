@@ -23,6 +23,7 @@
     - >1 active alerts: Block the message and reply on WhatsApp prompting the missionary to hold down and "Quote" the specific message they want to answer.
   - We will introduce a clear, highly visible "Avsluta & radera larm (Amnesi-utlösning)" button in the `/larm/:id` view, allowing either the volunteer or missionary to trigger immediate purging of the session.
   - All occurrences of "Stateless Mission Router" are officially rebranded to **"Ge stöd"**, giving a warm, loving, and community-centered feeling.
+  - Active notifications are split into **Akuta larm** (`missionary_alert`) and **Inbjudningar / Annonseringar** (`leader_invitation`).
 
 ---
 
@@ -31,23 +32,24 @@
 ### Operative Files to Modify, Split, or Create
 
 1. **`src/features/mission_router/types.ts`** (Modify):
-   - Update interfaces (`ActiveAlert`, `ChatMessage`) to support in-memory chat histories, correlation IDs, and onboarding tags (including `requireInteraction`).
+   - Update interfaces (`ActiveAlert`, `ChatMessage`) to support in-memory chat histories, correlation IDs, and onboarding tags (including `requireInteraction`). Rebrand `leader_announcement` type to `leader_invitation`.
 
-2. **`src/features/mission_router/domain/parser.ts`** (Create):
-   - Modularized geocoding tables, Pythagoras calculation, and regex parsing logic.
+2. **`src/features/mission_router/domain/parser.ts`** (Modify):
+   - Modularized geocoding tables, Pythagoras calculation, and regex parsing logic. Enhance `runAiWash` prompts to preserve URLs and support any general need classification.
 
-3. **`src/features/mission_router/domain/pushService.ts`** (Create):
+3. **`src/features/mission_router/domain/pushService.ts`** (Create/Modify):
    - Modularized Web Push configuration, subscriber storage (`subscriptions.json` persistence), subscription filtering, and real-time push feedback awaiting.
 
-4. **`src/features/mission_router/domain/whatsappBot.ts`** (Create):
+4. **`src/features/mission_router/domain/whatsappBot.ts`** (Create/Modify):
    - Modularized `whatsapp-web.js` configuration, smart cancellation parser, quote-reply routing logic, and simulated reply triggers.
 
 5. **`server.ts`** (Modify):
    - Strip monolith business logic. Import and delegate to `parser.ts`, `pushService.ts`, and `whatsappBot.ts`.
    - Update API routes to serve chat log fetching, chat sending (`POST /api/alerts/:id/chat`), and immediate push-volunteers count feedback.
+   - Align terminology with `leader_invitation`.
 
 6. **`src/features/mission_router/translations.ts`** (Modify):
-   - Complete rebranding of "Missionshjälpen" / "Stateless Mission Router" to "Ge stöd" and update all language dictionaries with chat strings, persistent notifications, and calendar prompts.
+   - Complete rebranding of "Missionshjälpen" / "Stateless Mission Router" to "Ge stöd" and update all language dictionaries with chat strings, persistent notifications, and calendar prompts. Rebrand "pålysning" terminology to "Inbjudan".
 
 7. **`src/features/mission_router/components/OnboardingForm.tsx`** (Modify):
    - Add "Envisa aviseringar" (`requireInteraction`) setting and update labels to match "Ge stöd".

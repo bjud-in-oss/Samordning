@@ -48,7 +48,7 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
   };
 
   const getSwedishTypeText = (type: string) => {
-    return type === "missionary_alert" ? "Akut missionärslarm" : "Ledarpålysning";
+    return type === "missionary_alert" ? "Akut missionärslarm" : "Inbjudan";
   };
 
   if (loading) {
@@ -68,7 +68,7 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
             Aktivt flöde i Göteborg
           </h3>
           <p className="text-xs text-slate-500">
-            Aktiva larm och allmänna pålysningar för dina valda distrikt.
+            Aktiva larm och allmänna inbjudningar/annonseringar för dina valda distrikt.
           </p>
         </div>
         <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
@@ -87,7 +87,7 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
           <Heart size={28} className="mx-auto text-slate-300 stroke-[1.5]" />
           <h4 className="font-bold text-slate-700">Det är lugnt i Göteborg just nu</h4>
           <p className="text-xs max-w-sm mx-auto">
-            Inga akuta larm eller pålysningar finns i minnet. Du kommer att få en direktavisering i din telefon så fort ett behov uppstår.
+            Inga akuta larm eller inbjudningar finns i minnet för tillfället. Du kommer att få en direktavisering i din telefon så fort ett behov uppstår.
           </p>
         </div>
       ) : (
@@ -143,7 +143,7 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                         ? "bg-amber-500 text-white group-hover:bg-amber-600"
                         : "bg-blue-500 text-white group-hover:bg-blue-600"
                     }`}>
-                      {isAlert ? "Besvara larm" : "Visa pålysning"}
+                      {isAlert ? "Besvara larm" : "Visa inbjudan"}
                       <ExternalLink size={12} />
                     </button>
                   </div>

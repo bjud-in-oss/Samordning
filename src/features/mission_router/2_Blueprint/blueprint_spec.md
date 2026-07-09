@@ -5,7 +5,7 @@ We unify the flat in-memory registry to maintain a single list of `ActiveAlert` 
 ```typescript
 interface ActiveAlert {
   id: string; // Random short string
-  type: "missionary_alert" | "leader_announcement";
+  type: "missionary_alert" | "leader_invitation";
   rawText: string;
   scrubbedText: string;
   area: string; // Gothenburg district
@@ -28,14 +28,16 @@ interface ActiveAlert {
 2. `GET /api/alerts/:id`: Returns the details of a notice, including `contactValue` for direct contact when explicitly requested by a logged/confirmed volunteer.
 3. `POST /api/alerts/:id/respond`: Forwards responses via actual WhatsApp or logs a simulated action.
    * *Amnesia Protocol*: If `type === "missionary_alert"`, the Notice is instantly deleted from server RAM and matching push notifications are cancelled.
-   * *Leader Notices*: Remain active in the registry until their `expiryTimestamp` passes.
+   * *Leader Notices (Inbjudningar)*: Remain active in the registry until their `expiryTimestamp` passes.
 4. `POST /api/incoming-email`: Evaluates in-coming e-mails. Verifies whitelist, runs real-time Gemini AI Wash, and adds notice to memory.
 
 ## 2. Real-time Gemini AI Wash Instructions
-We configure `runAiWash` in `parser.ts` to instruct `gemini-3.1-flash-lite`:
+We configure `runAiWash` in `parser.ts` to instruct `gemini-3.1-flash-lite` (or the appropriate flash model):
 * Input: Raw text message + sender's default role + sender's email/phone.
-* Output: Structured JSON mapping the properties of `ActiveAlert`.
-* Privacy Guard: Strips surnames, precise house numbers/addresses, and outputs clean `scrubbedText` while keeping contact details and titles behind closed doors.
+* Output: Structured JSON mapping the properties of `ActiveAlert` with type `missionary_alert` or `leader_invitation`.
+* **Privacy & Preservation Guard**: Strips surnames, precise house numbers, and phone numbers.
+* **URL Preservation**: Crucially, any valid URLs (web URLs, Google Sheets/Drive files, virtual meeting invitations) MUST remain fully untouched and intact in `scrubbedText`.
+* **Versatility**: The model is trained to process and categorize all types of general needs (dinners, transport, moving assistance, religious lessons).
 
 ## 3. Frontend Stream UI ("Älska, dela och bjud in")
 * **Single View Layout**: The active view displays a single stream under "Älska, dela och bjud in" with sleek typography ("Space Grotesk" displays paired with "Inter").

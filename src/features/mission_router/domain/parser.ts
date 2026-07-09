@@ -251,7 +251,7 @@ const geminiOutputSchema = {
     },
     type: {
       type: Type.STRING,
-      description: "Sätt till 'missionary_alert' eller 'leader_announcement'."
+      description: "Sätt till 'missionary_alert' eller 'leader_invitation'."
     },
     expiryDays: {
       type: Type.INTEGER,
@@ -262,7 +262,7 @@ const geminiOutputSchema = {
 };
 
 // AI-wash pipeline using Gemini API on server-side
-export async function runAiWash(rawText: string, senderInfo: { role: string; contact: string; originalType?: "missionary_alert" | "leader_announcement" }): Promise<any> {
+export async function runAiWash(rawText: string, senderInfo: { role: string; contact: string; originalType?: "missionary_alert" | "leader_invitation" }): Promise<any> {
   const ai = getAiClient();
   
   const systemInstruction = `
@@ -276,10 +276,18 @@ REGLER FÖR INTEGRITETSTVÄTT (MANDATORISKT):
 4. Spara förnamn och titel för den som bär ansvaret i fältet 'responsibleParty'. Om ingen namnges, sätt avsändarens roll/titel (t.ex. "Hjälpföreningens presidentskap" eller "Biskopsrådet").
 5. Extrahera dolda kontaktuppgifter (telefonnummer eller mailadress) till fälten 'contactType' ('sms', 'email', 'whatsapp') och 'contactValue'.
 
+MANDATORISKA REGLER FÖR DELNINGAR OCH LÄNKAR:
+1. BEVARA ALLA GILTIGA WEBBADRESSER: Du MÅSTE bevara alla giltiga webbadresser (t.ex. fullständiga URL:er, Google Drive-länkar, dokumentlänkar, kalenderlänkar eller enkäter) helt intakta och oförändrade i 'scrubbedText'. 
+2. Tvätta bort personnamn, telefonnummer och e-postadresser som står runtomkring länken, men rör absolut inte själva länkadressen.
+3. Ignorera och bortse helt från fysiska e-postbilagor (såsom filer eller bildbilagor) för att inte bryta mot Allmänna handboken 33.8 (bilagor kan inte tvättas pålitligt av AI). Fokusera helt på texten och länkarna.
+
+ALLMÄNGILTIGHET OCH MÅNGSIDIGHET:
+Du ska kunna hantera och strukturera ALLA typer av församlingsbehov såsom middagar/matlagning, flytthjälp, transport/skjutsning, läxhjälp, lektioner, möten eller städdagar. Klassificera dem till rätt typ och fyll i tillämpliga fält.
+
 REGLER FÖR STRUKTURERING:
-Bestäm om meddelandet är ett akut missionärslarm ('missionary_alert') eller en allmän ledarpålysning ('leader_announcement'):
-- 'missionary_alert' (akut): Handlar om att unga missionärer ska på ett möte (ofta med en undersökare) och behöver en medlem som följer med som stöd (t.ex. "Vi behöver en bror på Kortedala Torg kl 18:00").
-- 'leader_announcement' (pålysning): Information från ledare om aktiviteter, förberedelser, städdagar, möten, etc. (t.ex. "Hjälpföreningen bjuder in till pysselkväll på tisdag kl 19:00").
+Bestäm om meddelandet är ett akut missionärslarm ('missionary_alert') eller en allmän ledarinbjudan ('leader_invitation'):
+- 'missionary_alert' (akut): Handlar om att unga missionärer ska på ett möte (ofta med en undersökare) och behöver en medlem som följer med som fysiskt eller språkligt stöd (t.ex. "Vi behöver en bror på Kortedala Torg kl 18:00").
+- 'leader_invitation' (Inbjudan/Annonsering): Information eller inbjudningar från ledare om aktiviteter, samordning av middagar, flytthjälp, städdagar, läxhjälp eller lektioner (t.ex. "Biskopsrådet bjuder in till städdag på lördag kl 09:00" eller "Vi söker middagar till missionärerna, anmäl er via länken").
 
 Du måste matcha platsen mot ett av följande fastställda stöddistrikt i Göteborg:
 [Angered, Kortedala, Gamlestaden, Hisingen, Biskopsgården, Lundby, Partille, Örgryte, Johanneberg, Majorna, Mölndal, Frölunda, Torslanda, Askim, Härryda].
@@ -362,7 +370,7 @@ ${senderInfo.originalType ? `Önskad typ (tvingande): "${senderInfo.originalType
       return {
         scrubbedText: manualCleaned.scrubbedMessage,
         responsibleParty: senderInfo.role,
-        contactType: senderInfo.originalType === "leader_announcement" ? "email" : "whatsapp",
+        contactType: senderInfo.originalType === "leader_invitation" ? "email" : "whatsapp",
         contactValue: senderInfo.contact,
         area: manualCleaned.resolvedArea,
         time: manualCleaned.time,
@@ -378,7 +386,7 @@ ${senderInfo.originalType ? `Önskad typ (tvingande): "${senderInfo.originalType
       return {
         scrubbedText: rawText.replace(/[A-ZÅÄÖ][a-zåäö]+/g, "[TVÄTTAT]").substring(0, 150),
         responsibleParty: senderInfo.role,
-        contactType: senderInfo.originalType === "leader_announcement" ? "email" : "whatsapp",
+        contactType: senderInfo.originalType === "leader_invitation" ? "email" : "whatsapp",
         contactValue: senderInfo.contact,
         area: "Kortedala",
         time: "Ospecificerad tid",

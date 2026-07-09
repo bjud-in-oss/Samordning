@@ -29,13 +29,13 @@ const activeAlerts: Record<string, ActiveAlert> = {};
 // Initialize Web Push Keys
 initWebPush();
 
-// Automatic Expiry Cleanup Loop for Leader Announcements
+// Automatic Expiry Cleanup Loop for Leader Invitations
 setInterval(() => {
   const now = Date.now();
   for (const [id, alert] of Object.entries(activeAlerts)) {
-    if (alert.type === "leader_announcement" && alert.expiryTimestamp < now) {
+    if (alert.type === "leader_invitation" && alert.expiryTimestamp < now) {
       delete activeAlerts[id];
-      addSimLog("system", `AUTOMATISK SUPPRESSION: Pålysning ${id} ("${alert.scrubbedText.substring(0, 30)}...") har förfallit och raderats permanent från RAM.`);
+      addSimLog("system", `AUTOMATISK SUPPRESSION: Inbjudan ${id} ("${alert.scrubbedText.substring(0, 30)}...") har förfallit och raderats permanent från RAM.`);
     }
   }
 }, 60000); // Check every minute
@@ -238,7 +238,7 @@ app.get("/api/alerts/:id", (req, res) => {
 app.post("/api/alerts/:id/respond", async (req, res) => {
   const alert = activeAlerts[req.params.id];
   if (!alert) {
-    return res.status(404).json({ error: "Detta larm eller pålysning är inte längre aktivt." });
+    return res.status(404).json({ error: "Denna aktivitet eller inbjudan är inte längre aktiv." });
   }
 
   const { responseText } = req.body;
@@ -246,10 +246,10 @@ app.post("/api/alerts/:id/respond", async (req, res) => {
     return res.status(400).json({ error: "Svarsmeddelande krävs." });
   }
 
-  addSimLog("incoming", `Volontär skickade svar på ${alert.type === "missionary_alert" ? "larm" : "pålysning"} ${alert.id}: "${responseText}"`);
+  addSimLog("incoming", `Volontär skickade svar på ${alert.type === "missionary_alert" ? "larm" : "inbjudan"} ${alert.id}: "${responseText}"`);
 
   const isMissionary = alert.type === "missionary_alert";
-  const responseMessage = `Hjälp-Bot (GE STÖD):\nSvar på "${isMissionary ? "larmet" : "pålysningen"}" i [${alert.area} / ${alert.locationName}]:\n"${responseText}"\n\n${
+  const responseMessage = `Hjälp-Bot (GE STÖD):\nSvar på "${isMissionary ? "larmet" : "inbjudan"}" i [${alert.area} / ${alert.locationName}]:\n"${responseText}"\n\n${
     isMissionary 
       ? "Amnesi-protokollet har utlösts. Larm-ID " + alert.id + " har raderats permanent från serverns RAM." 
       : "Svaret har skickats till den ansvariga ledaren."
@@ -276,7 +276,7 @@ app.post("/api/alerts/:id/respond", async (req, res) => {
     addSimLog("system", `AMNESI TRIGGAD: All larmdata för ID ${alert.id} har raderats permanent från serverns RAM.`);
     res.json({ success: true, message: "Svar skickat och larm permanent raderat via Amnesi-protokollet." });
   } else {
-    res.json({ success: true, message: "Svar skickat till församlingsledaren. Pålysningen ligger kvar i strömmen." });
+    res.json({ success: true, message: "Svar skickat till församlingsledaren. Inbjudan ligger kvar i strömmen." });
   }
 });
 
@@ -303,7 +303,7 @@ app.post("/api/incoming-email", async (req, res) => {
     const washed = await runAiWash(body, {
       role: "Församlingsledare",
       contact: from,
-      originalType: "leader_announcement"
+      originalType: "leader_invitation"
     });
 
     const id = Math.random().toString(36).substring(2, 9);
@@ -312,7 +312,7 @@ app.post("/api/incoming-email", async (req, res) => {
 
     const newAnnouncement: ActiveAlert = {
       id,
-      type: "leader_announcement",
+      type: "leader_invitation",
       rawText: body,
       scrubbedText: washed.scrubbedText,
       area: washed.resolvedArea || washed.area || "Kortedala",
@@ -331,7 +331,7 @@ app.post("/api/incoming-email", async (req, res) => {
 
     activeAlerts[id] = newAnnouncement;
 
-    addSimLog("system", `NY PÅLYSNING SKAPAD: "${newAnnouncement.scrubbedText.substring(0, 50)}..." i [${newAnnouncement.area}] av ${newAnnouncement.responsibleParty}. Giltig i ${expiryDays} dagar.`);
+    addSimLog("system", `NY INBJUDAN SKAPAD: "${newAnnouncement.scrubbedText.substring(0, 50)}..." i [${newAnnouncement.area}] av ${newAnnouncement.responsibleParty}. Giltig i ${expiryDays} dagar.`);
 
     res.json({ success: true, id });
 

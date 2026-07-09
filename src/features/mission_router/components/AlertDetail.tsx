@@ -126,7 +126,7 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
               <p>
                 <strong>Amnesi-garanti:</strong> {alert?.type === "missionary_alert" 
                   ? "All data relaterad till detta larm har raderats permanent från serverns RAM." 
-                  : "Din bekräftelse har skickats till ledaren. Pålysningen ligger kvar i minnet för andra medlemmar."}
+                  : "Din bekräftelse har skickats till ledaren. Inbjudan/Annonseringen ligger kvar i minnet för andra medlemmar."}
               </p>
             </div>
           </>
@@ -173,7 +173,7 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
         <div className="flex items-center gap-2">
           <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${isAlert ? "bg-amber-500" : "bg-blue-500"}`}></div>
           <span className="text-xs font-semibold text-slate-500">
-            {isAlert ? "Akut Larm" : "Församlingspålysning"}
+            {isAlert ? "Akut Larm" : "Inbjudan / Annonsering"}
           </span>
         </div>
       </div>
@@ -184,7 +184,7 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
           <span className={`text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full ${
             isAlert ? "bg-amber-50 text-amber-800" : "bg-blue-50 text-blue-800"
           }`}>
-            {isAlert ? "Akut Larm" : "Församlingens gemensamma pålysning"}
+            {isAlert ? "Akut Larm" : "Församlingens gemensamma inbjudan/annonsering"}
           </span>
           <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-3 tracking-tight">
             {isAlert ? "Missionärsbehov" : "Ledarmeddelande"} • {alert.area}
@@ -295,7 +295,7 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
           <p className="text-slate-500 text-sm mt-1">
             {isAlert 
               ? "Ditt svar skickas direkt till missionärernas telefon. Larmet raderas därefter omedelbart från RAM-minnet." 
-              : "Ditt svar vidarebefordras till ansvarig ledare för pålysningen."}
+              : "Ditt svar vidarebefordras till ansvarig ledare för inbjudan/annonseringen."}
           </p>
         </div>
 

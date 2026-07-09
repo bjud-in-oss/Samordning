@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Terminal, Send, Shield, RefreshCw, Smartphone, QrCode, PlayCircle, Clock } from "lucide-react";
+import { Terminal, Send, Shield, RefreshCw, Smartphone, QrCode, PlayCircle, Clock, Mail, MessageSquare } from "lucide-react";
 import { SimLog, WhatsAppStatus, ActiveAlert } from "../types";
 
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
@@ -13,6 +13,14 @@ export default function SimulatorPanel() {
   );
   const [simulating, setSimulating] = useState<boolean>(false);
   const [refreshingLogs, setRefreshingLogs] = useState<boolean>(false);
+
+  // New Email simulation states
+  const [activeSimTab, setActiveSimTab] = useState<"whatsapp" | "email">("whatsapp");
+  const [mockEmailFrom, setMockEmailFrom] = useState<string>("biskop@goteseb.se");
+  const [mockEmailSubject, setMockEmailSubject] = useState<string>("Förberedelser inför städdagen");
+  const [mockEmailBody, setMockEmailBody] = useState<string>(
+    "Hej kära vänner! Vi i biskopsrådet bjuder in alla medlemmar till gemensam städdag av Kortedala kapell på lördag kl 09:00. Kontakta Bror Andersson på biskopsradet@goteseb.se för frågor. Tack för ert engagemang!"
+  );
 
   async function fetchStatusAndLogs() {
     try {
@@ -143,63 +151,178 @@ export default function SimulatorPanel() {
           )}
         </div>
 
-        {/* Mock trigger form */}
+        {/* Mock trigger form with WhatsApp + Email sub-tabs */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <PlayCircle className="text-blue-600" size={24} />
-            <h3 className="text-lg font-bold text-slate-900">Trigger Simulator</h3>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <PlayCircle className="text-blue-600" size={24} />
+              <h3 className="text-lg font-bold text-slate-900">Trigger Simulator</h3>
+            </div>
+            
+            <div className="flex bg-slate-100 rounded-xl p-0.5">
+              <button
+                type="button"
+                onClick={() => setActiveSimTab("whatsapp")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  activeSimTab === "whatsapp"
+                    ? "bg-white text-slate-950 shadow-sm"
+                    : "text-slate-500 hover:text-slate-950"
+                }`}
+              >
+                <MessageSquare size={12} />
+                WhatsApp
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveSimTab("email")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  activeSimTab === "email"
+                    ? "bg-white text-slate-950 shadow-sm"
+                    : "text-slate-500 hover:text-slate-950"
+                }`}
+              >
+                <Mail size={12} />
+                E-post
+              </button>
+            </div>
           </div>
 
-          <form onSubmit={handleSendSim} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
-                Simulerat meddelande från missionärer
-              </label>
-              <textarea
-                value={mockMsg}
-                onChange={e => setMockMsg(e.target.value)}
-                className="w-full p-4 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none text-sm font-medium placeholder-slate-400 transition-all font-mono resize-none"
-                rows={3}
-                required
-              />
-            </div>
-
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs text-slate-500 leading-relaxed">
-              <strong>Mallen kräver [Plats] [Tid] [Bror/Syster] [Språk]:</strong>
-              <div className="mt-1 flex flex-wrap gap-1.5 font-mono">
-                <button
-                  type="button"
-                  onClick={() => setMockMsg("Vi ska till [Kortedala Torg] kl [18:00]. Behöver en [bror] för [engelska].")}
-                  className="bg-slate-200 text-slate-700 hover:bg-slate-300 px-1.5 py-0.5 rounded transition"
-                >
-                  Mall 1
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMockMsg("Ska träffa undersökare vid [Frölunda Torg] kl [14:30]. Behöver en [syster] som talar [engelska].")}
-                  className="bg-slate-200 text-slate-700 hover:bg-slate-300 px-1.5 py-0.5 rounded transition"
-                >
-                  Mall 2
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMockMsg("Utanför klamrar står oviktigt ludd. Vi besöker [Angered Centrum] kl [19:15] med en [bror] som talar [svenska].")}
-                  className="bg-slate-200 text-slate-700 hover:bg-slate-300 px-1.5 py-0.5 rounded transition"
-                >
-                  Mall 3
-                </button>
+          {activeSimTab === "whatsapp" ? (
+            <form onSubmit={handleSendSim} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                  Simulerat meddelande från missionärer (WhatsApp)
+                </label>
+                <textarea
+                  value={mockMsg}
+                  onChange={e => setMockMsg(e.target.value)}
+                  className="w-full p-4 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none text-sm font-medium placeholder-slate-400 transition-all font-mono resize-none"
+                  rows={3}
+                  required
+                />
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={simulating}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs text-slate-500 leading-relaxed">
+                <strong>Mallen kräver [Plats] [Tid] [Bror/Syster] [Språk]:</strong>
+                <div className="mt-1 flex flex-wrap gap-1.5 font-mono">
+                  <button
+                    type="button"
+                    onClick={() => setMockMsg("Vi ska till [Kortedala Torg] kl [18:00]. Behöver en [bror] för [engelska].")}
+                    className="bg-slate-200 text-slate-700 hover:bg-slate-300 px-1.5 py-0.5 rounded transition"
+                  >
+                    Mall 1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMockMsg("Ska träffa undersökare vid [Frölunda Torg] kl [14:30]. Behöver en [syster] som talar [engelska].")}
+                    className="bg-slate-200 text-slate-700 hover:bg-slate-300 px-1.5 py-0.5 rounded transition"
+                  >
+                    Mall 2
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMockMsg("Utanför klamrar står oviktigt ludd. Vi besöker [Angered Centrum] kl [19:15] med en [bror] som talar [svenska].")}
+                    className="bg-slate-200 text-slate-700 hover:bg-slate-300 px-1.5 py-0.5 rounded transition"
+                  >
+                    Mall 3
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={simulating}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Send size={16} />
+                Simulera WhatsApp-insignal
+              </button>
+            </form>
+          ) : (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!mockEmailFrom.trim() || !mockEmailBody.trim()) return;
+                try {
+                  setSimulating(true);
+                  const res = await fetch("/api/incoming-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      from: mockEmailFrom,
+                      subject: mockEmailSubject,
+                      body: mockEmailBody
+                    })
+                  });
+                  if (res.ok) {
+                    await fetchStatusAndLogs();
+                  }
+                } catch (err) {
+                  console.error("Simulation error", err);
+                } finally {
+                  setSimulating(false);
+                }
+              }}
+              className="space-y-4 text-left"
             >
-              <Send size={16} />
-              Simulera WhatsApp-insignal
-            </button>
-          </form>
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                  Avsändare (E-post)
+                </label>
+                <input
+                  type="email"
+                  value={mockEmailFrom}
+                  onChange={e => setMockEmailFrom(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none text-sm font-semibold transition-all font-mono"
+                  placeholder="t.ex. biskop@goteseb.se"
+                  required
+                />
+                <span className="text-[10px] text-slate-400 font-medium block">
+                  Endast godkända ledaradresser accepteras (t.ex. slutar på @goteseb.se).
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                  Ämne (Subject)
+                </label>
+                <input
+                  type="text"
+                  value={mockEmailSubject}
+                  onChange={e => setMockEmailSubject(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none text-sm font-semibold transition-all"
+                  placeholder="Ämne"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                  Meddelandets brödtext (Integritetstvättas av AI!)
+                </label>
+                <textarea
+                  value={mockEmailBody}
+                  onChange={e => setMockEmailBody(e.target.value)}
+                  className="w-full p-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none text-xs font-semibold placeholder-slate-400 transition-all font-mono resize-none"
+                  rows={4}
+                  required
+                />
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-[11px] text-slate-500 leading-relaxed space-y-1">
+                <strong>E-post simulator mönster:</strong>
+                <p>AI:n kommer att ta bort efternamn, exakta adresser och råa telefonnummer/e-postadresser från offentliga fält i enlighet med Allmänna handboken 33.8.</p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={simulating}
+                className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-extrabold rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Send size={16} />
+                Simulera E-postinsignal
+              </button>
+            </form>
+          )}
         </div>
 
         {/* In-Memory RAM Status Card */}

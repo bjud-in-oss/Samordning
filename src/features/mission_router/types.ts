@@ -1,5 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
+export type StreamItemType = "missionary_alert" | "leader_announcement";
+
 export interface PushSubscriptionKeys {
   p256dh: string;
   auth: string;
@@ -35,7 +37,8 @@ export interface ChatMessage {
 
 export interface ActiveAlert {
   id: string;
-  missionaryPhone: string;
+  type: StreamItemType;
+  missionaryPhone?: string;
   rawText: string;
   scrubbedText: string;
   area: string;
@@ -46,7 +49,11 @@ export interface ActiveAlert {
   coords: { lat: number; lng: number };
   cloakedCoords: { lat: number; lng: number };
   timestamp: number;
-  chat: ChatMessage[];
+  chat?: ChatMessage[];
+  responsibleParty: string;
+  contactType: "sms" | "email" | "whatsapp";
+  contactValue: string;
+  expiryTimestamp: number;
 }
 
 export interface SimLog {

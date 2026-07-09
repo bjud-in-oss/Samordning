@@ -1,4 +1,5 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
+import { GoogleGenAI, Type } from "@google/genai";
 
 // 15 Fasta Stöddistrikt i Göteborg (Geografiskt sorterat Norr -> Söder)
 export const STODDISTRIKT = [
@@ -46,6 +47,31 @@ export const GEOMAP: Record<string, { lat: number; lng: number }> = {
   "avenyn": { lat: 57.7005, lng: 11.9742 },
   "centralstationen": { lat: 57.7086, lng: 11.9731 }
 };
+
+// Approved Senders List
+export const APPROVED_SENDERS = [
+  "biskop@goteseb.se",
+  "biskopsradet@goteseb.se",
+  "biskop.goteborg@gmail.com",
+  "aldstekvorumet@goteseb.se",
+  "eq.goteborg@gmail.com",
+  "hjalpforeningen@goteseb.se",
+  "rs.goteborg@gmail.com",
+  "wardmission@goteseb.se",
+  "goteborg.missionaries@gmail.com",
+  "aldste.smith@gmail.com",
+  "syster.karin@gmail.com"
+];
+
+export function isApprovedSender(email: string): boolean {
+  const cleanEmail = email.toLowerCase().trim();
+  return APPROVED_SENDERS.includes(cleanEmail) ||
+         cleanEmail.endsWith("@goteseb.se") ||
+         cleanEmail.includes("bishop") ||
+         cleanEmail.includes("biskop") ||
+         cleanEmail.includes("missionary") ||
+         cleanEmail.includes("missionar");
+}
 
 // Extrahera tid i sekunder till angiven tidpunkt för TTL-beräkning
 export function calculateSecondsUntilTime(timeStr: string): number {
@@ -168,4 +194,201 @@ export function parseMissionaryMessage(text: string): CleanedData | null {
     resolvedArea,
     scrubbedMessage
   };
+}
+
+// Lazy Gemini Client initialization
+let aiClient: GoogleGenAI | null = null;
+
+function getAiClient(): GoogleGenAI {
+  if (!aiClient) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) {
+      throw new Error("GEMINI_API_KEY environment variable is missing.");
+    }
+    aiClient = new GoogleGenAI({
+      apiKey: key,
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-build"
+        }
+      }
+    });
+  }
+  return aiClient;
+}
+
+// Output schema for AI wash
+const geminiOutputSchema = {
+  type: Type.OBJECT,
+  properties: {
+    scrubbedText: {
+      type: Type.STRING,
+      description: "Den offentliga texten helt tvättad från efternamn, exakta adresser och råa kontaktuppgifter."
+    },
+    responsibleParty: {
+      type: Type.STRING,
+      description: "Förnamn och titel på den ansvariga personen (t.ex. 'Syster Karin', 'Äldste Smith'). Sätt standard till avsändarens roll om ingen nämns."
+    },
+    contactType: {
+      type: Type.STRING,
+      description: "Sätt till 'whatsapp', 'sms' eller 'email'."
+    },
+    contactValue: {
+      type: Type.STRING,
+      description: "E-post eller telefonnummer för direkt, dold kontakt."
+    },
+    area: {
+      type: Type.STRING,
+      description: "Ett av de fastställda stöddistrikten i Göteborg som matchar platsen bäst."
+    },
+    time: {
+      type: Type.STRING,
+      description: "Eventuell tidpunkt som nämns, t.ex. '18:00'."
+    },
+    locationName: {
+      type: Type.STRING,
+      description: "Område eller mötesplats utan husnummer (t.ex. 'Kortedala Torg')."
+    },
+    type: {
+      type: Type.STRING,
+      description: "Sätt till 'missionary_alert' eller 'leader_announcement'."
+    },
+    expiryDays: {
+      type: Type.INTEGER,
+      description: "Antal dagar som detta meddelande ska leva i strömmen (standard 7 dagar om ospecifikt)."
+    }
+  },
+  required: ["scrubbedText", "responsibleParty", "contactType", "contactValue", "area", "type", "expiryDays"]
+};
+
+// AI-wash pipeline using Gemini API on server-side
+export async function runAiWash(rawText: string, senderInfo: { role: string; contact: string; originalType?: "missionary_alert" | "leader_announcement" }): Promise<any> {
+  const ai = getAiClient();
+  
+  const systemInstruction = `
+Du är en strikt och integritetsfokuserad AI-assistent utvecklad för kyrkans församlingsstöd "Ge stöd".
+Din uppgift är att tvätta (tvätta bort känslig information) och strukturera inkommande meddelanden från antingen unga missionärer på fältet eller församlingsledare, i enlighet med Allmänna handboken 33.8 (GDPR, personlig integritet).
+
+REGLER FÖR INTEGRITETSTVÄTT (MANDATORISKT):
+1. Ta bort ALLA efternamn helt. Behåll endast förnamn och titlar (t.ex. "Syster Karin", "Äldste Smith", "Bror Johan").
+2. Ta bort ALLA exakta hemadresser (t.ex. gatunamn, husnummer, lägenhetsnummer). Ersätt dem med det allmänna områdesnamnet (t.ex. "Kortedala" eller "Hisingen").
+3. Ta bort ALLA råa telefonnummer och e-postadresser från den offentliga texten ('scrubbedText'). De ska ALDRIG synas där!
+4. Spara förnamn och titel för den som bär ansvaret i fältet 'responsibleParty'. Om ingen namnges, sätt avsändarens roll/titel (t.ex. "Hjälpföreningens presidentskap" eller "Biskopsrådet").
+5. Extrahera dolda kontaktuppgifter (telefonnummer eller mailadress) till fälten 'contactType' ('sms', 'email', 'whatsapp') och 'contactValue'.
+
+REGLER FÖR STRUKTURERING:
+Bestäm om meddelandet är ett akut missionärslarm ('missionary_alert') eller en allmän ledarpålysning ('leader_announcement'):
+- 'missionary_alert' (akut): Handlar om att unga missionärer ska på ett möte (ofta med en undersökare) och behöver en medlem som följer med som stöd (t.ex. "Vi behöver en bror på Kortedala Torg kl 18:00").
+- 'leader_announcement' (pålysning): Information från ledare om aktiviteter, förberedelser, städdagar, möten, etc. (t.ex. "Hjälpföreningen bjuder in till pysselkväll på tisdag kl 19:00").
+
+Du måste matcha platsen mot ett av följande fastställda stöddistrikt i Göteborg:
+[Angered, Kortedala, Gamlestaden, Hisingen, Biskopsgården, Lundby, Partille, Örgryte, Johanneberg, Majorna, Mölndal, Frölunda, Torslanda, Askim, Härryda].
+
+Svara i strikt JSON-format enligt det angivna schemat.
+`;
+
+  const prompt = `
+Indata råtext: "${rawText}"
+Avsändarens standardroll: "${senderInfo.role}"
+Avsändarens standardkontakt: "${senderInfo.contact}"
+${senderInfo.originalType ? `Önskad typ (tvingande): "${senderInfo.originalType}"` : ""}
+`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.1-flash-lite",
+      contents: prompt,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: geminiOutputSchema
+      }
+    });
+
+    const resultText = response.text;
+    if (!resultText) {
+      throw new Error("Empty response from Gemini.");
+    }
+
+    const parsedJson = JSON.parse(resultText.trim());
+
+    // Fallbacks if AI fails or omits values
+    if (!parsedJson.responsibleParty || parsedJson.responsibleParty === "") {
+      parsedJson.responsibleParty = senderInfo.role;
+    }
+    if (!parsedJson.contactValue || parsedJson.contactValue === "") {
+      parsedJson.contactValue = senderInfo.contact;
+    }
+    if (!parsedJson.area || parsedJson.area === "") {
+      parsedJson.area = "Kortedala";
+    }
+
+    // Geocode the extracted location name
+    const locationName = parsedJson.locationName || parsedJson.area;
+    const cleanKey = locationName.toLowerCase();
+    let coords = { lat: 57.7088, lng: 11.9745 };
+    if (GEOMAP[cleanKey]) {
+      coords = GEOMAP[cleanKey];
+    } else {
+      const foundKey = Object.keys(GEOMAP).find(key => cleanKey.includes(key) || key.includes(cleanKey));
+      if (foundKey) {
+        coords = GEOMAP[foundKey];
+      } else {
+        const matchingDistrict = STODDISTRIKT.find(d => cleanKey.includes(d.name.toLowerCase()));
+        if (matchingDistrict) {
+          coords = { lat: matchingDistrict.lat, lng: matchingDistrict.lng };
+        }
+      }
+    }
+
+    const cloakedCoords = {
+      lat: Math.round(coords.lat / 0.02) * 0.02,
+      lng: Math.round(coords.lng / 0.02) * 0.02
+    };
+
+    return {
+      ...parsedJson,
+      locationName,
+      coords,
+      cloakedCoords,
+      resolvedArea: parsedJson.area
+    };
+
+  } catch (err) {
+    console.error("Gemini AI Wash failed, falling back to manual parsing:", err);
+    // Safe fallback to manual bracket parsing if AI fails
+    const manualCleaned = parseMissionaryMessage(rawText);
+    if (manualCleaned) {
+      return {
+        scrubbedText: manualCleaned.scrubbedMessage,
+        responsibleParty: senderInfo.role,
+        contactType: senderInfo.originalType === "leader_announcement" ? "email" : "whatsapp",
+        contactValue: senderInfo.contact,
+        area: manualCleaned.resolvedArea,
+        time: manualCleaned.time,
+        locationName: manualCleaned.locationName,
+        coords: manualCleaned.coords,
+        cloakedCoords: manualCleaned.cloakedCoords,
+        type: senderInfo.originalType || "missionary_alert",
+        expiryDays: 7,
+        resolvedArea: manualCleaned.resolvedArea
+      };
+    } else {
+      // Complete minimal placeholder fallback so server doesn't crash
+      return {
+        scrubbedText: rawText.replace(/[A-ZÅÄÖ][a-zåäö]+/g, "[TVÄTTAT]").substring(0, 150),
+        responsibleParty: senderInfo.role,
+        contactType: senderInfo.originalType === "leader_announcement" ? "email" : "whatsapp",
+        contactValue: senderInfo.contact,
+        area: "Kortedala",
+        time: "Ospecificerad tid",
+        locationName: "Göteborg",
+        coords: { lat: 57.7088, lng: 11.9745 },
+        cloakedCoords: { lat: 57.70, lng: 11.98 },
+        type: senderInfo.originalType || "missionary_alert",
+        expiryDays: 7,
+        resolvedArea: "Kortedala"
+      };
+    }
+  }
 }

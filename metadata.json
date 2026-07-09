@@ -1,6 +1,6 @@
 {
-  "name": "Stateless Mission Router",
-  "description": "Stateless routing system connecting WhatsApp missionary alerts with Web Push notifications for local volunteers.",
+  "name": "Ge stöd",
+  "description": "Varmt och anonymt församlingsstöd i Göteborg. Samordnar akuta missionärslarm och allmänna ledarpålysningar, integritetstvättade via Gemini AI.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

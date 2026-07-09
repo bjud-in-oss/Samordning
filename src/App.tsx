@@ -3,6 +3,7 @@ import { ShieldAlert, Users, Radio, Smartphone, AlertCircle, Sparkles, Heart, La
 import OnboardingForm from "./features/mission_router/components/OnboardingForm";
 import AlertDetail from "./features/mission_router/components/AlertDetail";
 import SimulatorPanel from "./features/mission_router/components/SimulatorPanel";
+import ActiveStream from "./features/mission_router/components/ActiveStream";
 import Disclaimer from "./features/mission_router/components/Disclaimer";
 import { TRANSLATIONS, UiLanguage } from "./features/mission_router/translations";
 
@@ -233,9 +234,9 @@ export default function App() {
           </div>
           <div>
             <h1 className="text-lg md:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-              {isVolunteerMode ? "Missionsstöd & Samordning" : "Stateless Mission Router"}
+              {isVolunteerMode ? "Ge stöd" : "Ge stöd Simulator"}
               <span className="hidden sm:inline text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-                {isVolunteerMode ? "Helt anonymt" : "Amnesi v1.0"}
+                {isVolunteerMode ? "Helt anonymt" : "Amnesi v2.0"}
               </span>
             </h1>
           </div>
@@ -328,13 +329,19 @@ export default function App() {
             uiLanguage={uiLanguage || "sv"}
           />
         ) : activeTab === "volunteer" ? (
-          <OnboardingForm
-            onSave={handleSaveTags}
-            savedTags={savedTags}
-            pushEnabled={pushEnabled}
-            onEnablePush={handleEnablePush}
-            uiLanguage={uiLanguage || "sv"}
-          />
+          <div className="space-y-12">
+            <OnboardingForm
+              onSave={handleSaveTags}
+              savedTags={savedTags}
+              pushEnabled={pushEnabled}
+              onEnablePush={handleEnablePush}
+              uiLanguage={uiLanguage || "sv"}
+            />
+            <ActiveStream
+              onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
+              uiLanguage={uiLanguage || "sv"}
+            />
+          </div>
         ) : (
           <SimulatorPanel />
         )}

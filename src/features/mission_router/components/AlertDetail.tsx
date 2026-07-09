@@ -70,6 +70,29 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
         throw new Error(body.error || "Failed to send response.");
       }
 
+      // Generate the stateless deep-link to trigger native communication on the device
+      if (alert && alert.contactType && alert.contactValue) {
+        const contactType = alert.contactType;
+        const rawContact = alert.contactValue.trim();
+        let deepLink = null;
+
+        if (contactType === "whatsapp") {
+          // Keep digits only, ensure country code prefix (WhatsApp uses numeric only)
+          const numeric = rawContact.replace(/[^0-9]/g, "");
+          deepLink = `https://wa.me/${numeric}?text=${encodeURIComponent(responseText)}`;
+        } else if (contactType === "sms") {
+          // Normalize Swedish prefix or keep raw
+          const normalized = rawContact.replace(/\s+/g, "");
+          deepLink = `sms:${normalized}?body=${encodeURIComponent(responseText)}`;
+        } else if (contactType === "email") {
+          deepLink = `mailto:${rawContact}?subject=${encodeURIComponent("Älska, dela, bjud in - Göteborg")}&body=${encodeURIComponent(responseText)}`;
+        }
+
+        if (deepLink) {
+          window.location.href = deepLink;
+        }
+      }
+
       setSuccess(true);
     } catch (err: any) {
       setError(err.message);

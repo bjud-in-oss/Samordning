@@ -410,17 +410,6 @@ export default function OnboardingForm({
         </div>
       </div>
 
-      {/* iPhone / iOS Guide Box */}
-      <div className="bg-blue-50/40 rounded-3xl p-6 border border-blue-100 flex gap-4 items-start">
-        <div className="w-10 h-10 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center shrink-0">
-          <Info size={22} />
-        </div>
-        <div className="text-slate-700 text-sm leading-relaxed space-y-1">
-          <h4 className="font-bold text-slate-900">{t.iosTipHeader}</h4>
-          <p>{t.iosTipBody}</p>
-        </div>
-      </div>
-
       {/* Spara & Aktivera Web Push */}
       <div className="bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>

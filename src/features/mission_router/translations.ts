@@ -83,8 +83,8 @@ export interface TranslationDict {
 
 export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
   sv: {
-    gatewayTitle: "Missionshjälpen",
-    gatewaySubtitle: "Ett tryggt stöd för våra unga missionärer i Göteborg",
+    gatewayTitle: "Älska, dela och bjud in",
+    gatewaySubtitle: "Varmt och anonymt församlingsstöd i Göteborg",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     onboardingHeader: "Anmälan som stödmedlem",
     onboardingSubtitle: "Ett varmt, helt anonymt sätt att hjälpa våra unga missionärer.",
@@ -154,8 +154,8 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     footerNotice: "Ditt svar skickas helt anonymt och säkert vidare till missionärerna. För att skydda allas integritet raderas denna förfrågan permanent från vårt tillfälliga minne så snart du klickat på skicka."
   },
   en: {
-    gatewayTitle: "Missionary Support",
-    gatewaySubtitle: "A safe support channel for our young missionaries in Gothenburg",
+    gatewayTitle: "Love, share, invite",
+    gatewaySubtitle: "Warm and anonymous parish support in Gothenburg",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     onboardingHeader: "Register as a Support Member",
     onboardingSubtitle: "A warm, completely anonymous way to assist our young missionaries.",
@@ -225,8 +225,8 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     footerNotice: "Your response is sent completely anonymously and securely to the missionaries. To protect everyone's privacy, this request is permanently deleted from our temporary memory as soon as you click send."
   },
   es: {
-    gatewayTitle: "Soporte Misionero",
-    gatewaySubtitle: "Un canal de apoyo seguro para nuestros jóvenes misioneros en Gotemburgo",
+    gatewayTitle: "Amar, compartir, invitar",
+    gatewaySubtitle: "Apoyo parroquial cálido y anónimo en Gotemburgo",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     onboardingHeader: "Registrarse como Miembro de Apoyo",
     onboardingSubtitle: "Una forma cálida y completamente anónima de ayudar a nuestros jóvenes misioneros.",
@@ -237,7 +237,7 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     step2Title: "Paso 2 de 5: Colaboración y Soporte de Idiomas",
     step2Subtitle: "Nuestras organizaciones trabajan juntas para apoyar a los misioneros en sus idiomas nativos.",
     step2OrgHeader: "Organizaciones Colaboradoras",
-    step2OrgText: "El servicio de Soporte Misionero coordina las necesidades en Gotemburgo mediante una estrecha cooperación con la Sociedad de Socorro (la organización de mujeres de la iglesia) y el Quórum de Élderes (la organización de hombres de la iglesia) para garantizar que los misioneros siempre tengan un miembro de apoyo adulto confiable con ellos.",
+    step2OrgText: "La iniciativa \"Amar, compartir, invitar\" coordina las necesidades en Gotemburgo mediante una estrecha cooperación con la Sociedad de Socorro (la organización de mujeres de la iglesia) y el Quórum de Élderes (la organización de hombres de la iglesia) para garantizar que los misioneros siempre tengan un miembro de apoyo adulto confiable con ellos.",
     orgChoiceLabel: "Mi organización (seleccione una):",
     orgBror: "Quórum de Élderes (Hermano)",
     orgSyster: "Sociedad de Socorro (Hermana)",
@@ -296,8 +296,8 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     footerNotice: "Su respuesta se envía de forma completamente anónima y segura a los misioneros. Para proteger la privacidad de todos, esta solicitud se elimina permanentemente de nuestra memoria temporal tan pronto como hace clic en enviar."
   },
   sw: {
-    gatewayTitle: "Msaada wa Wamisionari",
-    gatewaySubtitle: "Njia salama ya usaidizi kwa wamisionari wetu vijana huko Gothenburg",
+    gatewayTitle: "Penda, shiriki, alika",
+    gatewaySubtitle: "Usaidizi wa joto na usiojulikana wa parokia huko Gothenburg",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     onboardingHeader: "Jiandikishe kama Mwanachama wa Msaada",
     onboardingSubtitle: "Njia ya joto, isiyojulikana kabisa ya kusaidia wamisionari wetu vijana.",
@@ -367,8 +367,8 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     footerNotice: "Jibu lako linatumwa bila jina kabisa na kwa usalama kwa wamisionari. Ili kulinda faragha ya kila mtu, ombi hili linafutwa kabisa kutoka kwa kumbukumbu yetu ya muda punde tu unapobofya tuma."
   },
   vi: {
-    gatewayTitle: "Hỗ Trợ Truyền Giáo",
-    gatewaySubtitle: "Một kênh hỗ trợ an toàn cho các truyền giáo trẻ của chúng tôi tại Göteborg",
+    gatewayTitle: "Yêu thương, chia sẻ, mời gọi",
+    gatewaySubtitle: "Sự hỗ trợ giáo xứ ấm áp và ẩn danh ở Göteborg",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     onboardingHeader: "Đăng ký làm Thành viên Hỗ trợ",
     onboardingSubtitle: "Một cách ấm áp, hoàn toàn ẩn danh để hỗ trợ các truyền giáo trẻ của chúng tôi.",

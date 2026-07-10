@@ -54,6 +54,8 @@ export interface ActiveAlert {
   contactType: "sms" | "email" | "whatsapp";
   contactValue: string;
   expiryTimestamp: number;
+  category?: string;
+  isFull?: boolean;
 }
 
 export interface SimLog {

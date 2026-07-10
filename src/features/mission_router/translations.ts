@@ -84,7 +84,7 @@ export interface TranslationDict {
 export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
   sv: {
     gatewayTitle: "Inbjudan till dig",
-    gatewaySubtitle: "Öppen digital anslagstavla för församlingen i Göteborg",
+    gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     onboardingHeader: "Bli notifierad om nya inbjudningar",
     onboardingSubtitle: "Få snabba notiser om måltider, tjänande och aktiviteter i din närhet.",
@@ -155,7 +155,7 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
   },
   en: {
     gatewayTitle: "Invitation for you",
-    gatewaySubtitle: "Open digital bulletin board for the ward in Gothenburg",
+    gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     onboardingHeader: "Get notified of new invitations",
     onboardingSubtitle: "Receive quick notifications of meals, service, and activities nearby.",
@@ -226,7 +226,7 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
   },
   es: {
     gatewayTitle: "Invitación para ti",
-    gatewaySubtitle: "Tablón de anuncios digital abierto para la congregación en Gotemburgo",
+    gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     onboardingHeader: "Recibe notificaciones sobre nuevas invitaciones",
     onboardingSubtitle: "Recibe notificaciones rápidas sobre comidas, servicio y actividades cercanas.",
@@ -297,7 +297,7 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
   },
   sw: {
     gatewayTitle: "Mwaliko kwako",
-    gatewaySubtitle: "Ubao wa wazi wa matangazo ya kidijitali kwa ajili ya ushirika huko Gothenburg",
+    gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     onboardingHeader: "Pata arifa kuhusu mialiko mipya",
     onboardingSubtitle: "Pokea arifa za haraka kuhusu milo, huduma, na shughuli za karibu.",
@@ -368,7 +368,7 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
   },
   vi: {
     gatewayTitle: "Lời mời dành cho bạn",
-    gatewaySubtitle: "Bảng thông tin kỹ thuật số mở cho hội thánh tại Göteborg",
+    gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     onboardingHeader: "Nhận thông báo về lời mời mới",
     onboardingSubtitle: "Nhận thông báo nhanh về các bữa ăn, phục vụ và hoạt động gần bạn.",

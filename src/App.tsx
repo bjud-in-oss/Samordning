@@ -24,9 +24,6 @@ function urlBase64ToUint8Array(base64String: string) {
 export default function App() {
   // Collapsible view states for flat flow
   const [showSimulator, setShowSimulator] = useState<boolean>(false);
-  const [showSettings, setShowSettings] = useState<boolean>(() => {
-    return !localStorage.getItem("mission_router_tags");
-  });
   const [showIosModal, setShowIosModal] = useState<boolean>(false);
   
   // UI Language for translation (null triggers Gateway screen)
@@ -187,9 +184,6 @@ export default function App() {
             <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
               Inbjudan till dig
             </h1>
-            <p className="text-sm text-slate-500 font-medium">
-              Varmt och anonymt församlingsstöd i Göteborg
-            </p>
           </div>
 
           {/* Centered Large Translation Symbol with hover effect */}
@@ -249,33 +243,11 @@ export default function App() {
 
         {/* Dynamic Header Badges & Actions */}
         <div className="flex items-center justify-between w-full sm:w-auto gap-2.5">
-          {/* Settings trigger */}
-          {uiLanguage && !activeAlertId && (
-            <button
-              onClick={() => {
-                setShowSettings(prev => !prev);
-                if (showSimulator) setShowSimulator(false);
-              }}
-              className={`h-10 px-3.5 rounded-full flex items-center gap-1.5 text-xs font-bold border transition-all active:scale-95 cursor-pointer shrink-0 ${
-                showSettings 
-                  ? "bg-teal-600 text-white border-teal-600 shadow-sm" 
-                  : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-100"
-              }`}
-              title={uiLanguage === "sv" ? "Hantera aviseringsinställningar" : uiLanguage === "en" ? "Manage notification settings" : uiLanguage === "es" ? "Administrar configuración de notificaciones" : uiLanguage === "sw" ? "Hariri mipangilio ya arifa" : "Quản lý cài đặt thông báo"}
-            >
-              <Sliders size={14} />
-              <span className="hidden md:inline">
-                {uiLanguage === "sv" ? "Inställningar" : uiLanguage === "en" ? "Settings" : uiLanguage === "es" ? "Configuración" : uiLanguage === "sw" ? "Mipangilio" : "Cài đặt"}
-              </span>
-            </button>
-          )}
-
           {/* Simulator trigger */}
           {uiLanguage && !activeAlertId && (
             <button
               onClick={() => {
                 setShowSimulator(prev => !prev);
-                if (!showSimulator) setShowSettings(false);
               }}
               className={`h-10 px-3.5 rounded-full flex items-center gap-1.5 text-xs font-bold border transition-all active:scale-95 cursor-pointer shrink-0 ${
                 showSimulator 
@@ -291,10 +263,6 @@ export default function App() {
             </button>
           )}
 
-          <div className="h-10 px-3.5 bg-slate-50 border border-slate-100 rounded-full flex items-center text-xs font-semibold text-slate-500 max-w-[120px] md:max-w-none truncate">
-            {subscriptionId ? `ID: ${subscriptionId.substring(0, 8)}...` : (uiLanguage === "sv" ? "Ej ansluten" : uiLanguage === "en" ? "Not connected" : uiLanguage === "es" ? "No conectado" : uiLanguage === "sw" ? "Hujaunganishwa" : "Chưa kết nối")}
-          </div>
-
           {uiLanguage && (
             <button
               onClick={() => {
@@ -304,7 +272,7 @@ export default function App() {
               className="h-10 w-10 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-full flex items-center justify-center text-slate-600 transition-all active:scale-95 cursor-pointer shrink-0"
               title="Ändra språk / Change language"
             >
-              <Globe size={18} />
+              <Languages size={18} />
             </button>
           )}
         </div>
@@ -327,10 +295,6 @@ export default function App() {
             }}
             uiLanguage={uiLanguage || "sv"}
           />
-        ) : showSimulator ? (
-          <div className="animate-in fade-in duration-200">
-            <SimulatorPanel />
-          </div>
         ) : (
           <div className="space-y-10 animate-in fade-in duration-200">
             {/* Notices Stream (Always at the very top) */}
@@ -339,37 +303,47 @@ export default function App() {
               uiLanguage={uiLanguage || "sv"}
             />
 
-            {/* Collapsible Settings / Onboarding Form */}
-            {showSettings && (
-              <div className="pt-10 border-t border-slate-100 animate-in slide-in-from-top-4 duration-200">
-                <div className="max-w-2xl mx-auto space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <h3 className="text-lg font-bold text-slate-900">
-                      {uiLanguage === "sv" ? "Mina aviseringsinställningar" : uiLanguage === "en" ? "My notification settings" : uiLanguage === "es" ? "Mi configuración de notificaciones" : uiLanguage === "sw" ? "Mipangilio yangu ya arifa" : "Cài đặt thông báo của tôi"}
-                    </h3>
-                    <button
-                      onClick={() => setShowSettings(false)}
-                      className="text-xs text-slate-400 hover:text-slate-600 font-semibold cursor-pointer"
-                    >
-                      {uiLanguage === "sv" ? "Dölj inställningar" : uiLanguage === "en" ? "Hide settings" : uiLanguage === "es" ? "Ocultar configuración" : uiLanguage === "sw" ? "Ficha mipangilio" : "Ẩn cài đặt"}
-                    </button>
-                  </div>
-                  <OnboardingForm
-                    onSave={handleSaveTags}
-                    savedTags={savedTags}
-                    pushEnabled={pushEnabled}
-                    onEnablePush={handleEnablePush}
-                    uiLanguage={uiLanguage || "sv"}
-                  />
-                </div>
+            {/* Permanent Settings / Onboarding Form */}
+            <div className="pt-10 border-t border-slate-100">
+              <div className="max-w-2xl mx-auto space-y-6">
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
+                  {uiLanguage === "sv" ? "Mina aviseringsinställningar" : uiLanguage === "en" ? "My notification settings" : uiLanguage === "es" ? "Mi configuración de notificaciones" : uiLanguage === "sw" ? "Mipangilio yangu ya arifa" : "Cài đặt thông báo của tôi"}
+                </h3>
+                <OnboardingForm
+                  onSave={handleSaveTags}
+                  savedTags={savedTags}
+                  pushEnabled={pushEnabled}
+                  onEnablePush={handleEnablePush}
+                  uiLanguage={uiLanguage || "sv"}
+                />
               </div>
-            )}
+            </div>
           </div>
         )}
       </main>
 
       {/* Foot Disclaimers */}
       <Disclaimer uiLanguage={uiLanguage || "sv"} />
+
+      {/* Footer Status and Simulator Section */}
+      <footer className="mt-auto py-8 border-t border-slate-100 bg-slate-50/50 w-full px-6 flex flex-col items-center gap-4 text-center">
+        {/* Network / Connection status indicator */}
+        <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-500 shadow-sm">
+          <span className={`w-2 h-2 rounded-full ${subscriptionId ? "bg-teal-500 animate-pulse" : "bg-slate-300"}`}></span>
+          <span>
+            {subscriptionId 
+              ? `${uiLanguage === "sv" ? "Ansluten" : "Connected"} (ID: ${subscriptionId.substring(0, 8)}...)` 
+              : (uiLanguage === "sv" ? "Ej ansluten" : "Not connected")}
+          </span>
+        </div>
+
+        {/* Simulator Panel rendered in footer when active */}
+        {showSimulator && (
+          <div className="w-full max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-200 mt-2">
+            <SimulatorPanel />
+          </div>
+        )}
+      </footer>
 
       {/* Custom iOS Install Modal */}
       {showIosModal && (

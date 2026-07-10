@@ -185,7 +185,7 @@ export default function App() {
         <div className="max-w-md w-full text-center space-y-8">
           <div className="space-y-3">
             <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
-              Älska, dela och bjud in
+              Inbjudan till dig
             </h1>
             <p className="text-sm text-slate-500 font-medium">
               Varmt och anonymt församlingsstöd i Göteborg
@@ -239,9 +239,9 @@ export default function App() {
           </div>
           <div>
             <h1 className="text-lg md:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-              Älska, dela och bjud in
+              {TRANSLATIONS[uiLanguage].gatewayTitle}
               <span className="hidden xs:inline text-[10px] md:text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-                Helt anonymt
+                {uiLanguage === "sv" ? "Helt anonymt" : uiLanguage === "en" ? "Completely anonymous" : uiLanguage === "es" ? "Completamente anónimo" : uiLanguage === "sw" ? "Siri kabisa" : "Hoàn toàn ẩn danh"}
               </span>
             </h1>
           </div>
@@ -261,10 +261,12 @@ export default function App() {
                   ? "bg-teal-600 text-white border-teal-600 shadow-sm" 
                   : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-100"
               }`}
-              title="Hantera aviseringsinställningar"
+              title={uiLanguage === "sv" ? "Hantera aviseringsinställningar" : uiLanguage === "en" ? "Manage notification settings" : uiLanguage === "es" ? "Administrar configuración de notificaciones" : uiLanguage === "sw" ? "Hariri mipangilio ya arifa" : "Quản lý cài đặt thông báo"}
             >
               <Sliders size={14} />
-              <span className="hidden md:inline">Inställningar</span>
+              <span className="hidden md:inline">
+                {uiLanguage === "sv" ? "Inställningar" : uiLanguage === "en" ? "Settings" : uiLanguage === "es" ? "Configuración" : uiLanguage === "sw" ? "Mipangilio" : "Cài đặt"}
+              </span>
             </button>
           )}
 
@@ -280,15 +282,17 @@ export default function App() {
                   ? "bg-blue-600 text-white border-blue-600 shadow-sm" 
                   : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-100"
               }`}
-              title="Öppna simuleringspanelen"
+              title={uiLanguage === "sv" ? "Öppna simuleringspanelen" : uiLanguage === "en" ? "Open simulation panel" : uiLanguage === "es" ? "Abrir panel de simulación" : uiLanguage === "sw" ? "Fungua paneli ya simulizi" : "Mở bảng mô phỏng"}
             >
               <Radio size={14} className={showSimulator ? "animate-pulse" : ""} />
-              <span className="hidden md:inline">Simulator</span>
+              <span className="hidden md:inline">
+                {uiLanguage === "sv" ? "Simulator" : uiLanguage === "en" ? "Simulator" : uiLanguage === "es" ? "Simulador" : uiLanguage === "sw" ? "Simuleta" : "Mô phỏng"}
+              </span>
             </button>
           )}
 
           <div className="h-10 px-3.5 bg-slate-50 border border-slate-100 rounded-full flex items-center text-xs font-semibold text-slate-500 max-w-[120px] md:max-w-none truncate">
-            {subscriptionId ? `ID: ${subscriptionId.substring(0, 8)}...` : "Ej ansluten"}
+            {subscriptionId ? `ID: ${subscriptionId.substring(0, 8)}...` : (uiLanguage === "sv" ? "Ej ansluten" : uiLanguage === "en" ? "Not connected" : uiLanguage === "es" ? "No conectado" : uiLanguage === "sw" ? "Hujaunganishwa" : "Chưa kết nối")}
           </div>
 
           {uiLanguage && (
@@ -340,12 +344,14 @@ export default function App() {
               <div className="pt-10 border-t border-slate-100 animate-in slide-in-from-top-4 duration-200">
                 <div className="max-w-2xl mx-auto space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <h3 className="text-lg font-bold text-slate-900">Mina aviseringsinställningar</h3>
+                    <h3 className="text-lg font-bold text-slate-900">
+                      {uiLanguage === "sv" ? "Mina aviseringsinställningar" : uiLanguage === "en" ? "My notification settings" : uiLanguage === "es" ? "Mi configuración de notificaciones" : uiLanguage === "sw" ? "Mipangilio yangu ya arifa" : "Cài đặt thông báo của tôi"}
+                    </h3>
                     <button
                       onClick={() => setShowSettings(false)}
                       className="text-xs text-slate-400 hover:text-slate-600 font-semibold cursor-pointer"
                     >
-                      Dölj inställningar
+                      {uiLanguage === "sv" ? "Dölj inställningar" : uiLanguage === "en" ? "Hide settings" : uiLanguage === "es" ? "Ocultar configuración" : uiLanguage === "sw" ? "Ficha mipangilio" : "Ẩn cài đặt"}
                     </button>
                   </div>
                   <OnboardingForm

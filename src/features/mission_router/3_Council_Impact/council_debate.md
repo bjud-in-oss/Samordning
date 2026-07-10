@@ -1,64 +1,35 @@
-# 3_Council_Impact: Dialectical Debate & Architectural Synchronization
+# 3_Council_Impact: Dialektisk debatt & Konsekvensanalys
 
-## Adversarial Perspectives on "Ge stöd" Features
+## 1. Rådsmedlemmarnas argument
 
-### 1. The Innovator (Att förändra)
-* **Argument**: Let's build a fully real-time bidirectional anonymous chat. We should push the envelope of WhatsApp's reply mechanics. When a volunteer sends a chat from the Web UI, it lands on the missionary's phone. By replying using the native quote-reply feature in WhatsApp, the missionary initiates an ongoing conversation thread without installing any special app. This allows them to coordinate things like "where should we meet exactly?" or "should I wear a suit?" in real time.
-* **UX Concept**: Let's construct a beautiful chat panel on the `/larm/:id` view that mimics a clean SMS/chat interface. When a volunteer sends a message, they get live visual indicators. Let's also build a simulated quoting interface in the developer `SimulatorPanel` so the feature can be tested instantly!
+### 💡 Innovatören (Att förändra)
+> *"Detta är den ultimata renodlingen! Genom att ta bort komplexa integrationer med WhatsApp-webbklienter och Gemini sparar vi enormt mycket resurser, eliminerar kalla starter, och gör tjänsten 100% driftsäker. En nativ SMS-djuplänk (`sms:`) är extremt elegant eftersom den överlåter allt samtalsgränssnitt till telefonens inbyggda applikationer, vilket garanterar fullständig sekretess och en helt friktionsfri användarupplevelse. Kill switch via enkla SMS-kommandon som `DEL` och `FULL` ger administratörer och arrangörer total kontroll direkt från fickan utan att behöva logga in i ett komplext administratörsverktyg."*
 
-### 2. The Reflector (Att vända)
-* **Argument**: We must ensure absolute GDPR compliance and prevent any data leaks. The user strictly specified: *"Noll permanent personuppgiftslagring."* We must make sure that when a volunteer inputs their name and phone number on the `/larm/:id` page, this data is *only* held in RAM for the active alert session, or used as the display header for the WhatsApp message. Once the session is closed via the **Amnesi-utlösning** (Amnesia Trigger), all chat records and correlation mappings are completely purged from memory.
-* **Edge Case Alarm**: What happens if a missionary pair has *multiple* active alerts running simultaneously, and they reply to a volunteer's message but *forget* to use the WhatsApp Quote/Reply feature?
-  - If they reply without a quote, and we blindly forward it to *all* active chats, we have a massive security/privacy breach! An investigator or volunteer of one alert will see communication meant for another.
-  - To prevent this leakage, if the missionary has **multiple** active alerts and sends a non-quote message, the bot **MUST NOT** route the message to any chat. Instead, the bot must intercept it and reply with a strict warning:
-    `Ge stöd: Jag kan tyvärr inte se vilket möte du svarar på. Vänligen svara genom att hålla in och "citera" (Reply) det specifika meddelandet du vill besvara.`
-  - If they have **exactly one** active alert, we can safely and gracefully fall back to routing the message to that single active alert, ensuring a smooth UX for the common single-alert scenario!
+### 🔍 Reflektorn (Att vända)
+> *"Vi måste känna djup och uppriktig ånger för hur mycket tid vi lade på att bygga komplexa AI-tvättar och virtuella WhatsApp-botar i det förra steget, men detta är en nödvändig kurskorrigering för att uppnå sann enkelhet. Dock bär det med sig nya risker: Utan Gemini kan vi inte tolka luddigt skrivna SMS på samma magiska sätt. Vi måste garantera att vår lokala regex-parser är förlåtande. Om någon skickar ett SMS som inte exakt följer formatet `[Område] [Tid]...` får appen absolut inte krascha. Parsern måste snällt lägga in hela meddelandet i `scrubbedText` och sätta standardvärden för område och kategori. Dessutom måste administratörslistan (`ADMIN_NUMBERS`) vara hårdkodad eller lättkonfigurerad i `.env` så att vi inte tillåter obehöriga att slumpmässigt radera andras inbjudningar via förfalskade avsändarnummer."*
 
-### 3. The Mediator (Att förlika)
-* **Resolution**:
-  - We will implement the quote-reply mapping in memory via `MessageCorrelation` map.
-  - The "forgot to quote" edge case is handled cleanly:
-    - 0 active alerts: Respond "Du har inga aktiva möten just nu."
-    - 1 active alert: Route the message to that alert's chat log as a fallback.
-    - >1 active alerts: Block the message and reply on WhatsApp prompting the missionary to hold down and "Quote" the specific message they want to answer.
-  - We will introduce a clear, highly visible "Avsluta & radera larm (Amnesi-utlösning)" button in the `/larm/:id` view, allowing either the volunteer or missionary to trigger immediate purging of the session.
-  - All occurrences of "Stateless Mission Router" are officially rebranded to **"Ge stöd"**, giving a warm, loving, and community-centered feeling.
-  - Active notifications are split into **Akuta larm** (`missionary_alert`) and **Inbjudningar / Annonseringar** (`leader_invitation`).
+### ⚖️ Medlaren (Att förlika)
+> *"Vi förenar dessa två perspektiv genom att designa en hybrid-parser som stöder BÅDE strikt strukturerade SMS-mallar (med klamrar `[...]`) och råtext-fallback för ostrukturerade meddelanden. Detta garanterar att vi aldrig tappar inbjudningar i strömmen. Vi bekräftar också att tidslåset (TTL) på 2 timmar är en perfekt avvägning: om en aktivitet är satt till kl 18:00 försvinner den automatiskt kl 20:00, vilket håller anslagstavlan ständigt fräsch och fri från inaktuellt brus. Vi raderar samtidigt allt WhatsApp- och Gemini-beroende för att garantera en ren, lätt och statslös arkitektur som lever upp till Allmänna handboken § 33.8."*
 
 ---
 
-## Architectural Synchronization & Impact Analysis
+## 2. Architectural Synchronization & Impact Analysis
 
-### Operative Files to Modify, Split, or Create
+Följande filer kommer att modifieras i nästa steg för att slutföra konceptbytet:
 
-1. **`src/features/mission_router/types.ts`** (Modify):
-   - Update interfaces (`ActiveAlert`, `ChatMessage`) to support in-memory chat histories, correlation IDs, and onboarding tags (including `requireInteraction`). Rebrand `leader_announcement` type to `leader_invitation`.
-
-2. **`src/features/mission_router/domain/parser.ts`** (Modify):
-   - Modularized geocoding tables, Pythagoras calculation, and regex parsing logic. Enhance `runAiWash` prompts to preserve URLs and support any general need classification.
-
-3. **`src/features/mission_router/domain/pushService.ts`** (Create/Modify):
-   - Modularized Web Push configuration, subscriber storage (`subscriptions.json` persistence), subscription filtering, and real-time push feedback awaiting.
-
-4. **`src/features/mission_router/domain/whatsappBot.ts`** (Create/Modify):
-   - Modularized `whatsapp-web.js` configuration, smart cancellation parser, quote-reply routing logic, and simulated reply triggers.
-
-5. **`server.ts`** (Modify):
-   - Strip monolith business logic. Import and delegate to `parser.ts`, `pushService.ts`, and `whatsappBot.ts`.
-   - Update API routes to serve chat log fetching, chat sending (`POST /api/alerts/:id/chat`), and immediate push-volunteers count feedback.
-   - Align terminology with `leader_invitation`.
-
-6. **`src/features/mission_router/translations.ts`** (Modify):
-   - Complete rebranding of "Missionshjälpen" / "Stateless Mission Router" to "Ge stöd" and update all language dictionaries with chat strings, persistent notifications, and calendar prompts. Rebrand "pålysning" terminology to "Inbjudan".
-
-7. **`src/features/mission_router/components/OnboardingForm.tsx`** (Modify):
-   - Add "Envisa aviseringar" (`requireInteraction`) setting and update labels to match "Ge stöd".
-
-8. **`src/features/mission_router/components/AlertDetail.tsx`** (Modify):
-   - Add the dynamic, anonymous Chat interface.
-   - Add clientside `.ics` calendar generation download button.
-   - Introduce "Avsluta och radera larm" button (Immediate Amnesia purge).
-   - Improve name and phone prompts with helpful guidance.
-
-9. **`src/features/mission_router/components/SimulatorPanel.tsx`** (Modify):
-   - Upgrade simulated WhatsApp inbox. Allow developers to mock "Quotes" by clicking "Svara" on simulated outgoing volunteer chat logs!
+1. **`server.ts`** (Modifieras):
+   - Ta bort alla imports av `@google/genai` och whatsapp-bot-moduler.
+   - Lägg till administratörslistan `ADMIN_NUMBERS` och loop-intervallet för 2-timmars TTL-rensning av utgångna inbjudningar.
+   - Skapa den nya endpointen `POST /api/incoming-sms` som hanterar administrativa kommandon (`DEL`, `FULL`) och skapar nya inbjudningar.
+2. **`src/features/mission_router/domain/parser.ts`** (Modifieras):
+   - Ersätt `runAiWash` med en helt lokal, deterministisk SMS-parser.
+   - Implementera regex-stöd för formatet `[Område] [Tid] [Kategori] [Text] [Arrangör] [Kontakt]`.
+   - Implementera en stabil fallback-logik för ostrukturerade SMS.
+3. **`src/features/mission_router/types.ts`** (Modifieras):
+   - Lägg till fälten `category` (sträng/badge) och `isFull` (boolean) på `ActiveAlert`.
+4. **`src/features/mission_router/components/AlertDetail.tsx`** (Modifieras):
+   - Ta bort svarsformuläret och chatthistoriken.
+   - Implementera kategoribadge högst upp, fullbokat-tillstånd samt den nativa djuplänken för SMS-OSA.
+   - Uppdatera ansvarsfriskrivningen längst ner i enlighet med kyrkans regelverk.
+5. **`src/features/mission_router/translations.ts`** (Modifieras):
+   - Ändra applikationsrubrik till "Inbjudan till dig" och anpassa gränssnittstexterna för den utåtriktade anslagstavlan.

@@ -1,51 +1,55 @@
-# 2_Blueprint: Design Specifications (Digital Veranda & Notiser)
+# 2_Blueprint: Arkitektur & Datamodell för "Inbjudan till dig"
 
-## 1. Unified Backend Registry and API Contracts
-We unify the flat in-memory registry to maintain a single list of `ActiveAlert` (now referred to as **Notiser** / Notices) in `server.ts`.
+## 1. Datamodell (`types.ts`)
+Vi utökar `ActiveAlert` till att representera öppna inbjudningar med stöd för kategorier och fullbokningsstatus:
+
 ```typescript
-interface ActiveAlert {
-  id: string; // Random short string
+export interface ActiveAlert {
+  id: string; // Slumpmässigt unikt ID
   type: "missionary_alert" | "leader_invitation";
   rawText: string;
   scrubbedText: string;
-  area: string; // Gothenburg district
-  time: string; // Relevant meeting time or "Ospecificerad tid"
-  gender: string; // Target audience, e.g. "bror" / "syster" / "Alla medlemmar"
-  language: string; // e.g. "Svenska"
-  locationName: string; // e.g. "Kortedala"
-  coords: { lat: number; lng: number };
-  cloakedCoords: { lat: number; lng: number };
-  timestamp: number; // Creation time
-  responsibleParty: string; // e.g. "Syster Karin", "Biskopsrådet"
-  contactType: "sms" | "email" | "whatsapp";
-  contactValue: string; // Hidden contact detail
-  expiryTimestamp: number; // Automated cleanup threshold
+  area: string; // Område i Göteborg
+  locationName: string; // Plats
+  time: string; // Klockslag
+  category: "Måltid & Gemenskap" | "Lektion & Samtal" | "Tjänande" | string;
+  isFull?: boolean; // Flagga för fullbokat/stängt
+  responsibleParty: string; // Arrangör/Titel
+  contactValue: string; // Telefonnummer till arrangören (döljs bakom djuplänk)
+  expiryTimestamp: number; // TTL (Klockslag för aktiviteten + 2 timmar)
 }
 ```
 
-### Endpoints
-1. `GET /api/sim/active-alerts`: Returns all active Notices. It strips `rawText` and `contactValue` to protect privacy on general index screens, making it fully compliant with § 33.8.
-2. `GET /api/alerts/:id`: Returns the details of a notice, including `contactValue` for direct contact when explicitly requested by a logged/confirmed volunteer.
-3. `POST /api/alerts/:id/respond`: Forwards responses via actual WhatsApp or logs a simulated action.
-   * *Amnesia Protocol*: If `type === "missionary_alert"`, the Notice is instantly deleted from server RAM and matching push notifications are cancelled.
-   * *Leader Notices (Inbjudningar)*: Remain active in the registry until their `expiryTimestamp` passes.
-4. `POST /api/incoming-email`: Evaluates in-coming e-mails. Verifies whitelist, runs real-time Gemini AI Wash, and adds notice to memory.
+## 2. SMS-Gateway (`server.ts` & `/api/incoming-sms`)
+Mottagare av JSON-payload: `{ sender: string, text: string }`.
 
-## 2. Real-time Gemini AI Wash Instructions
-We configure `runAiWash` in `parser.ts` to instruct `gemini-3.1-flash-lite` (or the appropriate flash model):
-* Input: Raw text message + sender's default role + sender's email/phone.
-* Output: Structured JSON mapping the properties of `ActiveAlert` with type `missionary_alert` or `leader_invitation`.
-* **Privacy & Preservation Guard**: Strips surnames, precise house numbers, and phone numbers.
-* **URL Preservation**: Crucially, any valid URLs (web URLs, Google Sheets/Drive files, virtual meeting invitations) MUST remain fully untouched and intact in `scrubbedText`.
-* **Versatility**: The model is trained to process and categorize all types of general needs (dinners, transport, moving assistance, religious lessons).
+### A. Administrativa Kommandon
+* **`DEL <ID>`**: Raderar kortet helt från RAM.
+* **`FULL <ID>`**: Sätter `isFull: true` på kortet.
+* *Behörighetskontroll*: Endast om `sender === contactValue` (arrangören) eller om numret finns i `ADMIN_NUMBERS`.
 
-## 3. Frontend Stream UI ("Älska, dela och bjud in")
-* **Single View Layout**: The active view displays a single stream under "Älska, dela och bjud in" with sleek typography ("Space Grotesk" displays paired with "Inter").
-* **Smart Actions**:
-  * Clicking "Ge stöd" triggers native URI schemas depending on `contactType` and `contactValue`:
-    - `sms` -> `sms:<number>?body=Hej! Angående Notisen i ${area}: ...`
-    - `email` -> `mailto:<address>?subject=Ge stöd - Notis: ${area}&body=Hej! Jag hjälper gärna till med...`
-    - `whatsapp` -> `https://wa.me/<number>?text=Hej! Angående...`
-* **iOS Web Push Onboarding Prompt**:
-  * Detect: `const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;`
-  * Condition: Show an educational slide-up overlay detailing "Lägg till på hemskärmen" (Add to Home Screen) *only* if the user is on an iOS device AND they click the "Aktivera push-notiser" toggle inside a standard browser view (where native Web Push is restricted until bookmarked as an standalone app on iOS).
+### B. Ny inbjudan via SMS-mall
+Eftersom vi skrotar Gemini bygger vi en robust och förutsägbar mall-parser (regex-fallback) i `parser.ts` som läser inkommande SMS i följande format:
+> `[KORTEDALA] [18:00] [Måltid & Gemenskap] [Middag hos familjen Andersson. Välkomna!] [Hjälpföreningen] [0701234567]`
+* Om texten inte matchar formatet skapas ändå en inbjudan med standardvärden där hela texten bevaras i `scrubbedText` för att undvika dataförlust.
+
+## 3. Expireringsmotor (TTL)
+En loop körs varje minut i `server.ts`:
+```typescript
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, alert] of Object.entries(activeAlerts)) {
+    if (alert.expiryTimestamp < now) {
+      delete activeAlerts[id];
+      console.log(`[TTL] Inbjudan ${id} har passerat sin sluttid med >2 timmar och raderats.`);
+    }
+  }
+}, 60000);
+```
+
+## 4. Frontend-ändringar (`AlertDetail.tsx`)
+* **Badge**: Visar `alert.category` tydligt högst upp.
+* **Fullbokad status**: Om `alert.isFull === true` döljs OSA-knappen helt och texten *"Denna aktivitet är nu fullbokad. Välkommen nästa gång!"* visas.
+* **SMS-djuplänk**:
+  - `href="sms:<contactValue>?body=Hej! Jag vill gärna tacka ja till inbjudan: [Titel] i [Område] kl [Tid]."`
+* **Ansvarsfriskrivning (§ 33.8)**: Ny, exakt juridiskt ren text i botten av kortet.

@@ -248,39 +248,18 @@ export default function App() {
 
         {/* Dynamic Header Actions */}
         <div className="flex items-center justify-between w-full sm:w-auto gap-2.5">
-          {/* Settings Toggle */}
+          {/* Settings Toggle (textless icon button) */}
           {uiLanguage && !activeAlertId && (
             <button
               onClick={() => setShowSettingsSidebar(prev => !prev)}
-              className={`h-10 px-3.5 rounded-full flex items-center gap-1.5 text-xs font-bold border transition-all active:scale-95 cursor-pointer shrink-0 ${
+              className={`h-10 w-10 rounded-full flex items-center justify-center border transition-all active:scale-95 cursor-pointer shrink-0 ${
                 showSettingsSidebar
                   ? "bg-teal-600 text-white border-teal-600 shadow-sm"
                   : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-100"
               }`}
-              title="Inställningar"
+              title={uiLanguage === "sv" ? "Anpassa" : "Customize"}
             >
-              <Sliders size={14} />
-              <span>{uiLanguage === "sv" ? "Inställningar" : "Settings"}</span>
-            </button>
-          )}
-
-          {/* Simulator trigger */}
-          {uiLanguage && !activeAlertId && (
-            <button
-              onClick={() => {
-                setShowSimulator(prev => !prev);
-              }}
-              className={`h-10 px-3.5 rounded-full flex items-center gap-1.5 text-xs font-bold border transition-all active:scale-95 cursor-pointer shrink-0 ${
-                showSimulator 
-                  ? "bg-blue-600 text-white border-blue-600 shadow-sm" 
-                  : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-100"
-              }`}
-              title="Simulator"
-            >
-              <Radio size={14} className={showSimulator ? "animate-pulse" : ""} />
-              <span>
-                {uiLanguage === "sv" ? "Simulator" : "Simulator"}
-              </span>
+              <Sliders size={18} />
             </button>
           )}
 
@@ -332,7 +311,7 @@ export default function App() {
                   {/* Sidebar Panel Container */}
                   <aside className="fixed inset-y-0 left-0 w-[85vw] max-w-sm bg-white z-50 p-6 overflow-y-auto shadow-2xl border-r border-slate-100 animate-in slide-in-from-left duration-200 lg:relative lg:inset-auto lg:w-auto lg:max-w-none lg:shadow-none lg:border-none lg:p-0 lg:col-span-4 lg:z-10 lg:sticky lg:top-6">
                     <div className="flex items-center justify-between lg:hidden mb-5 pb-2 border-b border-slate-100">
-                      <h3 className="font-bold text-slate-900">Notisinställningar</h3>
+                      <h3 className="font-bold text-slate-900">Anpassa</h3>
                       <button 
                         onClick={() => setShowSettingsSidebar(false)}
                         className="p-1 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
@@ -370,14 +349,24 @@ export default function App() {
 
       {/* Footer Status and Simulator Section */}
       <footer className="mt-auto py-8 border-t border-slate-100 bg-slate-50/50 w-full px-6 flex flex-col items-center gap-4 text-center">
-        {/* Connection status indicator */}
-        <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-500 shadow-sm">
-          <span className={`w-2 h-2 rounded-full ${subscriptionId ? "bg-teal-500 animate-pulse" : "bg-slate-300"}`}></span>
-          <span>
-            {subscriptionId 
-              ? `${uiLanguage === "sv" ? "Ansluten" : "Connected"} (ID: ${subscriptionId.substring(0, 8)}...)` 
-              : (uiLanguage === "sv" ? "Ej ansluten" : "Not connected")}
-          </span>
+        {/* Connection status indicator & Simulator Link */}
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-500 shadow-sm">
+            <span className={`w-2 h-2 rounded-full ${subscriptionId ? "bg-teal-500 animate-pulse" : "bg-slate-300"}`}></span>
+            <span>
+              {subscriptionId 
+                ? `${uiLanguage === "sv" ? "Ansluten" : "Connected"} (ID: ${subscriptionId.substring(0, 8)}...)` 
+                : (uiLanguage === "sv" ? "Ej ansluten" : "Not connected")}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowSimulator(prev => !prev)}
+            className="text-[11px] text-slate-400 hover:text-slate-600 font-mono underline cursor-pointer hover:no-underline transition-all"
+          >
+            {showSimulator ? "Göm simulator" : "Visa simulator"}
+          </button>
         </div>
 
         {/* Simulator Panel rendered in footer when active */}

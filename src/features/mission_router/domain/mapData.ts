@@ -1563,19 +1563,50 @@ export const MAP_DISTRICTS: MapDistrict[] = [
   }
 ];
 
-export const DISTRICT_NAME_MAPPING: Record<string, string> = {
+export const GOTEBORG_AREAS = [
+  "Tjörn & Stenungsund",
+  "Kungälv",
+  "Gråbo & Olofstorp",
+  "Angered & Hjällbo",
+  "Kortedala Norra",
+  "Bergsjön & Gärdsås",
+  "Kortedala & Bellevue",
+  "Utby & Utbynäs",
+  "Hisingen",
+  "Sävedalen / Partille Norra",
+  "Furulund / Partille Södra",
+  "Centrum / Olskroken & Bagaregården",
+  "Landvetter & Härryda"
+];
+
+export const AREA_TO_DISTRICT_MAP: Record<string, string> = {
+  "Tjörn & Stenungsund": "Tjörn/Stenungsund",
   "Kungälv": "Kungälv",
-  "Gråbo/Olofstorp": "Gråbo / Olofstorp",
-  "Angered": "Angered",
-  "Kortedala": "Kortedala",
-  "Biskopsgården/Torslanda": "Biskopsgården / Torslanda",
-  "Kärra/Tuve": "Kärra / Tuve",
-  "Utby/Partille": "Utby / Partille",
-  "Lundby": "Lundby",
-  "Östra Centrum 2": "Härlanda / Örgryte",
-  "Östra Centrum 1": "Olskroken / Bagaregården",
-  "Majorna/Högsbo": "Majorna / Högsbo",
-  "Västra Frölunda": "Västra Frölunda",
-  "Mölndal/Askim": "Mölndal / Askim",
-  "Kungsbacka": "Kungsbacka"
+  "Gråbo & Olofstorp": "Gråbo/Olofstorp",
+  "Angered & Hjällbo": "Angered/Hjällbo",
+  "Kortedala Norra": "Kortedala norra",
+  "Bergsjön & Gärdsås": "Bergsjön",
+  "Kortedala & Bellevue": "Kortedala/Bellevue",
+  "Utby & Utbynäs": "Utby/Utbynäs",
+  "Hisingen": "Hisingen",
+  "Sävedalen / Partille Norra": "Partille Norra",
+  "Furulund / Partille Södra": "Partille Södra",
+  "Centrum / Olskroken & Bagaregården": "Östra Centrum 1",
+  "Landvetter & Härryda": "Landvetter/Härryda"
+};
+
+export const DISTRICT_NAME_MAPPING: Record<string, string> = {
+  "Tjörn/Stenungsund": "Tjörn & Stenungsund",
+  "Kungälv": "Kungälv",
+  "Gråbo/Olofstorp": "Gråbo & Olofstorp",
+  "Angered/Hjällbo": "Angered & Hjällbo",
+  "Kortedala norra": "Kortedala Norra",
+  "Bergsjön": "Bergsjön & Gärdsås",
+  "Kortedala/Bellevue": "Kortedala & Bellevue",
+  "Utby/Utbynäs": "Utby & Utbynäs",
+  "Hisingen": "Hisingen",
+  "Partille Norra": "Sävedalen / Partille Norra",
+  "Partille Södra": "Furulund / Partille Södra",
+  "Östra Centrum 1": "Centrum / Olskroken & Bagaregården",
+  "Landvetter/Härryda": "Landvetter & Härryda"
 };

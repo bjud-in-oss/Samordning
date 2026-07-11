@@ -1,29 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Check, Bell, Info } from "lucide-react";
+import { Check, Bell } from "lucide-react";
 import L from "leaflet";
-import { MAP_DISTRICTS, DISTRICT_NAME_MAPPING, MapDistrict } from "../domain/mapData";
+import { MAP_DISTRICTS, DISTRICT_NAME_MAPPING, MapDistrict, GOTEBORG_AREAS, AREA_TO_DISTRICT_MAP } from "../domain/mapData";
 import { TRANSLATIONS, UiLanguage } from "../translations";
 
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
-
-// Sorterade geografiskt (Norr -> Söder)
-const GOTEBORG_AREAS = [
-  "Angered",
-  "Kortedala",
-  "Gamlestaden",
-  "Hisingen",
-  "Biskopsgården",
-  "Lundby",
-  "Partille",
-  "Örgryte",
-  "Johanneberg",
-  "Majorna",
-  "Mölndal",
-  "Frölunda",
-  "Torslanda",
-  "Askim",
-  "Härryda"
-];
 
 const LANGUAGE_OPTIONS = [
   { code: "Svenska", label: "Svenska / Swedish" },
@@ -55,6 +36,114 @@ interface OnboardingFormProps {
   uiLanguage: UiLanguage;
 }
 
+interface MapModalProps {
+  area: string;
+  onClose: () => void;
+}
+
+// Helper to find KML district for area
+const getKmlDistrictForArea = (area: string): MapDistrict | undefined => {
+  const kmlName = AREA_TO_DISTRICT_MAP[area];
+  if (kmlName) {
+    return MAP_DISTRICTS.find(d => d.name === kmlName);
+  }
+  return undefined;
+};
+
+function MapModal({ area, onClose }: MapModalProps) {
+  const modalMapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const district = getKmlDistrictForArea(area);
+
+  useEffect(() => {
+    if (!modalMapRef.current) return;
+
+    // Initialize Leaflet Map
+    const map = L.map(modalMapRef.current, {
+      zoomControl: true,
+      attributionControl: false,
+      dragging: true,
+      touchZoom: true,
+      scrollWheelZoom: true
+    }).setView([57.7088, 11.9745], 11);
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      maxZoom: 19
+    }).addTo(map);
+
+    mapInstanceRef.current = map;
+
+    if (district && district.coordinates.length > 0) {
+      // Draw district polygon (fillOpacity: 0, Teal 600 line)
+      const polygon = L.polygon(district.coordinates, {
+        color: "#0d9488", // Teal 600
+        weight: 3,
+        fill: false,
+        fillOpacity: 0
+      }).addTo(map);
+
+      // Smooth flight with slight delay
+      const timer = setTimeout(() => {
+        if (mapInstanceRef.current) {
+          map.flyToBounds(polygon.getBounds(), {
+            padding: [40, 40],
+            duration: 1.0,
+            animate: true
+          });
+        }
+      }, 100);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [area, district]);
+
+  // Handle map removal on unmount (critical to prevent memory leaks)
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-0 md:p-6">
+      <div className="relative w-full h-full md:max-w-4xl md:h-[80vh] bg-white md:rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-250">
+        {/* Modal Header */}
+        <div className="absolute top-4 right-4 z-[10000]">
+          <button
+            type="button"
+            onClick={onClose}
+            className="bg-white/95 hover:bg-white text-slate-800 font-bold px-4 py-2.5 rounded-xl border border-slate-200 shadow-lg transition-all active:scale-95 cursor-pointer text-sm"
+          >
+            Stäng karta
+          </button>
+        </div>
+
+        {/* Map Container */}
+        <div ref={modalMapRef} className="flex-1 w-full h-full bg-slate-100 z-10"></div>
+
+        {/* Bottom Banner */}
+        <div className="absolute bottom-4 left-4 right-4 bg-slate-900/95 text-slate-100 backdrop-blur-sm px-5 py-3.5 rounded-2xl z-[10000] border border-slate-800/50 shadow-xl text-xs md:text-sm font-mono flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider">Valt område</span>
+            <span className="font-bold text-white text-sm mt-0.5">{area}</span>
+          </div>
+          <div className="flex flex-col items-end">
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider">KML-distrikt</span>
+            <span className="font-medium text-teal-400 mt-0.5">
+              {district ? district.name : "Okänt"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function OnboardingForm({
   onSave,
   savedTags,
@@ -63,7 +152,7 @@ export default function OnboardingForm({
   uiLanguage
 }: OnboardingFormProps) {
   const [selectedAreas, setSelectedAreas] = useState<string[]>(
-    savedTags?.areas || ["Kortedala"]
+    savedTags?.areas || ["Kortedala Norra"]
   );
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
     savedTags?.languages || ["Svenska"]
@@ -81,44 +170,9 @@ export default function OnboardingForm({
     savedTags?.spiritualTips ?? false
   );
 
-  const [hoveredArea, setHoveredArea] = useState<string | null>(null);
-
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const geoLayerRef = useRef<L.Polygon | null>(null);
+  const [modalArea, setModalArea] = useState<string | null>(null);
 
   const t = TRANSLATIONS[uiLanguage];
-
-  // Helper to find the KML district for a specific area
-  const getKmlDistrictForArea = (area: string): MapDistrict | undefined => {
-    const cleanArea = area.toLowerCase();
-    let targetKmlName = "";
-
-    if (cleanArea === "angered") targetKmlName = "Angered";
-    else if (cleanArea === "kortedala") targetKmlName = "Kortedala";
-    else if (cleanArea === "gamlestaden") targetKmlName = "Östra Centrum 1";
-    else if (cleanArea === "hisingen") targetKmlName = "Kärra/Tuve";
-    else if (cleanArea === "biskopsgården") targetKmlName = "Biskopsgården/Torslanda";
-    else if (cleanArea === "lundby") targetKmlName = "Lundby";
-    else if (cleanArea === "partille") targetKmlName = "Utby/Partille";
-    else if (cleanArea === "örgryte") targetKmlName = "Östra Centrum 2";
-    else if (cleanArea === "johanneberg") targetKmlName = "Östra Centrum 1";
-    else if (cleanArea === "majorna") targetKmlName = "Majorna/Högsbo";
-    else if (cleanArea === "mölndal") targetKmlName = "Mölndal/Askim";
-    else if (cleanArea === "frölunda") targetKmlName = "Västra Frölunda";
-    else if (cleanArea === "torslanda") targetKmlName = "Biskopsgården/Torslanda";
-    else if (cleanArea === "askim") targetKmlName = "Mölndal/Askim";
-    else if (cleanArea === "härryda") targetKmlName = "Gråbo/Olofstorp";
-
-    if (targetKmlName) {
-      return MAP_DISTRICTS.find(d => d.name === targetKmlName);
-    }
-    return MAP_DISTRICTS.find(d => d.name.toLowerCase().includes(cleanArea) || cleanArea.includes(d.name.toLowerCase()));
-  };
-
-  // Determine active area and corresponding KML district info
-  const activeArea = hoveredArea || selectedAreas[selectedAreas.length - 1] || "Kortedala";
-  const activeDistrict = getKmlDistrictForArea(activeArea);
 
   // Auto-save on any change to preference state
   useEffect(() => {
@@ -131,62 +185,6 @@ export default function OnboardingForm({
       spiritualTips
     });
   }, [selectedAreas, selectedLanguages, organization, formats, alwaysNotify, spiritualTips, onSave]);
-
-  // Leaflet Map logic
-  useEffect(() => {
-    if (!mapRef.current) return;
-
-    if (!mapInstanceRef.current) {
-      const map = L.map(mapRef.current, {
-        zoomControl: false,
-        attributionControl: false,
-        dragging: !L.Browser.mobile,
-        touchZoom: true,
-        scrollWheelZoom: false
-      }).setView([57.7088, 11.9745], 11);
-
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-        maxZoom: 19
-      }).addTo(map);
-
-      mapInstanceRef.current = map;
-    }
-
-    const map = mapInstanceRef.current;
-
-    // Draw active boundary
-    if (geoLayerRef.current) {
-      map.removeLayer(geoLayerRef.current);
-      geoLayerRef.current = null;
-    }
-
-    if (activeDistrict && activeDistrict.coordinates.length > 0) {
-      const polygon = L.polygon(activeDistrict.coordinates, {
-        color: "#0d9488", // Teal 600
-        weight: 2.5,
-        fill: false,
-        fillOpacity: 0
-      }).addTo(map);
-
-      geoLayerRef.current = polygon;
-
-      map.flyToBounds(polygon.getBounds(), {
-        padding: [25, 25],
-        maxZoom: 13,
-        duration: 0.8
-      });
-    }
-  }, [activeArea]);
-
-  // Map Cleanup
-  useEffect(() => {
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, []);
 
   const toggleArea = (area: string) => {
     setSelectedAreas(prev =>
@@ -206,7 +204,6 @@ export default function OnboardingForm({
     );
   };
 
-  // Translated texts localized strictly or defaulted to Swedish minimalist equivalents
   const introText = uiLanguage === "sv" || !t.onboardingIntro
     ? "Genom att anpassa valen nedan får du en diskret avisering (notis) direkt i din telefon eller dator så fort någon i församlingen delar en ny inbjudan eller aktivitet i något av dina valda områden. Du kan enkelt läsa detaljerna och tacka ja via SMS."
     : t.onboardingIntro;
@@ -255,7 +252,7 @@ export default function OnboardingForm({
         </p>
       </div>
 
-      {/* Steg 1: Geografiskt val med Hybrid-karta */}
+      {/* Steg 1: Geografiskt val */}
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
@@ -266,41 +263,39 @@ export default function OnboardingForm({
           </h3>
         </div>
 
-        {/* Dynamic Minimalist Map Component */}
-        <div className="space-y-2">
-          <div 
-            ref={mapRef} 
-            className="w-full h-48 sm:h-64 rounded-2xl bg-slate-100 overflow-hidden relative border border-slate-200 z-10"
-          ></div>
-          <div className="flex justify-between items-center px-1 text-[11px] text-slate-400 font-mono">
-            <span>Visar aktiv gräns för:</span>
-            <span className="font-semibold text-teal-700">
-              {activeDistrict ? `Stöddistrikt: ${activeDistrict.name}` : "Göteborg"}
-              {activeDistrict && DISTRICT_NAME_MAPPING[activeDistrict.name] && ` (${DISTRICT_NAME_MAPPING[activeDistrict.name]})`}
-            </span>
-          </div>
-        </div>
-
         {/* Text-based geographical areas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {GOTEBORG_AREAS.map(area => {
             const isSelected = selectedAreas.includes(area);
             return (
-              <button
+              <div
                 key={area}
-                type="button"
-                onClick={() => toggleArea(area)}
-                onMouseEnter={() => setHoveredArea(area)}
-                onMouseLeave={() => setHoveredArea(null)}
-                className={`flex items-center justify-between p-4 rounded-2xl border-2 text-left transition-all cursor-pointer min-h-[58px] ${
+                className={`flex items-center justify-between p-4 rounded-2xl border-2 text-left transition-all min-h-[58px] ${
                   isSelected
                     ? "border-teal-600/70 bg-teal-50/30 text-teal-950"
-                    : "border-slate-100 bg-slate-50/40 hover:border-slate-200 text-slate-700"
+                    : "border-slate-100 bg-slate-50/40 text-slate-700"
                 }`}
               >
-                <span className="text-base font-semibold text-slate-800">{area}</span>
+                <div 
+                  onClick={() => toggleArea(area)}
+                  className="flex-1 cursor-pointer flex flex-col justify-center"
+                >
+                  <span className="text-sm sm:text-base font-bold text-slate-800 leading-tight">{area}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setModalArea(area);
+                    }}
+                    className="text-[11px] text-teal-600 hover:text-teal-700 hover:underline font-semibold mt-1 self-start cursor-pointer"
+                  >
+                    Visa gräns
+                  </button>
+                </div>
+                
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border ${
+                  onClick={() => toggleArea(area)}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border cursor-pointer ${
                     isSelected
                       ? "bg-teal-600 border-teal-600 text-white"
                       : "border-slate-300 bg-white"
@@ -308,7 +303,7 @@ export default function OnboardingForm({
                 >
                   {isSelected && <Check size={14} strokeWidth={3} />}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
@@ -541,6 +536,14 @@ export default function OnboardingForm({
       <div className="text-center text-[11px] text-slate-400 font-medium">
         <span>{disclaimerText}</span>
       </div>
+
+      {/* Full-screen Leaflet Modal */}
+      {modalArea && (
+        <MapModal 
+          area={modalArea} 
+          onClose={() => setModalArea(null)} 
+        />
+      )}
 
     </div>
   );

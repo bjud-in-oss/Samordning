@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Terminal, Send, Trash2, Check, RefreshCw, UserCheck, AlertTriangle, Smartphone } from "lucide-react";
+import { Terminal, Send, Trash2, RefreshCw, UserCheck, AlertTriangle } from "lucide-react";
 import { ActiveAlert, SimLog } from "../types";
 
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
@@ -39,7 +39,6 @@ export default function SimulatorPanel() {
     return () => clearInterval(interval);
   }, []);
 
-  // Scroll mock SMS chat to bottom on new messages
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
@@ -91,7 +90,7 @@ export default function SimulatorPanel() {
   };
 
   const fillPresetNormal = () => {
-    setText("[Kortedala] [18:00] [Måltid & Gemenskap] [Middag hos familjen Andersson. Välkomna!] [Hjälpföreningen] [0701112222]");
+    setText("[Kortedala Norra] [18:00] [Måltid & Gemenskap] [Middag hos familjen Andersson. Välkomna!] [Hjälpföreningen] [0701112222]");
   };
 
   const fillPresetFallback = () => {
@@ -196,6 +195,7 @@ export default function SimulatorPanel() {
               )}
 
               <button
+                type="button"
                 onClick={() => handleSimulateSms()}
                 disabled={loading}
                 className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 rounded-xl transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-xs"
@@ -237,6 +237,7 @@ export default function SimulatorPanel() {
 
                     <div className="flex gap-1.5 shrink-0">
                       <button
+                        type="button"
                         onClick={() => handleSimulateSms(`FULL ${alert.id}`, sender)}
                         className="p-1.5 bg-slate-800 hover:bg-slate-700 hover:text-amber-300 rounded-lg transition-all cursor-pointer"
                         title="Simulera Fullbokad-kommando"
@@ -244,6 +245,7 @@ export default function SimulatorPanel() {
                         <AlertTriangle size={12} />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleSimulateSms(`DEL ${alert.id}`, sender)}
                         className="p-1.5 bg-slate-800 hover:bg-slate-700 hover:text-rose-400 rounded-lg transition-all cursor-pointer"
                         title="Simulera Radera-kommando"
@@ -260,47 +262,48 @@ export default function SimulatorPanel() {
 
         {/* Smartphone Mockup with Chat Bubbles (Right Column) */}
         <div className="lg:col-span-5 flex flex-col items-center">
-          
-          {/* Smartphone container */}
-          <div className="w-full max-w-[290px] border-8 border-slate-800 rounded-[2.8rem] bg-slate-950 shadow-2xl relative flex flex-col overflow-hidden h-[440px] select-none">
+          <div className="w-full max-w-[290px] border-[10px] border-slate-800 rounded-[3rem] bg-black shadow-2xl relative flex flex-col overflow-hidden h-[460px] select-none">
             
             {/* Dynamic Island / Notch */}
-            <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-800 rounded-full z-30 flex items-center justify-center">
-              <div className="w-2.5 h-2.5 bg-slate-900 rounded-full absolute right-3"></div>
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-900 rounded-full z-30 flex items-center justify-center">
+              <div className="w-2 h-2 bg-slate-950 rounded-full absolute right-4"></div>
             </div>
 
-            {/* Smartphone screen header */}
-            <div className="bg-slate-900 border-b border-slate-800 pt-8 pb-3 px-4 text-center shrink-0">
-              <div className="flex items-center justify-center gap-1.5">
-                <Smartphone size={11} className="text-teal-400" />
-                <span className="text-[10px] font-bold text-slate-200 font-sans tracking-wide">
-                  Församlingens SMS-inkorg
+            {/* Smartphone screen header (iOS style) */}
+            <div className="bg-[#121214]/90 border-b border-white/5 pt-9 pb-3 px-4 text-center shrink-0 backdrop-blur-md">
+              <div className="flex flex-col items-center justify-center gap-1">
+                <div className="w-8 h-8 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-xs font-bold text-teal-400">
+                  ✉
+                </div>
+                <span className="text-[11px] font-bold text-slate-100 font-sans tracking-wide">
+                  Missions-Gateway
+                </span>
+                <span className="text-[8px] text-teal-400 font-semibold font-mono tracking-wider uppercase">
+                  ● Aktiv Tråd
                 </span>
               </div>
-              <span className="text-[8px] text-emerald-400 font-semibold font-mono flex items-center justify-center gap-1 mt-0.5">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
-                ONLINE GATEWAY
-              </span>
             </div>
 
-            {/* SMS bubble message stream */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col bg-slate-950 font-sans text-[11px] leading-relaxed">
+            {/* SMS bubble message stream (iMessage style) */}
+            <div className="flex-1 overflow-y-auto p-3.5 space-y-2.5 flex flex-col bg-black font-sans text-xs leading-relaxed">
               {logs.length === 0 ? (
-                <div className="my-auto text-center text-slate-600 px-4 space-y-1">
-                  <div className="text-xs font-bold text-slate-500">Inga meddelanden än</div>
-                  <p className="text-[9px] leading-normal">
-                    Skicka ett SMS från vänster sida för att se det ploppa upp här som en chattbubbla live.
+                <div className="my-auto text-center text-slate-500 px-4 space-y-1">
+                  <div className="text-xs font-bold text-slate-400">Inga SMS ännu</div>
+                  <p className="text-[10px] leading-normal text-slate-600">
+                    Skicka ett SMS från vänster panel för att se konversationen flöda här live.
                   </p>
                 </div>
               ) : (
                 logs.map((log, idx) => {
                   if (log.type === "incoming") {
+                    const isFromAdmin = log.text.startsWith("DEL ") || log.text.startsWith("FULL ");
+                    const senderLabel = isFromAdmin ? "Admin" : log.text.match(/\[\d{7,}\]/) ? "Arrangör" : "Missionär";
                     return (
                       <div key={idx} className="self-start max-w-[85%] space-y-0.5">
-                        <div className="text-[8px] text-slate-500 pl-1 font-mono">
-                          Från: {log.text.startsWith("DEL ") || log.text.startsWith("FULL ") ? "Admin" : log.text.match(/\[\d{7,}\]/) ? "Arrangör" : "Missionär"}
+                        <div className="text-[8px] text-slate-500 pl-2 font-semibold">
+                          {senderLabel}
                         </div>
-                        <div className="bg-slate-900 text-slate-200 p-2.5 rounded-2xl rounded-tl-sm shadow-sm break-words">
+                        <div className="bg-[#1c1c1e] text-[#f4f4f5] p-2.5 rounded-2xl rounded-tl-sm shadow-sm break-words">
                           {log.text}
                         </div>
                       </div>
@@ -308,19 +311,18 @@ export default function SimulatorPanel() {
                   } else if (log.type === "outgoing") {
                     return (
                       <div key={idx} className="self-end max-w-[85%] space-y-0.5">
-                        <div className="text-[8px] text-slate-500 pr-1 text-right font-mono">
-                          Gateway Svar
+                        <div className="text-[8px] text-slate-500 pr-2 text-right font-semibold">
+                          Svar
                         </div>
-                        <div className="bg-teal-600 text-white p-2.5 rounded-2xl rounded-tr-sm shadow-sm break-words font-semibold">
+                        <div className="bg-[#0b84ff] text-white p-2.5 rounded-2xl rounded-tr-sm shadow-sm break-words font-medium">
                           {log.text}
                         </div>
                       </div>
                     );
                   } else {
-                    // System log (centered label)
                     return (
                       <div key={idx} className="self-center py-1 max-w-[90%] text-center">
-                        <span className="bg-slate-900 text-[8px] text-slate-400 px-2.5 py-1 rounded-full border border-slate-800 font-mono tracking-wide uppercase">
+                        <span className="bg-[#1c1c1e]/55 text-[8px] text-slate-400 px-2.5 py-1 rounded-full border border-white/5 font-mono tracking-wide uppercase">
                           {log.text}
                         </span>
                       </div>
@@ -332,8 +334,8 @@ export default function SimulatorPanel() {
             </div>
 
             {/* Smart screen bottom tab bar */}
-            <div className="h-6 bg-slate-900 border-t border-slate-800 flex items-center justify-center shrink-0">
-              <div className="w-24 h-1 bg-slate-700 rounded-full"></div>
+            <div className="h-6 bg-black flex items-center justify-center shrink-0">
+              <div className="w-24 h-1.5 bg-slate-800 rounded-full"></div>
             </div>
 
           </div>

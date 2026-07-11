@@ -45,12 +45,14 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
     }
   };
 
-  const getEmptyTitle = () => {
-    return "Inga aktiva inbjudningar just nu";
-  };
-
   const getEmptyDesc = () => {
-    return "Det finns inga aktiva inbjudningar på anslagstavlan för tillfället. Du får en avisering i din telefon så fort någon lägger upp en ny inbjudan i dina valda områden.";
+    switch (uiLanguage) {
+      case "en": return "There are no active invitations in your chosen areas right now. You will receive a notification as soon as a new invitation is posted.";
+      case "es": return "No hay invitaciones activas en sus áreas seleccionadas en este momento. Recibirá una notificación tan pronto como se publique una nueva invitación.";
+      case "sw": return "Hakuna mialiko hai kwa sasa katika maeneo uliyochagua. Utapokea arifa mwaliko mpya unapowekwa.";
+      case "vi": return "Hiện tại không có lời mời nào trong các khu vực bạn đã chọn. Bạn sẽ nhận được thông báo ngay khi có lời mời mới.";
+      default: return "Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en notis så fort en ny inbjudan läggs upp.";
+    }
   };
 
   const getOrganizerLabel = () => {
@@ -120,9 +122,8 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
       )}
 
       {stream.length === 0 ? (
-        <div className="bg-slate-50 border border-slate-100 rounded-3xl p-8 text-center text-slate-500 space-y-2">
-          <h4 className="font-bold text-slate-700">{getEmptyTitle()}</h4>
-          <p className="text-xs max-w-sm mx-auto leading-relaxed">
+        <div className="bg-slate-50 border border-slate-100/50 rounded-3xl p-8 text-center text-slate-500">
+          <p className="text-sm max-w-md mx-auto leading-relaxed font-medium">
             {getEmptyDesc()}
           </p>
         </div>

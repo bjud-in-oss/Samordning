@@ -174,9 +174,15 @@ export default function OnboardingForm({
 
   const t = TRANSLATIONS[uiLanguage];
 
+  // Keep the latest onSave callback in a ref to avoid infinite re-renders
+  const onSaveRef = useRef(onSave);
+  useEffect(() => {
+    onSaveRef.current = onSave;
+  }, [onSave]);
+
   // Auto-save on any change to preference state
   useEffect(() => {
-    onSave({
+    onSaveRef.current({
       areas: selectedAreas,
       languages: selectedLanguages,
       organization,
@@ -184,7 +190,7 @@ export default function OnboardingForm({
       alwaysNotify,
       spiritualTips
     });
-  }, [selectedAreas, selectedLanguages, organization, formats, alwaysNotify, spiritualTips, onSave]);
+  }, [selectedAreas, selectedLanguages, organization, formats, alwaysNotify, spiritualTips]);
 
   const toggleArea = (area: string) => {
     setSelectedAreas(prev =>

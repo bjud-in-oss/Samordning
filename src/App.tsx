@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ShieldAlert, Radio, Smartphone, Languages, Sliders, Share, PlusSquare, X } from "lucide-react";
 import OnboardingForm from "./features/mission_router/components/OnboardingForm";
 import AlertDetail from "./features/mission_router/components/AlertDetail";
@@ -159,7 +159,7 @@ export default function App() {
   };
 
   // Save tags and sync with backend subscription if active
-  const handleSaveTags = async (tags: any) => {
+  const handleSaveTags = useCallback(async (tags: any) => {
     localStorage.setItem("mission_router_tags", JSON.stringify(tags));
     setSavedTags(tags);
 
@@ -183,7 +183,7 @@ export default function App() {
         console.error("Failed to sync tags with backend", err);
       }
     }
-  };
+  }, [pushEnabled, subscriptionId]);
 
   if (!uiLanguage) {
     return (

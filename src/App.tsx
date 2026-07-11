@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ShieldAlert, Users, Radio, Smartphone, AlertCircle, Sparkles, Heart, Languages, Globe, Sliders, Share, PlusSquare, X, Info } from "lucide-react";
+import { ShieldAlert, Radio, Smartphone, Languages, Sliders, Share, PlusSquare, X } from "lucide-react";
 import OnboardingForm from "./features/mission_router/components/OnboardingForm";
 import AlertDetail from "./features/mission_router/components/AlertDetail";
 import SimulatorPanel from "./features/mission_router/components/SimulatorPanel";
@@ -46,6 +46,9 @@ export default function App() {
   const [pushEnabled, setPushEnabled] = useState<boolean>(false);
   const [pushError, setPushError] = useState<string | null>(null);
 
+  // Left sidebar visibility state (Collapses on desktop start if push is enabled)
+  const [showSettingsSidebar, setShowSettingsSidebar] = useState<boolean>(false);
+
   // Monitor URL path changes for routing to /larm/:id
   useEffect(() => {
     const handleRoute = () => {
@@ -63,14 +66,19 @@ export default function App() {
     return () => window.removeEventListener("popstate", handleRoute);
   }, []);
 
-  // Check if push is already enabled in browser
+  // Check if push is already enabled in browser and adjust settings drawer
   useEffect(() => {
     if ("serviceWorker" in navigator && "PushManager" in window) {
       navigator.serviceWorker.ready.then(registration => {
         registration.pushManager.getSubscription().then(subscription => {
-          setPushEnabled(!!subscription);
+          const enabled = !!subscription;
+          setPushEnabled(enabled);
+          // Dölj den vid start om pushEnabled är true
+          setShowSettingsSidebar(!enabled);
         });
       });
+    } else {
+      setShowSettingsSidebar(true);
     }
   }, []);
 
@@ -143,6 +151,7 @@ export default function App() {
       localStorage.setItem("mission_router_sub_id", data.id);
       setSubscriptionId(data.id);
       setPushEnabled(true);
+      setShowSettingsSidebar(false); // Collapse sidebar upon successful setup
     } catch (err: any) {
       console.error("Failed to enable push", err);
       setPushError(err.message || String(err));
@@ -225,24 +234,36 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] flex flex-col font-sans text-slate-800">
-      {/* Top Header matching Clean Minimalism theme */}
+      
+      {/* Top Header - Simplified (No heart decorative icons) */}
       <header className="bg-white border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between py-4 px-6 md:px-10 gap-4 shrink-0">
         <div className="flex items-center gap-3 self-start sm:self-center">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 bg-teal-600">
-            <Heart size={22} className="fill-white/10" />
-          </div>
-          <div>
-            <h1 className="text-lg md:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-              {TRANSLATIONS[uiLanguage].gatewayTitle}
-              <span className="hidden xs:inline text-[10px] md:text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-                {uiLanguage === "sv" ? "Helt anonymt" : uiLanguage === "en" ? "Completely anonymous" : uiLanguage === "es" ? "Completamente anónimo" : uiLanguage === "sw" ? "Siri kabisa" : "Hoàn toàn ẩn danh"}
-              </span>
-            </h1>
-          </div>
+          <h1 className="text-lg md:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            {TRANSLATIONS[uiLanguage].gatewayTitle}
+            <span className="text-[10px] md:text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+              {uiLanguage === "sv" ? "Anonymt" : uiLanguage === "en" ? "Anonymous" : uiLanguage === "es" ? "Anónimo" : uiLanguage === "sw" ? "Siri kabisa" : "Ẩn danh"}
+            </span>
+          </h1>
         </div>
 
-        {/* Dynamic Header Badges & Actions */}
+        {/* Dynamic Header Actions */}
         <div className="flex items-center justify-between w-full sm:w-auto gap-2.5">
+          {/* Settings Toggle */}
+          {uiLanguage && !activeAlertId && (
+            <button
+              onClick={() => setShowSettingsSidebar(prev => !prev)}
+              className={`h-10 px-3.5 rounded-full flex items-center gap-1.5 text-xs font-bold border transition-all active:scale-95 cursor-pointer shrink-0 ${
+                showSettingsSidebar
+                  ? "bg-teal-600 text-white border-teal-600 shadow-sm"
+                  : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-100"
+              }`}
+              title="Inställningar"
+            >
+              <Sliders size={14} />
+              <span>{uiLanguage === "sv" ? "Inställningar" : "Settings"}</span>
+            </button>
+          )}
+
           {/* Simulator trigger */}
           {uiLanguage && !activeAlertId && (
             <button
@@ -254,11 +275,11 @@ export default function App() {
                   ? "bg-blue-600 text-white border-blue-600 shadow-sm" 
                   : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-100"
               }`}
-              title={uiLanguage === "sv" ? "Öppna simuleringspanelen" : uiLanguage === "en" ? "Open simulation panel" : uiLanguage === "es" ? "Abrir panel de simulación" : uiLanguage === "sw" ? "Fungua paneli ya simulizi" : "Mở bảng mô phỏng"}
+              title="Simulator"
             >
               <Radio size={14} className={showSimulator ? "animate-pulse" : ""} />
-              <span className="hidden md:inline">
-                {uiLanguage === "sv" ? "Simulator" : uiLanguage === "en" ? "Simulator" : uiLanguage === "es" ? "Simulador" : uiLanguage === "sw" ? "Simuleta" : "Mô phỏng"}
+              <span>
+                {uiLanguage === "sv" ? "Simulator" : "Simulator"}
               </span>
             </button>
           )}
@@ -296,27 +317,49 @@ export default function App() {
             uiLanguage={uiLanguage || "sv"}
           />
         ) : (
-          <div className="space-y-10 animate-in fade-in duration-200">
-            {/* Notices Stream (Always at the very top) */}
-            <ActiveStream
-              onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
-              uiLanguage={uiLanguage || "sv"}
-            />
+          <div className="animate-in fade-in duration-200">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              
+              {/* Left Sidebar - Collapsible on Desktop, Overlay Drawer on Mobile */}
+              {showSettingsSidebar && (
+                <>
+                  {/* Backdrop for Mobile Drawer */}
+                  <div 
+                    className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
+                    onClick={() => setShowSettingsSidebar(false)}
+                  ></div>
+                  
+                  {/* Sidebar Panel Container */}
+                  <aside className="fixed inset-y-0 left-0 w-[85vw] max-w-sm bg-white z-50 p-6 overflow-y-auto shadow-2xl border-r border-slate-100 animate-in slide-in-from-left duration-200 lg:relative lg:inset-auto lg:w-auto lg:max-w-none lg:shadow-none lg:border-none lg:p-0 lg:col-span-4 lg:z-10 lg:sticky lg:top-6">
+                    <div className="flex items-center justify-between lg:hidden mb-5 pb-2 border-b border-slate-100">
+                      <h3 className="font-bold text-slate-900">Notisinställningar</h3>
+                      <button 
+                        onClick={() => setShowSettingsSidebar(false)}
+                        className="p-1 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                    
+                    <OnboardingForm
+                      onSave={handleSaveTags}
+                      savedTags={savedTags}
+                      pushEnabled={pushEnabled}
+                      onEnablePush={handleEnablePush}
+                      uiLanguage={uiLanguage || "sv"}
+                    />
+                  </aside>
+                </>
+              )}
 
-            {/* Permanent Settings / Onboarding Form */}
-            <div className="pt-10 border-t border-slate-100">
-              <div className="max-w-2xl mx-auto space-y-6">
-                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                  {uiLanguage === "sv" ? "Mina aviseringsinställningar" : uiLanguage === "en" ? "My notification settings" : uiLanguage === "es" ? "Mi configuración de notificaciones" : uiLanguage === "sw" ? "Mipangilio yangu ya arifa" : "Cài đặt thông báo của tôi"}
-                </h3>
-                <OnboardingForm
-                  onSave={handleSaveTags}
-                  savedTags={savedTags}
-                  pushEnabled={pushEnabled}
-                  onEnablePush={handleEnablePush}
+              {/* Notices Stream (Right/Main column) */}
+              <div className={`space-y-6 ${showSettingsSidebar ? "lg:col-span-8" : "lg:col-span-12"}`}>
+                <ActiveStream
+                  onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
                   uiLanguage={uiLanguage || "sv"}
                 />
               </div>
+
             </div>
           </div>
         )}
@@ -327,7 +370,7 @@ export default function App() {
 
       {/* Footer Status and Simulator Section */}
       <footer className="mt-auto py-8 border-t border-slate-100 bg-slate-50/50 w-full px-6 flex flex-col items-center gap-4 text-center">
-        {/* Network / Connection status indicator */}
+        {/* Connection status indicator */}
         <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-500 shadow-sm">
           <span className={`w-2 h-2 rounded-full ${subscriptionId ? "bg-teal-500 animate-pulse" : "bg-slate-300"}`}></span>
           <span>
@@ -344,68 +387,6 @@ export default function App() {
           </div>
         )}
       </footer>
-
-      {/* Custom iOS Install Modal */}
-      {showIosModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-xl border border-slate-100 text-left relative animate-in fade-in slide-in-from-bottom-8 duration-200">
-            <button
-              onClick={() => setShowIosModal(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-all cursor-pointer"
-            >
-              <X size={18} />
-            </button>
-
-            <div className="flex items-center gap-3.5 mb-5">
-              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
-                <Smartphone size={24} />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 text-lg">
-                  Lägg till på hemskärmen
-                </h3>
-                <p className="text-xs text-slate-500 font-medium">
-                  Krävs för Web Push-aviseringar på iOS
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4 text-sm text-slate-700 leading-relaxed">
-              <p className="font-semibold text-slate-800">
-                För att kunna ta emot push-notiser på din iPhone måste du köra appen från din hemskärm:
-              </p>
-              
-              <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <div className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
-                  <div>
-                    Tryck på <strong>Dela-knappen</strong> i webbläsaren (fyrkanten med en pil uppåt <Share size={14} className="inline mx-0.5" />).
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
-                  <div>
-                    Välj <strong>"Lägg till på hemskärmen"</strong> (<PlusSquare size={14} className="inline mx-0.5" />).
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
-                  <div>
-                    Öppna appen från din hemskärm och tryck på <strong>"Aktivera aviseringar"</strong> för att starta!
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowIosModal(false)}
-              className="w-full mt-6 py-3.5 bg-slate-900 hover:bg-slate-850 text-white font-bold rounded-xl transition-all cursor-pointer text-center text-sm"
-            >
-              Jag förstår, stäng
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

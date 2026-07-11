@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Check, Heart, HelpCircle, Bell, Info } from "lucide-react";
-import { SubscriptionRecord } from "../types";
+import React, { useState, useEffect, useRef } from "react";
+import { Check, Bell, Info } from "lucide-react";
+import L from "leaflet";
+import { MAP_DISTRICTS, DISTRICT_NAME_MAPPING, MapDistrict } from "../domain/mapData";
 import { TRANSLATIONS, UiLanguage } from "../translations";
 
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
@@ -80,9 +81,112 @@ export default function OnboardingForm({
     savedTags?.spiritualTips ?? false
   );
 
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [hoveredArea, setHoveredArea] = useState<string | null>(null);
+
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const geoLayerRef = useRef<L.Polygon | null>(null);
 
   const t = TRANSLATIONS[uiLanguage];
+
+  // Helper to find the KML district for a specific area
+  const getKmlDistrictForArea = (area: string): MapDistrict | undefined => {
+    const cleanArea = area.toLowerCase();
+    let targetKmlName = "";
+
+    if (cleanArea === "angered") targetKmlName = "Angered";
+    else if (cleanArea === "kortedala") targetKmlName = "Kortedala";
+    else if (cleanArea === "gamlestaden") targetKmlName = "Östra Centrum 1";
+    else if (cleanArea === "hisingen") targetKmlName = "Kärra/Tuve";
+    else if (cleanArea === "biskopsgården") targetKmlName = "Biskopsgården/Torslanda";
+    else if (cleanArea === "lundby") targetKmlName = "Lundby";
+    else if (cleanArea === "partille") targetKmlName = "Utby/Partille";
+    else if (cleanArea === "örgryte") targetKmlName = "Östra Centrum 2";
+    else if (cleanArea === "johanneberg") targetKmlName = "Östra Centrum 1";
+    else if (cleanArea === "majorna") targetKmlName = "Majorna/Högsbo";
+    else if (cleanArea === "mölndal") targetKmlName = "Mölndal/Askim";
+    else if (cleanArea === "frölunda") targetKmlName = "Västra Frölunda";
+    else if (cleanArea === "torslanda") targetKmlName = "Biskopsgården/Torslanda";
+    else if (cleanArea === "askim") targetKmlName = "Mölndal/Askim";
+    else if (cleanArea === "härryda") targetKmlName = "Gråbo/Olofstorp";
+
+    if (targetKmlName) {
+      return MAP_DISTRICTS.find(d => d.name === targetKmlName);
+    }
+    return MAP_DISTRICTS.find(d => d.name.toLowerCase().includes(cleanArea) || cleanArea.includes(d.name.toLowerCase()));
+  };
+
+  // Determine active area and corresponding KML district info
+  const activeArea = hoveredArea || selectedAreas[selectedAreas.length - 1] || "Kortedala";
+  const activeDistrict = getKmlDistrictForArea(activeArea);
+
+  // Auto-save on any change to preference state
+  useEffect(() => {
+    onSave({
+      areas: selectedAreas,
+      languages: selectedLanguages,
+      organization,
+      formats,
+      alwaysNotify,
+      spiritualTips
+    });
+  }, [selectedAreas, selectedLanguages, organization, formats, alwaysNotify, spiritualTips, onSave]);
+
+  // Leaflet Map logic
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapRef.current, {
+        zoomControl: false,
+        attributionControl: false,
+        dragging: !L.Browser.mobile,
+        touchZoom: true,
+        scrollWheelZoom: false
+      }).setView([57.7088, 11.9745], 11);
+
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19
+      }).addTo(map);
+
+      mapInstanceRef.current = map;
+    }
+
+    const map = mapInstanceRef.current;
+
+    // Draw active boundary
+    if (geoLayerRef.current) {
+      map.removeLayer(geoLayerRef.current);
+      geoLayerRef.current = null;
+    }
+
+    if (activeDistrict && activeDistrict.coordinates.length > 0) {
+      const polygon = L.polygon(activeDistrict.coordinates, {
+        color: "#0d9488", // Teal 600
+        weight: 2.5,
+        fill: false,
+        fillOpacity: 0
+      }).addTo(map);
+
+      geoLayerRef.current = polygon;
+
+      map.flyToBounds(polygon.getBounds(), {
+        padding: [25, 25],
+        maxZoom: 13,
+        duration: 0.8
+      });
+    }
+  }, [activeArea]);
+
+  // Map Cleanup
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
 
   const toggleArea = (area: string) => {
     setSelectedAreas(prev =>
@@ -98,51 +202,62 @@ export default function OnboardingForm({
 
   const toggleFormat = (format: "physical" | "telephone") => {
     setFormats(prev =>
-      prev.includes(format)
-        ? prev.filter(f => f !== format)
-        : [...prev, format]
+      prev.includes(format) ? prev.filter(f => f !== format) : [...prev, format]
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({
-      areas: selectedAreas,
-      languages: selectedLanguages,
-      organization,
-      formats,
-      alwaysNotify,
-      spiritualTips
-    });
-    setFeedback(t.saveFeedback);
-    setTimeout(() => setFeedback(null), 4000);
-  };
+  // Translated texts localized strictly or defaulted to Swedish minimalist equivalents
+  const introText = uiLanguage === "sv" || !t.onboardingIntro
+    ? "Genom att anpassa valen nedan får du en diskret avisering (notis) direkt i din telefon eller dator så fort någon i församlingen delar en ny inbjudan eller aktivitet i något av dina valda områden. Du kan enkelt läsa detaljerna och tacka ja via SMS."
+    : t.onboardingIntro;
+
+  const pushBoxTitle = "Prenumerera på notiser";
+  const pushBoxSubtitle = "Du får då en diskret avisering direkt i din telefon när det finns en inbjudan till dig.";
+  const disclaimerText = "Ingen historik sparas";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto pb-12">
-      {/* Onboarding Intro */}
-      <div className="bg-amber-50/65 rounded-3xl p-6 md:p-8 border border-amber-100/80">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-12 h-12 bg-amber-100 text-amber-800 rounded-full flex items-center justify-center shrink-0">
-            <Heart size={26} className="fill-amber-800/10" />
+    <div className="space-y-6 max-w-2xl mx-auto pb-12">
+      
+      {/* 1. NOTISPRENUMERATION (Aviseringsrutan flyttad ALLRA HÖGST UPP) */}
+      <div className="bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-teal-400 font-bold text-xs tracking-wider uppercase">
+            <Bell size={16} />
+            <span>{pushBoxTitle}</span>
           </div>
-          <div>
-            <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
-              {t.onboardingHeader}
-            </h2>
-            <p className="text-sm text-slate-600 font-medium">
-              {t.onboardingSubtitle}
-            </p>
-          </div>
+          <h3 className="text-xl md:text-2xl font-bold text-slate-50">{pushBoxTitle}</h3>
+          <p className="text-slate-300 text-xs md:text-sm leading-relaxed max-w-md">
+            {pushBoxSubtitle}
+          </p>
         </div>
-        <p className="text-slate-700 text-sm md:text-base leading-relaxed">
-          {t.onboardingIntro}
+
+        <button
+          type="button"
+          onClick={onEnablePush}
+          disabled={pushEnabled}
+          className={`px-5 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer ${
+            pushEnabled
+              ? "bg-emerald-600/20 text-emerald-300 border border-emerald-500/20"
+              : "bg-teal-600 hover:bg-teal-700 text-white shadow-sm active:scale-[0.98]"
+          }`}
+        >
+          {pushEnabled ? t.pushBtnActive : t.pushBtnInactive}
+        </button>
+      </div>
+
+      {/* Intro Text */}
+      <div className="bg-slate-50 rounded-3xl p-6 md:p-8 border border-slate-100">
+        <h2 className="text-xl font-bold text-slate-900 tracking-tight mb-2">
+          {t.onboardingHeader}
+        </h2>
+        <p className="text-slate-600 text-xs md:text-sm leading-relaxed">
+          {introText}
         </p>
       </div>
 
-      {/* Val 1: Områden (Geografiskt sorterat Norr -> Söder) */}
-      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
-        <div className="mb-5">
+      {/* Steg 1: Geografiskt val med Hybrid-karta */}
+      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
+        <div>
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
             {t.step1Title}
           </span>
@@ -151,6 +266,22 @@ export default function OnboardingForm({
           </h3>
         </div>
 
+        {/* Dynamic Minimalist Map Component */}
+        <div className="space-y-2">
+          <div 
+            ref={mapRef} 
+            className="w-full h-48 sm:h-64 rounded-2xl bg-slate-100 overflow-hidden relative border border-slate-200 z-10"
+          ></div>
+          <div className="flex justify-between items-center px-1 text-[11px] text-slate-400 font-mono">
+            <span>Visar aktiv gräns för:</span>
+            <span className="font-semibold text-teal-700">
+              {activeDistrict ? `Stöddistrikt: ${activeDistrict.name}` : "Göteborg"}
+              {activeDistrict && DISTRICT_NAME_MAPPING[activeDistrict.name] && ` (${DISTRICT_NAME_MAPPING[activeDistrict.name]})`}
+            </span>
+          </div>
+        </div>
+
+        {/* Text-based geographical areas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {GOTEBORG_AREAS.map(area => {
             const isSelected = selectedAreas.includes(area);
@@ -159,12 +290,13 @@ export default function OnboardingForm({
                 key={area}
                 type="button"
                 onClick={() => toggleArea(area)}
+                onMouseEnter={() => setHoveredArea(area)}
+                onMouseLeave={() => setHoveredArea(null)}
                 className={`flex items-center justify-between p-4 rounded-2xl border-2 text-left transition-all cursor-pointer min-h-[58px] ${
                   isSelected
                     ? "border-teal-600/70 bg-teal-50/30 text-teal-950"
                     : "border-slate-100 bg-slate-50/40 hover:border-slate-200 text-slate-700"
                 }`}
-                style={{ contentVisibility: "auto" }}
               >
                 <span className="text-base font-semibold text-slate-800">{area}</span>
                 <div
@@ -182,7 +314,7 @@ export default function OnboardingForm({
         </div>
       </div>
 
-      {/* NYTT Steg 2: Samarbetande organisationer & Språkstöd (Sekundära språk) */}
+      {/* Steg 2: Organisation & Språk */}
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
@@ -193,7 +325,6 @@ export default function OnboardingForm({
           </h3>
         </div>
 
-        {/* Pedagogiska organisationstexter */}
         <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
           <h4 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-teal-600 rounded-full"></span>
@@ -204,11 +335,8 @@ export default function OnboardingForm({
           </p>
         </div>
 
-        {/* Organisation Choice (Radio) */}
         <div className="space-y-3">
-          <div>
-            <h4 className="text-base font-bold text-slate-900">{t.orgChoiceLabel}</h4>
-          </div>
+          <h4 className="text-base font-bold text-slate-900">{t.orgChoiceLabel}</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
@@ -254,7 +382,6 @@ export default function OnboardingForm({
           </div>
         </div>
 
-        {/* Multi-select för Sekundära språk */}
         <div className="space-y-3">
           <div>
             <h4 className="text-base font-bold text-slate-900">{t.step2LangHeader}</h4>
@@ -292,7 +419,7 @@ export default function OnboardingForm({
         </div>
       </div>
 
-      {/* Val 3: Hur vill du hjälpa? */}
+      {/* Steg 3: Hur vill du hjälpa */}
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
         <div className="mb-5">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
@@ -362,7 +489,7 @@ export default function OnboardingForm({
         </div>
       </div>
 
-      {/* Val 4 & 5: Aviseringar */}
+      {/* Steg 4: Detaljerade Inställningar */}
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
         <div className="mb-5">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
@@ -410,47 +537,11 @@ export default function OnboardingForm({
         </div>
       </div>
 
-      {/* Spara & Aktivera Web Push */}
-      <div className="bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-2 text-teal-400 font-bold text-xs tracking-wider uppercase mb-1">
-            <Bell size={16} />
-            <span>{t.pushHeader}</span>
-          </div>
-          <h3 className="text-xl md:text-2xl font-bold text-slate-50">{t.pushHeader}</h3>
-          <p className="text-slate-300 text-xs md:text-sm mt-1 leading-relaxed max-w-md">
-            {t.pushSubtitle}
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3 shrink-0 sm:min-w-[200px]">
-          <button
-            type="button"
-            onClick={onEnablePush}
-            disabled={pushEnabled}
-            className={`px-5 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
-              pushEnabled
-                ? "bg-emerald-600/20 text-emerald-300 border border-emerald-500/20"
-                : "bg-teal-600 hover:bg-teal-700 text-white shadow-sm active:scale-[0.98]"
-            }`}
-          >
-            {pushEnabled ? t.pushBtnActive : t.pushBtnInactive}
-          </button>
-
-          <button
-            type="submit"
-            className="px-5 py-3 bg-white/10 hover:bg-white/15 border border-white/10 rounded-2xl font-semibold text-xs text-white transition-all active:scale-[0.98] cursor-pointer"
-          >
-            {t.saveBtn}
-          </button>
-        </div>
+      {/* Footnote / Disclaimer */}
+      <div className="text-center text-[11px] text-slate-400 font-medium">
+        <span>{disclaimerText}</span>
       </div>
 
-      {feedback && (
-        <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 p-4 rounded-2xl text-center font-semibold text-sm shadow-sm">
-          {feedback}
-        </div>
-      )}
-    </form>
+    </div>
   );
 }

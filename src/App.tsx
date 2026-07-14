@@ -240,26 +240,22 @@ export default function App() {
         <div className="flex items-center gap-3 self-start sm:self-center">
           <h1 className="text-lg md:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
             {TRANSLATIONS[uiLanguage].gatewayTitle}
-            <span className="text-[10px] md:text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-              {uiLanguage === "sv" ? "Anonymt" : uiLanguage === "en" ? "Anonymous" : uiLanguage === "es" ? "Anónimo" : uiLanguage === "sw" ? "Siri kabisa" : "Ẩn danh"}
-            </span>
           </h1>
         </div>
 
         {/* Dynamic Header Actions */}
         <div className="flex items-center justify-between w-full sm:w-auto gap-2.5">
-          {/* Settings Toggle (textless icon button) */}
+          {/* Settings Toggle (plain text button) */}
           {uiLanguage && !activeAlertId && (
             <button
               onClick={() => setShowSettingsSidebar(prev => !prev)}
-              className={`h-10 w-10 rounded-full flex items-center justify-center border transition-all active:scale-95 cursor-pointer shrink-0 ${
+              className={`h-10 px-5 rounded-full flex items-center justify-center text-xs font-bold border transition-all active:scale-95 cursor-pointer shrink-0 ${
                 showSettingsSidebar
                   ? "bg-teal-600 text-white border-teal-600 shadow-sm"
                   : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-100"
               }`}
-              title={uiLanguage === "sv" ? "Anpassa" : "Customize"}
             >
-              <Sliders size={18} />
+              {uiLanguage === "sv" ? "Anpassa" : "Customize"}
             </button>
           )}
 

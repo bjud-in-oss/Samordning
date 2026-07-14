@@ -105,14 +105,19 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto mt-8">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-          <span className="w-3 h-3 bg-teal-500 rounded-full animate-pulse shrink-0"></span>
-          {getStreamTitle()}
-        </h3>
-        <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-          {stream.length} {getCountSuffix()}
-        </span>
+      <div className="flex items-center justify-between gap-4 pt-2">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 bg-teal-500 rounded-full animate-pulse shrink-0"></span>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            {stream.length} {getCountSuffix()}
+          </span>
+        </div>
+        <button
+          onClick={() => alert("Väntrummet kommer snart! Inbjudan sparas i väntrummet tills en samordnare har godkänt inlägget via SMS.")}
+          className="bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-sm px-6 py-3 rounded-2xl transition-all active:scale-95 shadow-sm hover:shadow hover:-translate-y-0.5 cursor-pointer flex items-center gap-2"
+        >
+          <span>+ Nytt</span>
+        </button>
       </div>
 
       {error && (

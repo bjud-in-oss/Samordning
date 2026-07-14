@@ -117,9 +117,16 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
       {/* Main Card */}
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
         <div>
-          <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full bg-slate-100 text-slate-800">
-            {t.activeRequest}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full bg-slate-100 text-slate-800">
+              {t.activeRequest}
+            </span>
+            {alert.totalActiveAlerts > 1 && (
+              <span className="font-mono text-[10px] text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                ID: {alert.id}
+              </span>
+            )}
+          </div>
           <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-3 tracking-tight">
             Inbjudan • {alert.area}
           </h2>

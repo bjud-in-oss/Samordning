@@ -142,9 +142,16 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
 
                 <div className="pl-2 space-y-3">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full bg-teal-50 text-teal-800">
-                      {TRANSLATIONS[uiLanguage].activeRequest}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full bg-teal-50 text-teal-800">
+                        {TRANSLATIONS[uiLanguage].activeRequest}
+                      </span>
+                      {stream.length > 1 && (
+                        <span className="font-mono text-[10px] text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          ID: {item.id}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[10px] text-slate-400 font-medium">
                       {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Distrikt: {item.area}
                     </span>

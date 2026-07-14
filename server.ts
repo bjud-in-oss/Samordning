@@ -22,8 +22,46 @@ const PORT = 3000;
 app.use(express.json());
 
 // In-Memory Flat Active Alerts & Announcements Registry
-// Strictly stateless, in-memory RAM only.
+// Backed by data/alerts.json for persistence on server restarts (Render compatibility)
 const activeAlerts: Record<string, ActiveAlert> = {};
+
+const ALERTS_FILE = path.join(process.cwd(), "data", "alerts.json");
+
+// Load active alerts safely
+function loadActiveAlerts() {
+  if (fs.existsSync(ALERTS_FILE)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(ALERTS_FILE, "utf-8"));
+      for (const key of Object.keys(activeAlerts)) {
+        delete activeAlerts[key];
+      }
+      Object.assign(activeAlerts, data);
+      console.log(`Loaded ${Object.keys(activeAlerts).length} active alerts from disk.`);
+    } catch (err) {
+      console.error("Failed to load active alerts from disk:", err);
+    }
+  }
+}
+
+function saveActiveAlerts() {
+  try {
+    const dataDir = path.join(process.cwd(), "data");
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir);
+    }
+    fs.writeFileSync(ALERTS_FILE, JSON.stringify(activeAlerts, null, 2));
+  } catch (err) {
+    console.error("Failed to save active alerts to disk:", err);
+  }
+}
+
+function getNextFreeId(): string {
+  let next = 1;
+  while (activeAlerts[String(next)]) {
+    next++;
+  }
+  return String(next);
+}
 
 // Hardcoded Administrator list
 const ADMIN_NUMBERS = ["0700000000", "0701112222", "0733334444"];
@@ -31,14 +69,22 @@ const ADMIN_NUMBERS = ["0700000000", "0701112222", "0733334444"];
 // Initialize Web Push Keys
 initWebPush();
 
+// Load alerts at startup
+loadActiveAlerts();
+
 // Automatic Expiry Cleanup Loop for invitations (Permanent suppression after 2 hours past scheduled time)
 setInterval(() => {
   const now = Date.now();
+  let changed = false;
   for (const [id, alert] of Object.entries(activeAlerts)) {
     if (alert.expiryTimestamp < now) {
       delete activeAlerts[id];
       addSimLog("system", `AUTOMATISK SUPPRESSION: Inbjudan ${id} ("${alert.scrubbedText.substring(0, 30)}...") har förfallit och raderats permanent från RAM (>2 timmar efter sluttid).`);
+      changed = true;
     }
+  }
+  if (changed) {
+    saveActiveAlerts();
   }
 }, 60000); // Check every minute
 
@@ -108,7 +154,8 @@ app.get("/api/alerts/:id", (req, res) => {
     contactType: alert.contactType,
     contactValue: alert.contactValue,
     category: alert.category,
-    isFull: !!alert.isFull
+    isFull: !!alert.isFull,
+    totalActiveAlerts: Object.keys(activeAlerts).length
   };
 
   res.json(compliantAlert);
@@ -143,8 +190,9 @@ app.post("/api/incoming-sms", async (req, res) => {
     }
 
     delete activeAlerts[id];
+    saveActiveAlerts();
     await broadcastCancelPush(id, alert.area);
-    addSimLog("system", `SMS KILL SWITCH: Inbjudan ${id} har raderats permanent från RAM via SMS.`);
+    addSimLog("system", `SMS KILL SWITCH: Inbjudan ${id} har raderats permanent via SMS.`);
     return res.json({ success: true, message: `Inbjudan ${id} har raderats permanent.` });
   }
 
@@ -163,6 +211,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     }
 
     alert.isFull = true;
+    saveActiveAlerts();
     addSimLog("system", `SMS KILL SWITCH: Inbjudan ${id} har markerats som fullbokad via SMS.`);
     return res.json({ success: true, message: `Inbjudan ${id} har markerats som fullbokad.` });
   }
@@ -175,7 +224,7 @@ app.post("/api/incoming-sms", async (req, res) => {
       originalType: "leader_invitation"
     });
 
-    const id = Math.random().toString(36).substring(2, 9);
+    const id = getNextFreeId();
     // Expiry calculated as scheduled time of day + 2 hours
     const offsetSeconds = calculateSecondsUntilTime(washed.time);
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
@@ -202,6 +251,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     };
 
     activeAlerts[id] = newAnnouncement;
+    saveActiveAlerts();
 
     // Trigger background Web Push to matching volunteers
     await triggerPushAlert(newAnnouncement);
@@ -238,7 +288,7 @@ app.post("/api/incoming-email", async (req, res) => {
       originalType: "leader_invitation"
     });
 
-    const id = Math.random().toString(36).substring(2, 9);
+    const id = getNextFreeId();
     const offsetSeconds = calculateSecondsUntilTime(washed.time);
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
 
@@ -264,6 +314,7 @@ app.post("/api/incoming-email", async (req, res) => {
     };
 
     activeAlerts[id] = newAnnouncement;
+    saveActiveAlerts();
 
     await triggerPushAlert(newAnnouncement);
 

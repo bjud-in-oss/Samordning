@@ -64,29 +64,29 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-600 font-semibold">{t.loadingInfo}</p>
+      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-brand-ink/5 p-8 shadow-xs">
+        <div className="w-10 h-10 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-brand-ink font-serif italic text-sm">{t.loadingInfo}</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-6 max-w-xl mx-auto text-center">
-        <div className="w-20 h-20 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
-          <MapPin size={40} className="opacity-40" />
+      <div className="bg-white rounded-2xl border border-brand-ink/5 p-8 shadow-xs space-y-6 max-w-xl mx-auto text-center">
+        <div className="w-16 h-16 bg-brand-paper text-brand-accent rounded-full flex items-center justify-center mx-auto mb-4">
+          <MapPin size={32} className="opacity-65" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t.inactiveTitle}</h2>
-        <p className="text-slate-600 leading-relaxed text-sm">
+        <h2 className="font-serif italic text-xl md:text-2xl text-brand-ink font-medium tracking-tight">{t.inactiveTitle}</h2>
+        <p className="text-brand-ink/70 leading-relaxed text-xs md:text-sm font-light">
           {t.inactiveDesc}
         </p>
         <div className="pt-4 flex justify-center">
           <button
             onClick={onBack}
-            className="px-6 py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+            className="px-6 py-3 bg-brand-ink hover:opacity-90 text-white font-mono text-xs uppercase tracking-wider rounded-lg transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={14} />
             {t.backToHome}
           </button>
         </div>
@@ -99,44 +99,44 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-12 text-left">
       {/* Header with back button */}
-      <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex items-center justify-between">
+      <div className="bg-white rounded-2xl p-4 shadow-xs border border-brand-ink/5 flex items-center justify-between">
         <button
           onClick={onBack}
-          className="px-4 py-2 hover:bg-slate-50 text-slate-600 font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer"
+          className="px-4 py-2 hover:bg-brand-paper/50 text-brand-ink/80 hover:text-brand-ink font-mono text-[10px] uppercase tracking-wider rounded-lg transition-all flex items-center gap-2 cursor-pointer"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={14} />
           <span>{t.backBtn}</span>
         </button>
         <div className="flex items-center gap-2">
-          <span className="bg-teal-50 text-teal-800 text-xs font-extrabold px-3 py-1.5 rounded-full border border-teal-100">
+          <span className="bg-brand-paper text-brand-ink text-[9px] font-mono uppercase tracking-wider px-3 py-1.5 rounded border border-brand-ink/5">
             {alert.category || "Måltid & Gemenskap"}
           </span>
         </div>
       </div>
 
       {/* Main Card */}
-      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
+      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-brand-ink/5 space-y-6">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full bg-slate-100 text-slate-800">
+            <span className="text-[9px] font-mono uppercase tracking-wider px-2.5 py-1 rounded bg-brand-paper text-brand-accent">
               {t.activeRequest}
             </span>
             {alert.totalActiveAlerts > 1 && (
-              <span className="font-mono text-[10px] text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+              <span className="font-mono text-[9px] text-brand-accent bg-brand-bg px-2 py-0.5 rounded border border-brand-ink/5">
                 ID: {alert.id}
               </span>
             )}
           </div>
-          <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-3 tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-serif italic text-brand-ink font-medium mt-3 tracking-tight">
             Inbjudan • {alert.area}
           </h2>
         </div>
 
         {/* Clean, scrubbed text */}
         {alert.scrubbedText && (
-          <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100/60 space-y-2">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Beskrivning</span>
-            <p className="text-slate-800 font-semibold whitespace-pre-line leading-relaxed text-sm md:text-base">
+          <div className="bg-brand-paper/40 rounded-xl p-6 border border-brand-ink/5 space-y-2">
+            <span className="text-[9px] uppercase font-mono tracking-wider text-brand-accent">Beskrivning</span>
+            <p className="text-brand-ink/80 font-serif italic whitespace-pre-line leading-relaxed text-sm md:text-base font-medium">
               {alert.scrubbedText}
             </p>
           </div>
@@ -144,48 +144,48 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
 
         {/* Details row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
-            <MapPin className="text-teal-600 shrink-0" size={24} />
+          <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-xl border border-brand-ink/5">
+            <MapPin className="text-brand-accent shrink-0" size={20} />
             <div>
-              <div className="text-[10px] uppercase font-bold text-slate-400">{t.approxLocation}</div>
-              <div className="text-sm font-bold text-slate-800">{alert.locationName}</div>
+              <div className="text-[9px] uppercase font-mono text-brand-accent">{t.approxLocation}</div>
+              <div className="text-sm font-serif italic font-medium text-brand-ink">{alert.locationName}</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
-            <Calendar className="text-teal-600 shrink-0" size={24} />
+          <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-xl border border-brand-ink/5">
+            <Calendar className="text-brand-accent shrink-0" size={20} />
             <div>
-              <div className="text-[10px] uppercase font-bold text-slate-400">{t.timeLabel}</div>
-              <div className="text-sm font-bold text-slate-800">{alert.time || "Ingen fast tid"}</div>
+              <div className="text-[9px] uppercase font-mono text-brand-accent">{t.timeLabel}</div>
+              <div className="text-sm font-serif italic font-medium text-brand-ink">{alert.time || "Ingen fast tid"}</div>
             </div>
           </div>
         </div>
 
         {/* Responsible Party & Contact */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-6">
-          <div className="flex items-center gap-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
-            <div className="w-10 h-10 bg-teal-100 text-teal-800 rounded-full flex items-center justify-center font-black text-xs shrink-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-brand-ink/5 pt-6">
+          <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-xl border border-brand-ink/5">
+            <div className="w-8 h-8 bg-brand-paper text-brand-ink rounded-full flex items-center justify-center font-serif italic font-medium text-xs shrink-0 border border-brand-ink/5">
               {alert.responsibleParty ? alert.responsibleParty.substring(0, 2).toUpperCase() : "GE"}
             </div>
             <div>
-              <div className="text-[10px] uppercase font-bold text-slate-400">Arrangör</div>
-              <div className="text-sm font-bold text-slate-800">{alert.responsibleParty}</div>
+              <div className="text-[9px] uppercase font-mono text-brand-accent">Arrangör</div>
+              <div className="text-sm font-serif italic font-medium text-brand-ink">{alert.responsibleParty}</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
-            <div className="w-10 h-10 bg-slate-100 text-slate-700 rounded-full flex items-center justify-center shrink-0">
-              <Phone size={18} />
+          <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-xl border border-brand-ink/5">
+            <div className="w-8 h-8 bg-brand-paper text-brand-accent rounded-full flex items-center justify-center shrink-0 border border-brand-ink/5">
+              <Phone size={14} className="text-brand-accent" />
             </div>
             <div className="flex-1">
-              <div className="text-[10px] uppercase font-bold text-slate-400">Mottagare</div>
+              <div className="text-[9px] uppercase font-mono text-brand-accent">Mottagare</div>
               {showContact ? (
-                <div className="text-xs font-bold text-slate-800 select-all font-mono break-all">{alert.contactValue}</div>
+                <div className="text-xs font-mono text-brand-ink select-all break-all">{alert.contactValue}</div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setShowContact(true)}
-                  className="text-xs text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-brand-accent hover:opacity-100 opacity-70 underline font-mono uppercase tracking-wider cursor-pointer"
                 >
                   Visa nummer
                 </button>
@@ -195,8 +195,8 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
         </div>
 
         {/* Compliance disclaimer */}
-        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100/70 text-xs text-slate-500 leading-relaxed space-y-1">
-          <p className="font-semibold text-slate-600">Allmänna handboken § 33.8 (Integritetsskydd):</p>
+        <div className="bg-brand-paper/30 rounded-xl p-5 border border-brand-ink/5 text-[11px] text-brand-ink/70 leading-relaxed space-y-1 font-light">
+          <p className="font-serif italic font-medium text-brand-ink">Allmänna handboken § 33.8 (Integritetsskydd):</p>
           <p>
             För att skydda medlemmars och volontärers integritet visas aldrig fullständiga efternamn eller exakta hemadresser offentligt. Positioner är avsiktligt maskerade på kartan till närområdet. Denna anslagstavla är helt stateless och sparar ingen personlig information på servern.
           </p>
@@ -204,19 +204,19 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
       </div>
 
       {/* Reply Section */}
-      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
+      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-brand-ink/5 space-y-6">
         {alert.isFull ? (
-          <div className="bg-amber-50 text-amber-900 border border-amber-200 rounded-2xl p-6 text-center space-y-2">
-            <h3 className="text-lg font-bold">Aktiviteten är fullbokad</h3>
-            <p className="text-sm">Denna aktivitet är nu fullbokad. Välkommen nästa gång!</p>
+          <div className="bg-brand-paper/50 text-brand-ink border border-brand-ink/10 rounded-xl p-6 text-center space-y-2">
+            <h3 className="font-serif italic text-lg font-medium">Aktiviteten är fullbokad</h3>
+            <p className="text-xs text-brand-ink/70 font-light">Denna aktivitet är nu fullbokad. Välkommen nästa gång!</p>
           </div>
         ) : (
           <>
             <div>
-              <h3 className="text-xl font-bold text-slate-950">
+              <h3 className="text-xl font-serif italic text-brand-ink font-medium">
                 {t.respondTitle}
               </h3>
-              <p className="text-slate-500 text-sm mt-1">
+              <p className="text-brand-ink/70 text-xs md:text-sm font-light mt-1">
                 {t.respondSubtitle}
               </p>
             </div>
@@ -233,7 +233,7 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
                   key={quick}
                   type="button"
                   onClick={() => setResponseText(quick)}
-                  className="px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-all active:scale-[0.98] cursor-pointer"
+                  className="px-4 py-2 bg-brand-bg hover:bg-brand-paper border border-brand-ink/5 text-brand-ink/80 rounded-lg text-[10px] font-mono uppercase tracking-wider transition-all cursor-pointer"
                 >
                   {quick}
                 </button>
@@ -241,14 +241,14 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs uppercase font-extrabold text-slate-400 tracking-wider">
+              <label className="text-[9px] uppercase font-mono text-brand-accent tracking-wider">
                 {t.messageLabel}
               </label>
               <textarea
                 value={responseText}
                 onChange={e => setResponseText(e.target.value)}
                 rows={3}
-                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-teal-600 focus:outline-none text-sm font-semibold placeholder-slate-400 transition-all resize-none text-slate-800"
+                className="w-full p-4 rounded-xl border border-brand-ink/10 focus:border-brand-accent focus:outline-none text-xs sm:text-sm font-serif italic text-brand-ink placeholder-brand-ink/30 transition-all resize-none bg-brand-bg/20 font-medium"
                 placeholder={t.messagePlaceholder}
               />
             </div>
@@ -256,13 +256,13 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
             <button
               onClick={triggerSmsDeepLink}
               disabled={!responseText.trim()}
-              className="w-full py-4 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-200 text-white font-bold text-lg rounded-2xl transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 bg-brand-ink hover:opacity-90 disabled:bg-brand-paper disabled:text-brand-ink/30 text-white font-mono text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Check size={20} />
+              <Check size={16} />
               {t.sendResponseBtn}
             </button>
 
-            <p className="text-[11px] text-slate-400 text-center leading-relaxed">
+            <p className="text-[10px] font-mono text-brand-accent uppercase tracking-wider text-center leading-relaxed">
               {t.footerNotice}
             </p>
           </>

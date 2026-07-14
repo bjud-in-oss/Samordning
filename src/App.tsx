@@ -209,24 +209,24 @@ export default function App() {
 
   if (!uiLanguage) {
     return (
-      <div className="min-h-screen bg-[#FDFDFD] flex flex-col items-center justify-center p-6 text-slate-800 font-sans">
+      <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 text-brand-ink font-sans">
         <div className="max-w-md w-full text-center space-y-8">
           <div className="space-y-3">
-            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
+            <h1 className="text-4xl sm:text-5xl font-serif italic text-brand-ink tracking-tight">
               Inbjudan till dig
             </h1>
           </div>
 
-          {/* Centered Large Translation Symbol with hover effect */}
-          <div className="w-32 h-32 bg-teal-50 text-teal-600 rounded-3xl flex items-center justify-center mx-auto shadow-sm border border-teal-100/60 transition-transform hover:scale-105 duration-300">
-            <Languages size={64} className="stroke-[1.5]" />
+          {/* Centered Large Translation Symbol with refined design */}
+          <div className="w-24 h-24 bg-brand-paper text-brand-accent rounded-full flex items-center justify-center mx-auto border border-brand-ink/5 transition-transform hover:scale-105 duration-300">
+            <Languages size={40} className="stroke-[1.2]" />
           </div>
 
-          <p className="text-xs uppercase font-extrabold tracking-wider text-slate-400">
-            Välj ditt språk för att fortsätta • Choose your language
+          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-brand-accent">
+            Välj ditt språk för att fortsätta • Choose language
           </p>
 
-          <div className="grid grid-cols-1 gap-3 pt-2">
+          <div className="grid grid-cols-1 gap-2.5 pt-2">
             {[
               { code: "sv", label: "Svenska" },
               { code: "en", label: "English" },
@@ -240,10 +240,10 @@ export default function App() {
                   localStorage.setItem("mission_router_ui_language", lang.code);
                   setUiLanguage(lang.code as UiLanguage);
                 }}
-                className="w-full py-4 px-6 bg-white hover:bg-slate-50 text-slate-800 hover:text-slate-900 font-bold text-lg rounded-2xl border-2 border-slate-100 hover:border-teal-500/30 transition-all shadow-sm active:scale-[0.99] flex items-center justify-between cursor-pointer"
+                className="w-full py-3.5 px-6 bg-white hover:bg-brand-paper text-brand-ink font-medium text-sm rounded-xl border border-brand-ink/5 hover:border-brand-accent transition-all duration-200 shadow-xs active:scale-[0.99] flex items-center justify-between cursor-pointer"
               >
-                <span>{lang.label}</span>
-                <span className="text-xs font-mono font-semibold text-slate-400 uppercase">
+                <span className="tracking-wide">{lang.label}</span>
+                <span className="font-mono text-[10px] font-semibold text-brand-accent uppercase tracking-wider">
                   {lang.code}
                 </span>
               </button>
@@ -255,27 +255,24 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] flex flex-col font-sans text-slate-800">
+    <div className="min-h-screen bg-brand-bg flex flex-col font-sans text-brand-ink selection:bg-brand-accent selection:text-white">
       
-      {/* Top Header - Simplified (No heart decorative icons) */}
-      <header className="bg-white border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between py-4 px-6 md:px-10 gap-4 shrink-0">
-        <div className="flex items-center gap-3 self-start sm:self-center">
-          <h1 className="text-lg md:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+      {/* Top Header - Refined Lifestyle */}
+      <header className="py-8 px-6 md:px-12 flex flex-row items-baseline justify-between shrink-0 max-w-7xl w-full mx-auto">
+        <div className="title-block">
+          <h1 className="font-serif italic text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-brand-ink leading-none">
             {TRANSLATIONS[uiLanguage].gatewayTitle}
           </h1>
         </div>
 
         {/* Dynamic Header Actions */}
-        <div className="flex items-center justify-between w-full sm:w-auto gap-2.5">
+        <div className="flex items-center gap-6">
           {/* Settings Toggle (plain text button) */}
           {uiLanguage && !activeAlertId && (
             <button
               onClick={() => setShowSettingsSidebar(prev => !prev)}
-              className={`h-10 px-5 rounded-full flex items-center justify-center text-xs font-bold border transition-all active:scale-95 cursor-pointer shrink-0 ${
-                showSettingsSidebar
-                  ? "bg-teal-600 text-white border-teal-600 shadow-sm"
-                  : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-100"
-              }`}
+              className="font-mono text-[10px] uppercase tracking-[0.15em] text-brand-ink hover:opacity-100 transition-all cursor-pointer border-b border-transparent hover:border-brand-ink pb-0.5"
+              style={{ opacity: showSettingsSidebar ? 1 : 0.6 }}
             >
               {uiLanguage === "sv" ? "Anpassa" : "Customize"}
             </button>
@@ -287,21 +284,21 @@ export default function App() {
                 localStorage.removeItem("mission_router_ui_language");
                 setUiLanguage(null);
               }}
-              className="h-10 w-10 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-full flex items-center justify-center text-slate-600 transition-all active:scale-95 cursor-pointer shrink-0"
+              className="text-brand-ink opacity-60 hover:opacity-100 transition-all cursor-pointer flex items-center justify-center"
               title="Ändra språk / Change language"
             >
-              <Languages size={18} />
+              <Languages size={18} className="stroke-[1.5]" />
             </button>
           )}
         </div>
       </header>
 
       {/* Main Content Stage */}
-      <main className="flex-1 p-6 md:p-10 max-w-7xl w-full mx-auto">
+      <main className="flex-1 p-6 md:p-12 max-w-7xl w-full mx-auto">
         {pushError && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-sm text-amber-800 max-w-2xl mx-auto animate-in fade-in duration-200">
-            <ShieldAlert size={20} className="shrink-0" />
-            <p className="font-semibold">{pushError}</p>
+          <div className="mb-8 bg-brand-error/10 border border-brand-error/20 rounded-2xl p-4 flex items-center gap-3 text-xs text-brand-error max-w-2xl mx-auto animate-in fade-in duration-200">
+            <ShieldAlert size={16} className="shrink-0 text-brand-error" />
+            <p className="font-mono uppercase tracking-wider">{pushError}</p>
           </div>
         )}
 

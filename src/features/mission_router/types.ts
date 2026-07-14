@@ -51,7 +51,7 @@ export interface ActiveAlert {
   timestamp: number;
   chat?: ChatMessage[];
   responsibleParty: string;
-  contactType: "sms" | "email" | "whatsapp";
+  contactType: "sms" | "email" | "whatsapp" | "web";
   contactValue: string;
   expiryTimestamp: number;
   category?: string;

@@ -1,6 +1,6 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 import React, { useState, useEffect } from "react";
-import { Info, Calendar, Phone, Mail, MessageSquare, ExternalLink } from "lucide-react";
+import { Info, Calendar, Phone, Mail, MessageSquare, ExternalLink, X, Send, CheckCircle } from "lucide-react";
 import { ActiveAlert } from "../types";
 import { TRANSLATIONS, UiLanguage } from "../translations";
 
@@ -13,6 +13,20 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
   const [stream, setStream] = useState<ActiveAlert[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // New states for creating an invitation (Väntrummet)
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [announcementText, setAnnouncementText] = useState<string>("");
+  const [sending, setSending] = useState<boolean>(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   async function fetchStream() {
     try {
@@ -95,6 +109,31 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
     }
   };
 
+  const handleSubmitAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!announcementText.trim()) return;
+
+    setSending(true);
+    try {
+      const res = await fetch("/api/announcements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: announcementText })
+      });
+
+      if (!res.ok) throw new Error("Gick inte att skicka inlägget.");
+
+      const data = await res.json();
+      setToast(data.message || "Tack! Din inbjudan har placerats i väntrummet.");
+      setAnnouncementText("");
+      setShowModal(false);
+    } catch (err: any) {
+      alert("Fel vid inskickning: " + err.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -113,12 +152,19 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
           </span>
         </div>
         <button
-          onClick={() => alert("Väntrummet kommer snart! Inbjudan sparas i väntrummet tills en samordnare har godkänt inlägget via SMS.")}
+          onClick={() => setShowModal(true)}
           className="bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-sm px-6 py-3 rounded-2xl transition-all active:scale-95 shadow-sm hover:shadow hover:-translate-y-0.5 cursor-pointer flex items-center gap-2"
         >
           <span>+ Nytt</span>
         </button>
       </div>
+
+      {toast && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-3 duration-200">
+          <CheckCircle size={18} className="text-emerald-600 shrink-0" />
+          <span>{toast}</span>
+        </div>
+      )}
 
       {error && (
         <div className="p-4 bg-amber-50 text-amber-800 rounded-2xl border border-amber-200 text-sm">
@@ -185,6 +231,75 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* 2. INSKICKNINGS-MODAL (Väntrummet för utomstående inlägg) */}
+      {showModal && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div 
+            className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900">Skapa inbjudan</h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">Din inbjudan sparas i Väntrummet tills den godkänts via SMS.</p>
+              </div>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="p-1.5 hover:bg-slate-200/60 rounded-full text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSubmitAnnouncement} className="p-6 space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">
+                  Beskriv aktivitet eller inbjudan
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={announcementText}
+                  onChange={(e) => setAnnouncementText(e.target.value)}
+                  placeholder="Skriv t.ex: # [Kortedala] [18:00] Varmt välkommen på gemensamt kvällsmål på torget!"
+                  className="w-full px-4 py-3 bg-slate-50 hover:bg-slate-50 focus:bg-white border border-slate-200 focus:border-teal-500 rounded-2xl text-slate-800 text-xs focus:outline-none transition-all placeholder-slate-400 resize-none font-medium leading-relaxed"
+                />
+                <span className="text-[10px] text-slate-400 block mt-1 leading-normal">
+                  Tips: Inkludera stadsdel inom klamrar [t.ex. Kortedala, Gamlestaden] och tid [t.ex. 18:00] för bästa sortering och automatiska SMS-notifieringar till frivilliga.
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-5 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+                >
+                  Avbryt
+                </button>
+                <button
+                  type="submit"
+                  disabled={sending || !announcementText.trim()}
+                  className="px-6 py-2.5 text-xs font-extrabold text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-40 rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                >
+                  {sending ? (
+                    <span>Skickar...</span>
+                  ) : (
+                    <>
+                      <span>Skicka till väntrum</span>
+                      <Send size={12} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

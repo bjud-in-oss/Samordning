@@ -65,14 +65,44 @@ function getNextFreeId(): string {
 
 const API_SECRET = process.env.SMS_WEBHOOK_SECRET || "samordning-secret-2026";
 
-// Hardcoded Administrator list
-const ADMIN_NUMBERS = ["0700000000", "0701112222", "0733334444", "+46701234567"];
+// Dynamic Administrator List backing data/admins.json
+const ADMINS_FILE = path.join(process.cwd(), "data", "admins.json");
+let adminNumbers: string[] = ["0700000000", "0701112222", "0733334444", "+46701234567"];
+
+function loadAdmins() {
+  if (fs.existsSync(ADMINS_FILE)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(ADMINS_FILE, "utf-8"));
+      if (Array.isArray(data)) {
+        adminNumbers = data;
+        console.log(`Loaded ${adminNumbers.length} administrator numbers from disk.`);
+      }
+    } catch (err) {
+      console.error("Failed to load admin list from disk:", err);
+    }
+  } else {
+    saveAdmins();
+  }
+}
+
+function saveAdmins() {
+  try {
+    const dataDir = path.join(process.cwd(), "data");
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir);
+    }
+    fs.writeFileSync(ADMINS_FILE, JSON.stringify(adminNumbers, null, 2));
+  } catch (err) {
+    console.error("Failed to save admin list to disk:", err);
+  }
+}
 
 // Initialize Web Push Keys
 initWebPush();
 
-// Load alerts at startup
+// Load alerts & admins at startup
 loadActiveAlerts();
+loadAdmins();
 
 // Automatic Expiry Cleanup Loop for invitations (Permanent suppression after 2 hours past scheduled time)
 setInterval(() => {
@@ -93,6 +123,85 @@ setInterval(() => {
 // ==========================================
 // Express API Endpoints
 // ==========================================
+
+// GET and POST administrator numbers
+app.get("/api/admins", (req, res) => {
+  res.json({ admins: adminNumbers });
+});
+
+app.post("/api/admins", (req, res) => {
+  const { admins } = req.body;
+  if (!Array.isArray(admins)) {
+    return res.status(400).json({ error: "admins must be an array" });
+  }
+  adminNumbers = admins.map(num => String(num).trim()).filter(Boolean);
+  saveAdmins();
+  addSimLog("system", `SAMORDNINGSGRUPP UPPDATERAD: Ny lista med ${adminNumbers.length} nummer sparad.`);
+  res.json({ success: true, admins: adminNumbers });
+});
+
+// Create announcement from Web client (pending by default, requiring admin moderation)
+app.post("/api/announcements", async (req, res) => {
+  const { text } = req.body;
+  if (!text || !text.trim()) {
+    return res.status(400).json({ error: "Text krävs." });
+  }
+
+  const trimmedText = text.trim();
+
+  try {
+    const washed = await runAiWash(trimmedText, {
+      role: "Allmänhet",
+      contact: "Webbklient",
+      originalType: "leader_invitation"
+    });
+
+    const id = getNextFreeId();
+    const offsetSeconds = calculateSecondsUntilTime(washed.time);
+    const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
+
+    const newAnnouncement: ActiveAlert = {
+      id,
+      type: "leader_invitation",
+      rawText: trimmedText,
+      scrubbedText: washed.scrubbedText,
+      area: washed.area || "Kortedala",
+      time: washed.time || "Ospecificerad tid",
+      gender: "Alla",
+      language: "Svenska",
+      locationName: washed.locationName || washed.area || "Göteborg",
+      coords: washed.coords,
+      cloakedCoords: washed.cloakedCoords,
+      timestamp: Date.now(),
+      responsibleParty: washed.responsibleParty || "Medlem",
+      contactType: "web",
+      contactValue: "Webbklient",
+      expiryTimestamp,
+      category: washed.category || "Måltid & Gemenskap",
+      isFull: false,
+      status: "pending"
+    };
+
+    activeAlerts[id] = newAnnouncement;
+    saveActiveAlerts();
+
+    const adminListStr = adminNumbers.filter(num => num !== "+46701234567").join(", ");
+    const modMsg = `MODERERINGS-NOTIFIERING till samordningsgruppen [${adminListStr}]: "Nytt inlägg för granskning (ID: ${id}). Svara #GODKÄNN ${id} eller #AVVISA ${id}."`;
+    addSimLog("system", modMsg);
+    console.log(`[MODERATION] ${modMsg}`);
+
+    res.json({
+      success: true,
+      id,
+      message: "Tack! Din inbjudan granskas av samordningsgruppen och publiceras snart."
+    });
+
+  } catch (err: any) {
+    console.error("Failed to process web announcement:", err);
+    addSimLog("system", `Fel vid bearbetning av webbinlägg: ${err.message}`);
+    res.status(500).json({ error: "Internt serverfel vid bearbetning av webbinlägg." });
+  }
+});
 
 // Get VAPID Public key for client registration
 app.get("/api/vapid-public-key", (req, res) => {
@@ -180,7 +289,17 @@ app.post("/api/incoming-sms", async (req, res) => {
   const trimmedText = text.trim();
   addSimLog("incoming", `Inkommande SMS från ${sender}: "${trimmedText}"`);
 
-  const isAdmin = ADMIN_NUMBERS.includes(sender);
+  const isAdmin = adminNumbers.includes(sender);
+
+  // Check for Help Commands
+  const isHelp = trimmedText === "#" || trimmedText.toUpperCase() === "#HJÄLP" || trimmedText.toUpperCase() === "#HELP";
+  if (isHelp) {
+    addSimLog("system", `SMS-HJÄLP BEGÄRD av ${sender}.`);
+    return res.json({
+      success: true,
+      replyMessage: "Instruktioner:\n- Skapa inlägg (allmänhet): Börja med # (t.ex. '# [Kortedala] [18:00] Middag'). Det hamnar i väntrummet.\n- Samordnare har en gräddfil och inlägg godkänns direkt utan '#'.\n- Moderering (samordnare): Svara #GODKÄNN <ID> eller #AVVISA <ID>.\n- Avsluta: Svara DEL <ID> eller FULL <ID>.\nOBS: Inga namn eller personuppgifter får sparas!"
+    });
+  }
 
   // 1. Check for Admin Moderation Commands
   const godkannMatch = trimmedText.match(/^#GODKÄNN\s+(\d+)$/i);
@@ -257,7 +376,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     saveActiveAlerts();
     await broadcastCancelPush(id, alert.area);
     addSimLog("system", `SMS KILL SWITCH: Inbjudan ${id} har raderats permanent via SMS.`);
-    return res.json({ success: true, message: `Inbjudan ${id} har raderats permanent.` });
+    return res.json({ success: true, replyMessage: `Inbjudan ${id} har raderats permanent.` });
   }
 
   if (fullMatch) {
@@ -277,14 +396,15 @@ app.post("/api/incoming-sms", async (req, res) => {
     alert.isFull = true;
     saveActiveAlerts();
     addSimLog("system", `SMS KILL SWITCH: Inbjudan ${id} har markerats som fullbokad via SMS.`);
-    return res.json({ success: true, message: `Inbjudan ${id} har markerats som fullbokad.` });
+    return res.json({ success: true, replyMessage: `Inbjudan ${id} har markerats som fullbokad.` });
   }
 
   // 2. Validate non-admin text prefix requirements
   if (!isAdmin && !trimmedText.startsWith("#")) {
-    addSimLog("system", `AVVISAT INLÄGG: Meddelandet från allmänheten (${sender}) måste börja med '#' för att hamna i väntrummet.`);
-    return res.status(400).json({
-      error: "Obehörig avsändare. Allmänna inlägg måste börja med '#' för att hamna i väntrummet."
+    addSimLog("system", `AVVISAT INLÄGG från ${sender}: Meddelandet saknar '#' prefix.`);
+    return res.json({
+      success: false,
+      replyMessage: "Inlägget avvisades. Som medlem i allmänheten måste du starta med '#' framför ditt meddelande för att köa det i väntrummet (t.ex: # [Kortedala] [18:00] Middag), eller be en samordnare lägga upp det."
     });
   }
 
@@ -333,7 +453,8 @@ app.post("/api/incoming-sms", async (req, res) => {
 
     if (status === "pending") {
       // Log internal simulation moderation message
-      const modMsg = `MODERERINGS-NOTIFIERING till samordningsgruppen [${ADMIN_NUMBERS.filter(num => num !== "+46701234567").join(", ")}]: "Nytt inlägg för granskning (ID: ${id}). Svara #GODKÄNN ${id} eller #AVVISA ${id}."`;
+      const adminListStr = adminNumbers.filter(num => num !== "+46701234567").join(", ");
+      const modMsg = `MODERERINGS-NOTIFIERING till samordningsgruppen [${adminListStr}]: "Nytt inlägg för granskning (ID: ${id}). Svara #GODKÄNN ${id} eller #AVVISA ${id}."`;
       addSimLog("system", modMsg);
       console.log(`[MODERATION] ${modMsg}`);
 

@@ -33,6 +33,7 @@ interface OnboardingFormProps {
   };
   pushEnabled: boolean;
   onEnablePush: () => void;
+  onDisablePush: () => void;
   uiLanguage: UiLanguage;
 }
 
@@ -149,6 +150,7 @@ export default function OnboardingForm({
   savedTags,
   pushEnabled,
   onEnablePush,
+  onDisablePush,
   uiLanguage
 }: OnboardingFormProps) {
   const [selectedAreas, setSelectedAreas] = useState<string[]>(
@@ -171,6 +173,49 @@ export default function OnboardingForm({
   );
 
   const [modalArea, setModalArea] = useState<string | null>(null);
+
+  // Admin Management State
+  const [adminsInput, setAdminsInput] = useState<string>("");
+  const [adminsSaving, setAdminsSaving] = useState<boolean>(false);
+  const [adminsMessage, setAdminsMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch initial admins
+    fetch("/api/admins")
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data.admins)) {
+          setAdminsInput(data.admins.join(", "));
+        }
+      })
+      .catch(err => console.error("Failed to fetch admins", err));
+  }, []);
+
+  const handleSaveAdmins = async () => {
+    setAdminsSaving(true);
+    setAdminsMessage(null);
+    try {
+      const parsedAdmins = adminsInput
+        .split(",")
+        .map(num => num.trim())
+        .filter(Boolean);
+
+      const res = await fetch("/api/admins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admins: parsedAdmins })
+      });
+
+      if (!res.ok) throw new Error("Kunde inte spara.");
+      
+      setAdminsMessage("Samordnare sparade!");
+      setTimeout(() => setAdminsMessage(null), 3000);
+    } catch (err) {
+      setAdminsMessage("Ett fel uppstod vid sparande.");
+    } finally {
+      setAdminsSaving(false);
+    }
+  };
 
   const t = TRANSLATIONS[uiLanguage];
 
@@ -221,30 +266,37 @@ export default function OnboardingForm({
   return (
     <div className="space-y-6 max-w-2xl mx-auto pb-12">
       
-      {/* 1. NOTISPRENUMERATION (Aviseringsrutan flyttad ALLRA HÖGST UPP) */}
-      <div className="bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="space-y-2">
+      {/* 1. NOTISPRENUMERATION (Aviseringsrutan flyttad ALLRA HÖGST UPP med iOS Toggle) */}
+      <div className="bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-md flex items-center justify-between gap-6">
+        <div className="space-y-1.5 flex-1 pr-4">
           <div className="flex items-center gap-2 text-teal-400 font-bold text-xs tracking-wider uppercase">
-            <Bell size={16} />
+            <Bell size={14} />
             <span>{pushBoxTitle}</span>
           </div>
-          <h3 className="text-xl md:text-2xl font-bold text-slate-50">{pushBoxTitle}</h3>
-          <p className="text-slate-300 text-xs md:text-sm leading-relaxed max-w-md">
+          <p className="text-slate-300 text-[11px] md:text-xs leading-normal">
             {pushBoxSubtitle}
           </p>
         </div>
 
         <button
           type="button"
-          onClick={onEnablePush}
-          disabled={pushEnabled}
-          className={`px-5 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer ${
-            pushEnabled
-              ? "bg-emerald-600/20 text-emerald-300 border border-emerald-500/20"
-              : "bg-teal-600 hover:bg-teal-700 text-white shadow-sm active:scale-[0.98]"
+          onClick={() => {
+            if (pushEnabled) {
+              onDisablePush();
+            } else {
+              onEnablePush();
+            }
+          }}
+          className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+            pushEnabled ? "bg-teal-500" : "bg-slate-700"
           }`}
+          aria-label="Toggle push notifications"
         >
-          {pushEnabled ? t.pushBtnActive : t.pushBtnInactive}
+          <span
+            className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+              pushEnabled ? "translate-x-5" : "translate-x-0"
+            }`}
+          />
         </button>
       </div>
 
@@ -535,6 +587,44 @@ export default function OnboardingForm({
               </div>
             </div>
           </label>
+        </div>
+      </div>
+
+      {/* Administrations-panel för samordningsgruppen */}
+      <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200/60 space-y-4">
+        <div>
+          <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span>
+            Administratörer (SMS-Moderering)
+          </h4>
+          <p className="text-[11px] text-slate-500 mt-0.5 leading-normal">
+            Kommaseparerade telefonnummer till samordnare som ska få larm och moderera webbinlägg via SMS.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <input
+            type="text"
+            value={adminsInput}
+            onChange={e => setAdminsInput(e.target.value)}
+            placeholder="0700000000, 0731112222"
+            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:border-teal-500 transition-colors"
+          />
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={handleSaveAdmins}
+              disabled={adminsSaving}
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50"
+            >
+              {adminsSaving ? "Sparar..." : "Spara samordnare"}
+            </button>
+            {adminsMessage && (
+              <span className="text-[11px] font-semibold text-teal-600 animate-in fade-in duration-200">
+                {adminsMessage}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

@@ -158,6 +158,28 @@ export default function App() {
     }
   };
 
+  // Disable Web Push Subscription & Unregister Service Worker
+  const handleDisablePush = async () => {
+    try {
+      if ("serviceWorker" in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+        }
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      localStorage.removeItem("mission_router_sub_id");
+      setSubscriptionId(null);
+      setPushEnabled(false);
+    } catch (err) {
+      console.error("Failed to disable push", err);
+    }
+  };
+
   // Save tags and sync with backend subscription if active
   const handleSaveTags = useCallback(async (tags: any) => {
     localStorage.setItem("mission_router_tags", JSON.stringify(tags));
@@ -321,6 +343,7 @@ export default function App() {
                       savedTags={savedTags}
                       pushEnabled={pushEnabled}
                       onEnablePush={handleEnablePush}
+                      onDisablePush={handleDisablePush}
                       uiLanguage={uiLanguage || "sv"}
                     />
                   </aside>

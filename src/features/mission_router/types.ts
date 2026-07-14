@@ -56,6 +56,8 @@ export interface ActiveAlert {
   expiryTimestamp: number;
   category?: string;
   isFull?: boolean;
+  status?: 'active' | 'pending';
+  totalActiveAlerts?: number;
 }
 
 export interface SimLog {

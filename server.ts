@@ -63,8 +63,10 @@ function getNextFreeId(): string {
   return String(next);
 }
 
+const API_SECRET = process.env.SMS_WEBHOOK_SECRET || "samordning-secret-2026";
+
 // Hardcoded Administrator list
-const ADMIN_NUMBERS = ["0700000000", "0701112222", "0733334444"];
+const ADMIN_NUMBERS = ["0700000000", "0701112222", "0733334444", "+46701234567"];
 
 // Initialize Web Push Keys
 initWebPush();
@@ -134,7 +136,7 @@ app.post("/api/subscription", (req, res) => {
 // View specific Alert/Announcement detail (ONLY scrubbed data, compliant with handboken 33.8)
 app.get("/api/alerts/:id", (req, res) => {
   const alert = activeAlerts[req.params.id];
-  if (!alert) {
+  if (!alert || alert.status === "pending") {
     return res.status(404).json({ error: "Aktiviteten hittades inte, har förfallit eller raderats permanent." });
   }
 
@@ -163,6 +165,13 @@ app.get("/api/alerts/:id", (req, res) => {
 
 // SMS Gateway & Admin Kill Switch Route
 app.post("/api/incoming-sms", async (req, res) => {
+  // Validate Webhook Security API Secret
+  const requestSecret = req.headers["x-api-secret"] || req.body.secret;
+  if (requestSecret !== API_SECRET) {
+    addSimLog("system", `AVVISAT WEBHOOK-ANROP: Obehörig API-nyckel/secret.`);
+    return res.status(401).json({ error: "Unauthorized: Invalid or missing API Webhook Secret." });
+  }
+
   const { sender, text } = req.body;
   if (!sender || !text) {
     return res.status(400).json({ error: "Avsändare och text krävs." });
@@ -171,19 +180,74 @@ app.post("/api/incoming-sms", async (req, res) => {
   const trimmedText = text.trim();
   addSimLog("incoming", `Inkommande SMS från ${sender}: "${trimmedText}"`);
 
+  const isAdmin = ADMIN_NUMBERS.includes(sender);
+
+  // 1. Check for Admin Moderation Commands
+  const godkannMatch = trimmedText.match(/^#GODKÄNN\s+(\d+)$/i);
+  const avvisaMatch = trimmedText.match(/^#AVVISA\s+(\d+)$/i);
+
+  if (godkannMatch || avvisaMatch) {
+    if (!isAdmin) {
+      addSimLog("system", `AVVISAD MODERERING: Obehörig avsändare ${sender} försökte moderera.`);
+      return res.status(403).json({ error: "Obehörig avsändare för moderering." });
+    }
+
+    if (godkannMatch) {
+      const id = godkannMatch[1];
+      const alert = activeAlerts[id];
+      if (!alert) {
+        addSimLog("system", `KOMMANDO MISSLYCKADES: #GODKÄNN ${id} hittades inte.`);
+        return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
+      }
+      if (alert.status === "active") {
+        return res.json({ success: true, replyMessage: `Inbjudan ${id} är redan aktiv.` });
+      }
+
+      alert.status = "active";
+      saveActiveAlerts();
+
+      // Trigger push notifications now that it is active
+      await triggerPushAlert(alert);
+
+      addSimLog("system", `SMS MODERERING: Inbjudan ${id} har godkänts av ${sender} och är nu aktiv.`);
+      return res.json({
+        success: true,
+        replyMessage: `Inbjudan ${id} har godkänts och lagts upp på tavlan! Volontärer har meddelats.`
+      });
+    }
+
+    if (avvisaMatch) {
+      const id = avvisaMatch[1];
+      const alert = activeAlerts[id];
+      if (!alert) {
+        addSimLog("system", `KOMMANDO MISSLYCKADES: #AVVISA ${id} hittades inte.`);
+        return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
+      }
+
+      delete activeAlerts[id];
+      saveActiveAlerts();
+
+      addSimLog("system", `SMS MODERERING: Inbjudan ${id} har avvisats av ${sender} och raderats.`);
+      return res.json({
+        success: true,
+        replyMessage: `Inbjudan ${id} har avvisats och raderats.`
+      });
+    }
+  }
+
   // Parse Command DEL <ID> or FULL <ID>
-  const delMatch = trimmedText.match(/^DEL\s+([a-z0-9]+)$/i);
-  const fullMatch = trimmedText.match(/^FULL\s+([a-z0-9]+)$/i);
+  const delMatch = trimmedText.match(/^DEL\s+(\d+)$/i);
+  const fullMatch = trimmedText.match(/^FULL\s+(\d+)$/i);
 
   if (delMatch) {
-    const id = delMatch[1].toLowerCase();
+    const id = delMatch[1];
     const alert = activeAlerts[id];
     if (!alert) {
       addSimLog("system", `KOMMANDO MISSLYCKADES: DEL ${id} hittades inte.`);
       return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
     }
 
-    const isAuthorized = ADMIN_NUMBERS.includes(sender) || sender === alert.contactValue;
+    const isAuthorized = isAdmin || sender === alert.contactValue;
     if (!isAuthorized) {
       addSimLog("system", `AVVISAD DEL: ${sender} har inte behörighet att radera inbjudan ${id}.`);
       return res.status(403).json({ error: "Obehörig avsändare." });
@@ -197,14 +261,14 @@ app.post("/api/incoming-sms", async (req, res) => {
   }
 
   if (fullMatch) {
-    const id = fullMatch[1].toLowerCase();
+    const id = fullMatch[1];
     const alert = activeAlerts[id];
     if (!alert) {
       addSimLog("system", `KOMMANDO MISSLYCKADES: FULL ${id} hittades inte.`);
       return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
     }
 
-    const isAuthorized = ADMIN_NUMBERS.includes(sender) || sender === alert.contactValue;
+    const isAuthorized = isAdmin || sender === alert.contactValue;
     if (!isAuthorized) {
       addSimLog("system", `AVVISAD FULL: ${sender} har inte behörighet att markera ${id} som fullbokat.`);
       return res.status(403).json({ error: "Obehörig avsändare." });
@@ -216,10 +280,21 @@ app.post("/api/incoming-sms", async (req, res) => {
     return res.json({ success: true, message: `Inbjudan ${id} har markerats som fullbokad.` });
   }
 
+  // 2. Validate non-admin text prefix requirements
+  if (!isAdmin && !trimmedText.startsWith("#")) {
+    addSimLog("system", `AVVISAT INLÄGG: Meddelandet från allmänheten (${sender}) måste börja med '#' för att hamna i väntrummet.`);
+    return res.status(400).json({
+      error: "Obehörig avsändare. Allmänna inlägg måste börja med '#' för att hamna i väntrummet."
+    });
+  }
+
+  // Strip leading '#' for parsing if present
+  const textToProcess = trimmedText.startsWith("#") ? trimmedText.substring(1).trim() : trimmedText;
+
   // standard SMS parsing to create new Invitation
   try {
-    const washed = await runAiWash(trimmedText, {
-      role: "Arrangör",
+    const washed = await runAiWash(textToProcess, {
+      role: isAdmin ? "Arrangör" : "Allmänhet",
       contact: sender,
       originalType: "leader_invitation"
     });
@@ -228,6 +303,8 @@ app.post("/api/incoming-sms", async (req, res) => {
     // Expiry calculated as scheduled time of day + 2 hours
     const offsetSeconds = calculateSecondsUntilTime(washed.time);
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
+
+    const status = isAdmin ? "active" : "pending";
 
     const newAnnouncement: ActiveAlert = {
       id,
@@ -242,22 +319,40 @@ app.post("/api/incoming-sms", async (req, res) => {
       coords: washed.coords,
       cloakedCoords: washed.cloakedCoords,
       timestamp: Date.now(),
-      responsibleParty: washed.responsibleParty || "Arrangör",
+      responsibleParty: washed.responsibleParty || (isAdmin ? "Arrangör" : "Medlem"),
       contactType: "sms",
       contactValue: washed.contactValue || sender,
       expiryTimestamp,
       category: washed.category || "Måltid & Gemenskap",
-      isFull: false
+      isFull: false,
+      status
     };
 
     activeAlerts[id] = newAnnouncement;
     saveActiveAlerts();
 
-    // Trigger background Web Push to matching volunteers
+    if (status === "pending") {
+      // Log internal simulation moderation message
+      const modMsg = `MODERERINGS-NOTIFIERING till samordningsgruppen [${ADMIN_NUMBERS.filter(num => num !== "+46701234567").join(", ")}]: "Nytt inlägg för granskning (ID: ${id}). Svara #GODKÄNN ${id} eller #AVVISA ${id}."`;
+      addSimLog("system", modMsg);
+      console.log(`[MODERATION] ${modMsg}`);
+
+      return res.json({
+        success: true,
+        id,
+        replyMessage: `Tack! Ditt inlägg (ID: ${id}) har placerats i väntrummet för granskning. En samordnare kommer att granska och godkänna det via SMS inom kort.`
+      });
+    }
+
+    // Trigger background Web Push to matching volunteers for active announcements
     await triggerPushAlert(newAnnouncement);
 
     addSimLog("system", `NY INBJUDAN SKAPAD: "${newAnnouncement.scrubbedText.substring(0, 50)}..." i [${newAnnouncement.area}] av ${newAnnouncement.responsibleParty}. Kategori: ${newAnnouncement.category}.`);
-    res.json({ success: true, id });
+    res.json({
+      success: true,
+      id,
+      replyMessage: `Din inbjudan (ID: ${id}) har lagts upp direkt på tavlan! Radera med DEL ${id} eller markera som full med FULL ${id}.`
+    });
 
   } catch (err: any) {
     console.error("Failed to process incoming SMS:", err);
@@ -310,7 +405,8 @@ app.post("/api/incoming-email", async (req, res) => {
       contactValue: washed.contactValue || from,
       expiryTimestamp,
       category: washed.category || "Måltid & Gemenskap",
-      isFull: false
+      isFull: false,
+      status: "active"
     };
 
     activeAlerts[id] = newAnnouncement;
@@ -336,10 +432,13 @@ app.post("/api/sim/whatsapp", async (req, res) => {
 
   addSimLog("incoming", `[Simulator] Skickar låtsas-SMS: "${dummyBody}"`);
 
-  // Route to the new SMS gateway flow
+  // Route to the new SMS gateway flow with security secret header
   const response = await fetch(`http://localhost:${PORT}/api/incoming-sms`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      "X-API-Secret": API_SECRET
+    },
     body: JSON.stringify({ sender: dummyFrom, text: dummyBody })
   });
 
@@ -352,21 +451,24 @@ app.get("/api/sim/messages", (req, res) => {
 });
 
 app.get("/api/sim/active-alerts", (req, res) => {
-  const safeAlerts = Object.values(activeAlerts).map(alert => ({
-    id: alert.id,
-    type: alert.type,
-    area: alert.area,
-    time: alert.time,
-    gender: alert.gender,
-    language: alert.language,
-    locationName: alert.locationName,
-    timestamp: alert.timestamp,
-    scrubbedText: alert.scrubbedText,
-    responsibleParty: alert.responsibleParty,
-    contactType: alert.contactType,
-    category: alert.category,
-    isFull: !!alert.isFull
-  }));
+  const safeAlerts = Object.values(activeAlerts)
+    .filter(alert => alert.status !== "pending")
+    .map(alert => ({
+      id: alert.id,
+      type: alert.type,
+      area: alert.area,
+      time: alert.time,
+      gender: alert.gender,
+      language: alert.language,
+      locationName: alert.locationName,
+      timestamp: alert.timestamp,
+      scrubbedText: alert.scrubbedText,
+      responsibleParty: alert.responsibleParty,
+      contactType: alert.contactType,
+      category: alert.category,
+      isFull: !!alert.isFull,
+      status: alert.status || "active"
+    }));
   res.json(safeAlerts);
 });
 

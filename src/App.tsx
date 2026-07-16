@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
 import React, { useState, useEffect, useCallback } from "react";
-import { ShieldAlert, Languages, Bell, Share, Smartphone, X, CheckSquare, Sparkles } from "lucide-react";
+import { ShieldAlert, Languages, X, Smartphone } from "lucide-react";
 import OnboardingWizard from "./features/mission_router/components/onboarding/OnboardingWizard";
 import AlertDetail from "./features/mission_router/components/AlertDetail";
 import ActiveStream from "./features/mission_router/components/ActiveStream";
@@ -37,7 +37,18 @@ export default function App() {
 
   const [pushEnabled, setPushEnabled] = useState<boolean>(false);
   const [pushError, setPushError] = useState<string | null>(null);
-  const [totalActiveCount, setTotalActiveCount] = useState<number>(0);
+  
+  // Real-time dynamic count of filtered vs total invitations
+  const [streamCounts, setStreamCounts] = useState<{ filtered: number; total: number }>({ filtered: 0, total: 0 });
+
+  const handleStreamCountChange = useCallback((filtered: number, total: number) => {
+    setStreamCounts(prev => {
+      if (prev.filtered === filtered && prev.total === total) {
+        return prev;
+      }
+      return { filtered, total };
+    });
+  }, []);
 
   // Unified Tab Management (Mobile has "stream" | "create" | "settings"; Desktop has "stream" | "create")
   const [activeTab, setActiveTab] = useState<"stream" | "create" | "settings">("stream");
@@ -96,17 +107,17 @@ export default function App() {
     }
 
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      setPushError("Din enhet stöder tyvärr inte Web Push-aviseringar.");
+      setPushError(uiLanguage === "sv" ? "Din enhet stöder tyvärr inte Web Push-aviseringar." : "Unfortunately, your device does not support Web Push notifications.");
       return;
     }
 
     try {
       const keyRes = await fetch("/api/vapid-public-key");
-      if (!keyRes.ok) throw new Error("Misslyckades att hämta anslutningsnyckel från servern.");
+      if (!keyRes.ok) throw new Error(uiLanguage === "sv" ? "Misslyckades att hämta anslutningsnyckel från servern." : "Failed to fetch public key from the server.");
       const { publicKey } = await keyRes.json();
 
       if (!publicKey) {
-        throw new Error("Ingen giltig anslutningsnyckel returnerades från servern.");
+        throw new Error(uiLanguage === "sv" ? "Ingen giltig anslutningsnyckel returnerades från servern." : "No valid public key was returned from the server.");
       }
 
       const registration = await navigator.serviceWorker.register("/sw.js", {
@@ -135,7 +146,7 @@ export default function App() {
         })
       });
 
-      if (!response.ok) throw new Error("Kunde inte slutföra registreringen på servern.");
+      if (!response.ok) throw new Error(uiLanguage === "sv" ? "Kunde inte slutföra registreringen på servern." : "Could not complete registration on the server.");
       const data = await response.json();
 
       localStorage.setItem("mission_router_sub_id", data.id);
@@ -250,48 +261,58 @@ export default function App() {
       
       {/* Sticky Top Header Bar */}
       <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-brand-ink/10 z-50 w-full shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between text-xs sm:text-sm font-mono text-brand-ink/80 select-none">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse shrink-0"></span>
-            <span className="font-semibold text-brand-ink">
-              Primärt område:{" "}
-              <span className="text-brand-accent italic font-serif">
-                {savedTags?.primaryArea || "Inget förvalt område"}
+        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-1.5 select-none">
+          <div className="flex items-center justify-between text-xs font-mono text-brand-ink/80">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse shrink-0"></span>
+              <span className="font-semibold text-brand-ink">
+                {TRANSLATIONS[uiLanguage].primaryAreaLabel}:{" "}
+                <span className="text-brand-accent italic font-serif">
+                  {savedTags?.primaryArea || TRANSLATIONS[uiLanguage].noAreaSelected}
+                </span>
               </span>
-            </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-[10px] sm:text-xs">
+              {isSyncing ? (
+                <span className="flex items-center gap-1.5 text-emerald-600 font-semibold animate-pulse">
+                  <svg
+                    className="animate-spin h-3.5 w-3.5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  {TRANSLATIONS[uiLanguage].syncingText}
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-brand-ink/50 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  {TRANSLATIONS[uiLanguage].realtimeSynced}
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 text-[10px] sm:text-xs">
-            {isSyncing ? (
-              <span className="flex items-center gap-1.5 text-emerald-600 font-semibold animate-pulse">
-                <svg
-                  className="animate-spin h-3.5 w-3.5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Synkroniserar...
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 text-brand-ink/50 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                Synkroniserad i realtid
-              </span>
-            )}
+          <div className="border-t border-brand-ink/5 pt-1.5 flex items-center justify-between text-[10px] font-mono text-brand-ink/60">
+            <span>
+              {TRANSLATIONS[uiLanguage].showingCount
+                .replace("{count}", String(streamCounts.filtered))
+                .replace("{total}", String(streamCounts.total))}
+            </span>
           </div>
         </div>
       </div>
@@ -321,8 +342,8 @@ export default function App() {
         )}
       </header>
 
-      {/* Tab Menu Header Row (Positioned above Stage) */}
-      <div className="bg-white/80 border-b border-brand-ink/5 sticky top-[49px] z-40 w-full mb-6">
+      {/* Tab Menu Header Row */}
+      <div className="bg-white/80 border-b border-brand-ink/5 sticky top-[69px] sm:top-[71px] z-40 w-full mb-6">
         <div className="max-w-7xl mx-auto px-4 py-2.5">
           
           {/* Mobile Navigation Tabs Selector (< lg) */}
@@ -336,7 +357,7 @@ export default function App() {
                   : "text-brand-ink/65 hover:text-brand-ink"
               }`}
             >
-              Inbjudan till dig
+              {TRANSLATIONS[uiLanguage].tabInvitations}
             </button>
             <button
               id="mobile-tab-create"
@@ -347,7 +368,7 @@ export default function App() {
                   : "text-brand-ink/65 hover:text-brand-ink"
               }`}
             >
-              + Bjud in andra
+              {TRANSLATIONS[uiLanguage].tabCreateInvitation}
             </button>
             <button
               id="mobile-tab-settings"
@@ -358,7 +379,7 @@ export default function App() {
                   : "text-brand-ink/65 hover:text-brand-ink"
               }`}
             >
-              Anpassa mina val
+              {TRANSLATIONS[uiLanguage].tabCustomize}
             </button>
           </div>
 
@@ -373,7 +394,7 @@ export default function App() {
                   : "border-transparent text-brand-ink/65 hover:text-brand-ink"
               }`}
             >
-              Inbjudan till dig
+              {TRANSLATIONS[uiLanguage].tabInvitations}
             </button>
             <button
               id="desktop-tab-create"
@@ -384,7 +405,7 @@ export default function App() {
                   : "border-transparent text-brand-ink/65 hover:text-brand-ink"
               }`}
             >
-              + Bjud in andra
+              {TRANSLATIONS[uiLanguage].tabCreateInvitation}
             </button>
           </div>
 
@@ -415,7 +436,7 @@ export default function App() {
               
               {/* LEFT SPALT (Desktop: Permanent settings; Mobile: Shown only on "settings" tab) */}
               <div className={`lg:col-span-5 ${activeTab === "settings" ? "block" : "hidden lg:block"}`}>
-                <div className="bg-white/40 p-4 rounded-3xl border border-brand-ink/5 lg:sticky lg:top-[120px]">
+                <div className="bg-white/40 p-4 rounded-3xl border border-brand-ink/5 lg:sticky lg:top-[140px]">
                   <OnboardingWizard
                     onSave={handleSaveTags}
                     savedTags={savedTags}
@@ -437,9 +458,7 @@ export default function App() {
                       onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
                       uiLanguage={uiLanguage || "sv"}
                       savedTags={savedTags}
-                      showCreateModal={false}
-                      setShowCreateModal={() => {}}
-                      onStreamCountChange={setTotalActiveCount}
+                      onStreamCountChange={handleStreamCountChange}
                       inlineCreate={false}
                     />
                   </div>
@@ -452,9 +471,7 @@ export default function App() {
                       onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
                       uiLanguage={uiLanguage || "sv"}
                       savedTags={savedTags}
-                      showCreateModal={false}
-                      setShowCreateModal={() => {}}
-                      onStreamCountChange={setTotalActiveCount}
+                      onStreamCountChange={handleStreamCountChange}
                       inlineCreate={true}
                     />
                   </div>

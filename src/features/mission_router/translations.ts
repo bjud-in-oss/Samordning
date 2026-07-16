@@ -78,6 +78,17 @@ export interface TranslationDict {
   sendResponseBtn: string;
   sendingText: string;
   footerNotice: string;
+
+  // New keys for tabs and status bar
+  tabInvitations: string;
+  tabCreateInvitation: string;
+  tabCustomize: string;
+  primaryAreaLabel: string;
+  noAreaSelected: string;
+  showingCount: string;
+  bulletinBoardStatus: string;
+  realtimeSynced: string;
+  syncingText: string;
 }
 
 export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
@@ -149,7 +160,16 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     messagePlaceholder: "Skriv eventuell kommentar...",
     sendResponseBtn: "Tacka ja / OSA via SMS",
     sendingText: "Öppnar SMS...",
-    footerNotice: "När du klickar på knappen öppnas din telefons inbyggda SMS-app med ett färdigskrivet meddelande till arrangörens dolda telefonnummer."
+    footerNotice: "När du klickar på knappen öppnas din telefons inbyggda SMS-app med ett färdigskrivet meddelande till arrangörens dolda telefonnummer.",
+    tabInvitations: "Inbjudan till dig",
+    tabCreateInvitation: "+ Bjud in andra",
+    tabCustomize: "Anpassa mina val",
+    primaryAreaLabel: "Primärt område",
+    noAreaSelected: "Inget förvalt område",
+    showingCount: "Visar {count} av totalt {total} inbjudningar",
+    bulletinBoardStatus: "Status på anslagstavlan",
+    realtimeSynced: "Synkroniserad i realtid",
+    syncingText: "Synkroniserar..."
   },
   en: {
     gatewayTitle: "Invitation for you",
@@ -219,7 +239,16 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     messagePlaceholder: "Write any comment here...",
     sendResponseBtn: "Accept / RSVP via SMS",
     sendingText: "Opening SMS...",
-    footerNotice: "When you click the button, your phone's built-in SMS app opens with a pre-written message to the organizer's hidden phone number."
+    footerNotice: "When you click the button, your phone's built-in SMS app opens with a pre-written message to the organizer's hidden phone number.",
+    tabInvitations: "Invitation for you",
+    tabCreateInvitation: "+ Invite others",
+    tabCustomize: "Customize my choices",
+    primaryAreaLabel: "Primary area",
+    noAreaSelected: "No area selected",
+    showingCount: "Showing {count} of total {total} invitations",
+    bulletinBoardStatus: "Bulletin board status",
+    realtimeSynced: "Synchronized in real time",
+    syncingText: "Syncing..."
   },
   es: {
     gatewayTitle: "Invitación para ti",
@@ -289,7 +318,16 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     messagePlaceholder: "Escribe cualquier comentario aquí...",
     sendResponseBtn: "Aceptar / Reservar vía SMS",
     sendingText: "Abriendo SMS...",
-    footerNotice: "Al hacer clic en el botón, se abre la aplicación de SMS integrada de tu teléfono con un mensaje preescrito para el número oculto del organizador."
+    footerNotice: "Al hacer clic en el botón, se abre la aplicación de SMS integrada de tu teléfono con un mensaje preescrito para el número oculto del organizador.",
+    tabInvitations: "Invitación para ti",
+    tabCreateInvitation: "+ Invitar a otros",
+    tabCustomize: "Personalizar mis selecciones",
+    primaryAreaLabel: "Área primaria",
+    noAreaSelected: "Ningún área seleccionada",
+    showingCount: "Mostrando {count} de un total de {total} invitaciones",
+    bulletinBoardStatus: "Estado de la cartelera",
+    realtimeSynced: "Sincronizado en tiempo real",
+    syncingText: "Sincronizando..."
   },
   sw: {
     gatewayTitle: "Mwaliko kwako",
@@ -359,7 +397,16 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     messagePlaceholder: "Andika maoni hapa...",
     sendResponseBtn: "Kukubali / RSVP kupitia SMS",
     sendingText: "Inafungua SMS...",
-    footerNotice: "Unapobofya kitufe, programu ya SMS ya simu yako inafunguka na ujumbe uliotayarishwa kwenda kwa nambari iliyofichwa ya mratibu."
+    footerNotice: "Unapobofya kitufe, programu ya SMS ya simu yako inafunguka na ujumbe uliotayarishwa kwenda kwa nambari iliyofichwa ya mratibu.",
+    tabInvitations: "Mwaliko kwako",
+    tabCreateInvitation: "+ Alika wengine",
+    tabCustomize: "Anpassa chaguzi zangu",
+    primaryAreaLabel: "Eneo la msingi",
+    noAreaSelected: "Hakuna eneo lililoteuliwa",
+    showingCount: "Inaonyesha {count} kati ya jumla ya mialiko {total}",
+    bulletinBoardStatus: "Hali ya ubao wa matangazo",
+    realtimeSynced: "Imeoanishwa katika muda halisi",
+    syncingText: "Inasawazisha..."
   },
   vi: {
     gatewayTitle: "Lời mời dành cho bạn",
@@ -429,6 +476,15 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     messagePlaceholder: "Viết nhận xét nếu có...",
     sendResponseBtn: "Chấp nhận / RSVP qua SMS",
     sendingText: "Đang mở SMS...",
-    footerNotice: "Khi bạn nhấp vào nút, ứng dụng SMS tích hợp trên điện thoại của bạn sẽ mở ra với một tin nhắn được viết sẵn gửi đến số điện thoại ẩn của người tổ chức."
+    footerNotice: "Khi bạn nhấp vào nút, ứng dụng SMS tích hợp trên điện thoại của bạn sẽ mở ra với một tin nhắn được viết sẵn gửi đến số điện thoại ẩn của người tổ chức.",
+    tabInvitations: "Lời mời dành cho bạn",
+    tabCreateInvitation: "+ Mời người khác",
+    tabCustomize: "Tùy chỉnh lựa chọn của tôi",
+    primaryAreaLabel: "Khu vực chính",
+    noAreaSelected: "Chưa chọn khu vực",
+    showingCount: "Hiển thị {count} trên tổng số {total} lời mời",
+    bulletinBoardStatus: "Trạng thái bảng thông báo",
+    realtimeSynced: "Được đồng bộ hóa trong thời gian thực",
+    syncingText: "Đang đồng bộ hóa..."
   }
 };

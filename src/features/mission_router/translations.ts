@@ -11,36 +11,34 @@ export interface TranslationDict {
   onboardingHeader: string;
   onboardingSubtitle: string;
   onboardingIntro: string;
+  
+  // Step 1: Plats och närområde
   step1Title: string;
   step1Subtitle: string;
   
-  // New Step 2 (Organizations & Language selection)
+  // Step 2: Språkstöd
   step2Title: string;
   step2Subtitle: string;
-  step2OrgHeader: string;
-  step2OrgText: string;
-  orgChoiceLabel: string;
-  orgBror: string;
-  orgSyster: string;
-  step2LangHeader: string;
-  step2LangSubtitle: string;
 
-  // Step 3 (How to participate)
+  // Step 3: Grupptillhörighet
   step3Title: string;
   step3Subtitle: string;
+  
+  // Step 4: Format
+  step4Title: string;
+  step4Subtitle: string;
+  
   formatPhysicalTitle: string;
   formatPhysicalDesc: string;
   formatDigitalTitle: string;
   formatDigitalDesc: string;
-  
-  // Step 4 & 5 (Customize notifications)
-  step4Title: string;
-  step4Subtitle: string;
-  notifyOptionTitle: string;
-  notifyOptionDesc: string;
-  spiritualOptionTitle: string;
-  spiritualOptionDesc: string;
-  
+  formatSpiritualTitle: string;
+  formatSpiritualDesc: string;
+
+  orgChoiceLabel: string;
+  orgBror: string;
+  orgSyster: string;
+
   iosTipHeader: string;
   iosTipBody: string;
   pushHeader: string;
@@ -86,36 +84,34 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewayTitle: "Inbjudan till dig",
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
-    onboardingHeader: "Bli notifierad om nya inbjudningar",
-    onboardingSubtitle: "Få snabba notiser om måltider, tjänande och aktiviteter i din närhet.",
-    onboardingIntro: "Genom att anpassa valen nedan får du en diskret avisering (notis) direkt i din telefon eller dator så fort någon i församlingen delar en ny inbjudan eller aktivitet i något av dina valda områden. Du kan enkelt läsa detaljerna och tacka ja via SMS.",
-    step1Title: "Steg 1 av 5: Välj områden du vill bevaka",
-    step1Subtitle: "Klicka på de områden i Göteborg där du vill se inbjudningar och aktiviteter. Sorterat geografiskt från norr till söder.",
     
-    step2Title: "Steg 2 av 5: Samarbete & Intresse",
-    step2Subtitle: "Vi samordnar behov och inbjudningar för att stärka församlingens gemenskap.",
-    step2OrgHeader: "Samarbetande Grupper",
-    step2OrgText: "Här kan du ta del av öppna inbjudningar från Hjälpföreningen (kyrkans kvinnoorganisation), Äldstekvorumet (kyrkans herrorganisation) och unga missionärer. Allt samlas på en och samma anslagstavla för enkel tillgång.",
+    onboardingHeader: "Bli notifierad om nya inbjudningar",
+    onboardingSubtitle: "Du får då en diskret avisering direkt i din telefon när det finns en inbjudan till dig som matchar dina val. Allt sparas i ett flöde.",
+    onboardingIntro: "Välkommen! Genom att ställa in fyra olika personliga preferenser nedan kan du välja exakt var och hur du vill delta och hjälpa till. Så fort ett behov uppstår som matchar din profil får du en diskret mobilavisering i realtid samtidigt som din integritet skyddas. Ingen annan än du kan se vilka notiser du följer eller tar emot. Endast den som du SMS:ar ett svar kan se när du svarar.",
+    
+    step1Title: "Steg 1 av 4: Din insats som lokalt stöd",
+    step1Subtitle: "Vi samordnar behov och inbjudningar för att stärka församlingens lokala gemenskap. Välj den plats där du i första hand kan ge lokalt stöd (t.ex. vid lektioner eller samtal). Denna plats blir ditt primära bevakningsområde.",
+    
+    step2Title: "Steg 2 av 4: Språkstöd",
+    step2Subtitle: "Klicka på de språk du kan hjälpa till med under gemensamma träffar eller lektioner (inget är förvalt, man måste inte välja).",
+
+    step3Title: "Steg 3 av 4: Grupptillhörighet",
+    step3Subtitle: "Här kan du ta del av öppna inbjudningar från följande grupper och de unga missionärerna i kyrkan. Bli notifierad från grupper som samarbetar (välj en för dig):",
+    
+    step4Title: "Steg 4 av 4: Välj format",
+    step4Subtitle: "Välj de format som passar din livssituation bäst.",
+
+    formatPhysicalTitle: "Fysiskt på plats",
+    formatPhysicalDesc: "Fysiskt på plats: Jag deltar gärna fysiskt på plats (t.ex. hemma hos någon, i kyrkan, städdagar eller gemensamma middagar).",
+    formatDigitalTitle: "Via telefon / video / distans",
+    formatDigitalDesc: "Via telefon / video / distans: Jag deltar gärna via telefon eller digitalt vid behov.",
+    formatSpiritualTitle: "Via Andliga tankar",
+    formatSpiritualDesc: "Via Andliga tankar: Jag kan tänka mig ta emot eller dela korta upplyftande andliga tankar via tysta aviseringar eller förfrågningar som församlings- och heltidsmissionärerna sänder till mig.",
+
     orgChoiceLabel: "Min organisation (välj en):",
     orgBror: "Äldstekvorum (Broder)",
     orgSyster: "Hjälpförening (Syster)",
-    step2LangHeader: "Språkstöd",
-    step2LangSubtitle: "Klicka på de språk du kan hjälpa till med under gemensamma träffar eller lektioner (du kan välja flera).",
 
-    step3Title: "Steg 3 av 5: Hur vill du delta?",
-    step3Subtitle: "Välj de format som passar din livssituation bäst.",
-    formatPhysicalTitle: "Fysiskt på plats",
-    formatPhysicalDesc: "Jag deltar gärna fysiskt på plats (t.ex. hemma hos någon, i kyrkan, städdagar eller gemensamma middagar).",
-    formatDigitalTitle: "Via telefon / video / distans",
-    formatDigitalDesc: "Jag deltar gärna via telefon eller digitalt vid behov.",
-    
-    step4Title: "Step 4 & 5 av 5: Anpassa dina aviseringar",
-    step4Subtitle: "Finjustera hur och när du vill bli meddelad.",
-    notifyOptionTitle: "Skicka direktnotiser till min enhet",
-    notifyOptionDesc: "Du får ett trevligt meddelande i realtid när en ny inbjudan skapas i dina bevakade områden. Du väljer själv helt fritt i stunden om du vill tacka ja.",
-    spiritualOptionTitle: "Prenumerera på veckovisa andliga tankar",
-    spiritualOptionDesc: "Få en kort, upplyftande tanke skickad som en tyst notis en gång i veckan.",
-    
     iosTipHeader: "Viktigt tips för iPhone/iOS-användare:",
     iosTipBody: "Denna tjänst fungerar bäst installerad i mobilen. Om du använder en iPhone, trycka först på Dela-knappen (fyrkanten med pil uppåt) i Safari och välj \"Lägg till på hemskärmen\". Öppna sedan appen därifrån för att kunna aktivera automatiska notiser.",
     pushHeader: "Prenumerera på notiser",
@@ -157,36 +153,34 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewayTitle: "Invitation for you",
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
-    onboardingHeader: "Get notified of new invitations",
-    onboardingSubtitle: "Receive quick notifications of meals, service, and activities nearby.",
-    onboardingIntro: "By customizing the choices below, you receive a discrete notification directly on your phone or computer as soon as someone in the congregation shares a new invitation or activity in one of your selected areas. You can easily read the details and RSVP via SMS.",
-    step1Title: "Step 1 of 5: Select areas you want to monitor",
-    step1Subtitle: "Click on the areas in Gothenburg where you want to see invitations and activities. Sorted geographically from north to south.",
     
-    step2Title: "Step 2 of 5: Collaboration & Interest",
-    step2Subtitle: "We coordinate needs and invitations to strengthen the ward community.",
-    step2OrgHeader: "Collaborating Groups",
-    step2OrgText: "Here you can see open invitations from the Relief Society (the church's women's organization), the Elders Quorum (the church's men's organization), and young missionaries. Everything is gathered in one single bulletin board for easy access.",
+    onboardingHeader: "Get notified of new invitations",
+    onboardingSubtitle: "You will receive a discrete notification directly on your phone when there is an invitation for you that matches your choices. Everything is saved in a feed.",
+    onboardingIntro: "Welcome! By setting four different personal preferences below, you can choose exactly where and how you want to participate and help. As soon as a need arises that matches your profile, you will receive a discrete mobile notification in real-time while your privacy is protected. No one but you can see which notifications you follow or receive. Only the person you SMS a reply to can see when you answer.",
+    
+    step1Title: "Step 1 of 4: Your effort as local support",
+    step1Subtitle: "We coordinate needs and invitations to strengthen the ward's local community. Select the location where you can primarily provide local support (e.g., during lessons or conversations). This location will be your primary monitoring area.",
+    
+    step2Title: "Step 2 of 4: Language support",
+    step2Subtitle: "Click on the languages you can help with during common gatherings or lessons (none is selected by default, you do not have to choose).",
+
+    step3Title: "Step 3 of 4: Group affiliation",
+    step3Subtitle: "Get notified from groups that collaborate (choose one for you): Here you can take part in open invitations from the following groups and the young missionaries in the church.",
+    
+    step4Title: "Step 4 of 4: Choose formats",
+    step4Subtitle: "Choose the formats that best fit your life situation.",
+
+    formatPhysicalTitle: "In-person",
+    formatPhysicalDesc: "In-person: I gladly participate physically on site (e.g. at someone's home, in church, cleaning days or shared dinners).",
+    formatDigitalTitle: "Via phone / video / remote",
+    formatDigitalDesc: "Via phone / video / remote: I gladly participate via phone or digitally when needed.",
+    formatSpiritualTitle: "Via Spiritual thoughts",
+    formatSpiritualDesc: "Via Spiritual thoughts: I can imagine receiving or sharing short uplifting spiritual thoughts via silent notifications or inquiries sent by ward and full-time missionaries.",
+
     orgChoiceLabel: "My organization (select one):",
     orgBror: "Elders Quorum (Brother)",
     orgSyster: "Relief Society (Sister)",
-    step2LangHeader: "Language Support",
-    step2LangSubtitle: "Click on the languages you can help with during common gatherings or lessons (you can select multiple).",
 
-    step3Title: "Step 3 of 5: How would you like to participate?",
-    step3Subtitle: "Choose the formats that best fit your lifestyle.",
-    formatPhysicalTitle: "In-person",
-    formatPhysicalDesc: "I would love to participate in-person (e.g. at someone's home, at church, service projects, or shared dinners).",
-    formatDigitalTitle: "Via phone / video / remote",
-    formatDigitalDesc: "I am happy to participate remotely or digitally when needed.",
-    
-    step4Title: "Step 4 & 5 of 5: Customize your notifications",
-    step4Subtitle: "Fine-tune how and when you want to be notified.",
-    notifyOptionTitle: "Send direct notifications to my device",
-    notifyOptionDesc: "You will receive a pleasant real-time notification when a new invitation is created in your monitored areas. You decide freely in the moment whether to accept.",
-    spiritualOptionTitle: "Subscribe to weekly spiritual thoughts",
-    spiritualOptionDesc: "Receive a short, uplifting thought sent as a silent notification once a week.",
-    
     iosTipHeader: "Important tip for iPhone/iOS users:",
     iosTipBody: "This service works best installed on your mobile phone. If you are using an iPhone, first tap the Share button (square with an upward arrow) in Safari and choose \"Add to Home Screen\". Then open the app from there to activate automatic notifications.",
     pushHeader: "Subscribe to notifications",
@@ -228,36 +222,34 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewayTitle: "Invitación para ti",
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
-    onboardingHeader: "Recibe notificaciones sobre nuevas invitaciones",
-    onboardingSubtitle: "Recibe notificaciones rápidas sobre comidas, servicio y actividades cercanas.",
-    onboardingIntro: "Al adaptar las opciones a continuación, recibirá una notificación discreta directamente en su teléfono o computadora tan pronto como alguien de la congregación comparta una nueva invitación o actividad en sus áreas seleccionadas. Puede leer los detalles fácilmente y responder por SMS.",
-    step1Title: "Paso 1 de 5: Selecciona las áreas que deseas monitorear",
-    step1Subtitle: "Haz clic en las áreas de Gotemburgo donde deseas ver invitaciones y actividades. Ordenadas geográficamente de norte a sur.",
     
-    step2Title: "Paso 2 de 5: Colaboración e Interés",
-    step2Subtitle: "Coordinamos necesidades e invitaciones para fortalecer la comunidad de la congregación.",
-    step2OrgHeader: "Grupos Colaboradores",
-    step2OrgText: "Aquí puedes ver las invitaciones abiertas de la Sociedad de Socorro (organización de mujeres de la iglesia), el Quórum de Élderes (organización de hombres de la iglesia) y los jóvenes misioneros. Todo se reúne en un solo tablón de anuncios para un acceso fácil.",
+    onboardingHeader: "Recibe notificaciones sobre nuevas invitaciones",
+    onboardingSubtitle: "Recibirá una notificación discreta directamente en su teléfono cuando haya una invitación que coincida con sus elecciones. Todo se guarda en un flujo.",
+    onboardingIntro: "¡Bienvenido! Al configurar cuatro preferencias personales diferentes a continuación, puede elegir exactamente dónde y cómo desea participar y ayudar. Tan pronto como surja una necesidad que coincida con su perfil, recibirá una notificación móvil discreta en tiempo real mientras se protege su privacidad. Nadie más que usted puede ver qué notificaciones sigue o recibe. Solo la persona a la que responda por SMS podrá ver cuando responda.",
+    
+    step1Title: "Paso 1 de 4: Tu esfuerzo como apoyo local",
+    step1Subtitle: "Coordinamos necesidades e invitaciones para fortalecer la comunidad local de la congregación. Seleccione el lugar donde principalmente puede brindar apoyo local (por ejemplo, durante lecciones o conversaciones). Este lugar será su área de monitoreo principal.",
+    
+    step2Title: "Paso 2 de 4: Soporte de idiomas",
+    step2Subtitle: "Haga clic en los idiomas con los que puede ayudar durante reuniones comunes o lecciones (ninguno está preseleccionado, no es obligatorio elegir).",
+
+    step3Title: "Paso 3 de 4: Afiliación de grupo",
+    step3Subtitle: "Reciba notificaciones de grupos que colaboran (elija uno para usted): Aquí puede participar en invitaciones abiertas de los siguientes grupos y de los jóvenes misioneros de la iglesia.",
+    
+    step4Title: "Paso 4 de 4: Elegir formatos",
+    step4Subtitle: "Elija los formatos que mejor se adapten a su situación de vida.",
+
+    formatPhysicalTitle: "En persona",
+    formatPhysicalDesc: "En persona: Participo con gusto físicamente en el lugar (por ejemplo, en la casa de alguien, en la iglesia, días de servicio o cenas compartidas).",
+    formatDigitalTitle: "Por teléfono / video / remoto",
+    formatDigitalDesc: "Por teléfono / video / remoto: Participo con gusto por teléfono o digitalmente cuando sea necesario.",
+    formatSpiritualTitle: "A través de pensamientos espirituales",
+    formatSpiritualDesc: "A través de pensamientos espirituales: Puedo considerar recibir o compartir pensamientos espirituales breves y edificantes a través de notificaciones silenciosas o consultas enviadas por los misioneros de la congregación y de tiempo completo.",
+
     orgChoiceLabel: "Mi organización (seleccione una):",
     orgBror: "Quórum de Élderes (Hermano)",
     orgSyster: "Sociedad de Socorro (Hermana)",
-    step2LangHeader: "Soporte de Idiomas",
-    step2LangSubtitle: "Haz clic en los idiomas con los que puedes ayudar durante las reuniones o lecciones (puedes seleccionar varios).",
 
-    step3Title: "Paso 3 de 5: ¿Cómo le gustaría participar?",
-    step3Subtitle: "Elija los formatos que mejor se adapten a su estilo de vida.",
-    formatPhysicalTitle: "En persona",
-    formatPhysicalDesc: "Me encantaría participar en persona (por ejemplo, en la casa de alguien, en la iglesia, días de servicio o cenas compartidas).",
-    formatDigitalTitle: "Por teléfono / video / remoto",
-    formatDigitalDesc: "Con gusto participo de forma remota o digital cuando sea necesario.",
-    
-    step4Title: "Paso 4 y 5 de 5: Personaliza tus notificaciones",
-    step4Subtitle: "Ajuste cómo y cuándo desea ser notificado.",
-    notifyOptionTitle: "Enviar notificaciones directas a mi dispositivo",
-    notifyOptionDesc: "Recibirás un mensaje amigable en tiempo real cuando se cree una nueva invitación en tus áreas monitoreadas. Decides libremente en el momento si deseas aceptar.",
-    spiritualOptionTitle: "Suscribirse a pensamientos espirituales semanales",
-    spiritualOptionDesc: "Reciba un pensamiento corto e inspirador enviado como notificación silenciosa una vez a la semana.",
-    
     iosTipHeader: "Consejo importante para usuarios de iPhone/iOS:",
     iosTipBody: "Este servicio funciona mejor instalado en tu teléfono móvil. Si usa un iPhone, primero debe tocar el botón Compartir (el cuadrado con una flecha hacia arriba) en su navegador y elegir \"Agregar a la pantalla de inicio\". Luego, abra la aplicación desde su pantalla de inicio para activar las notificaciones.",
     pushHeader: "Suscribirse a las notificaciones",
@@ -299,38 +291,36 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewayTitle: "Mwaliko kwako",
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
-    onboardingHeader: "Pata arifa kuhusu mialiko mipya",
-    onboardingSubtitle: "Pokea arifa za haraka kuhusu milo, huduma, na shughuli za karibu.",
-    onboardingIntro: "Kwa kubinafsisha chaguzi hapa chini, utapokea arifa ya siri moja kwa moja kwenye simu au kompyuta yako mara tu mtu katika ushirika anaposhiriki mwaliko au shughuli mpya katika maeneo yako uliyochagua. Unaweza kusoma maelezo kwa urahisi na kujibu kupitia SMS.",
-    step1Title: "Hatua ya 1 ya 5: Chagua maeneo unayotaka kufuatilia",
-    step1Subtitle: "Bofya kwenye maeneo ya Gothenburg ambapo unataka kuona mialiko na shughuli. Imepangwa kijiografia kutoka kaskazini hadi kusini.",
     
-    step2Title: "Hatua ya 2 ya 5: Ushirikiano na Maslahi",
-    step2Subtitle: "Tunaratibu mahitaji na mialiko ili kuimarisha jumuiya ya ushirika.",
-    step2OrgHeader: "Vikundi Vinavyoshirikiana",
-    step2OrgText: "Hapa unaweza kuona mialiko ya wazi kutoka kwa Muungano wa Usaidizi av Kina Mama (Relief Society), Akidi ya Wazee (Elders Quorum), na wamisionari vijana. Kila kitu kinakusanywa kwenye ubao mmoja av matangazo kwa ufikiaji rahisi.",
+    onboardingHeader: "Pata arifa kuhusu mialiko mipya",
+    onboardingSubtitle: "Utapokea arifa ya siri moja kwa moja kwenye simu yako wakati kuna mwaliko unaolingana na chaguo zako. Kila kitu kinahifadhiwa kwenye mkondo.",
+    onboardingIntro: "Karibu! Kwa kuweka mapendeleo manne tofauti ya kibinafsi hapa chini, unaweza chagua haswa wapi na jinsi unavyotaka kushiriki na kusaidia. Mara tu hitaji linapotokea linalolingana na wasifu wako, utapokea arifa ya siri ya rununu kwa wakati halisi huku faragha yako ikilindwa. Hakuna mtu isipokuwa wewe anayeweza kuona ni arifa gani unazofuata au kupokea. Ni mtu tu unayemjibu kwa SMS ndiye anayeweza kuona unapojibu.",
+    
+    step1Title: "Hatua ya 1 ya 4: Juhudi zako kama msaada wa kienyeji",
+    step1Subtitle: "Tunaratibu mahitaji na mialiko ili kuimarisha jumuiya ya mahali hapo. Chagua eneo ambalo unaweza kutoa msaada wa kienyeji kwanza (k.m., wakati wa masomo au mazungumzo). Eneo hili litakuwa eneo lako kuu la ufuatiliaji.",
+    
+    step2Title: "Hatua ya 2 ya 4: Msaada wa lugha",
+    step2Subtitle: "Bofya kwenye lugha unazoweza kusaidia nazo wakati wa mikutano au masomo (hakuna iliyochaguliwa mapema, sio lazima kuchagua).",
+
+    step3Title: "Hatua ya 3 ya 4: Uhusiano wa kikundi",
+    step3Subtitle: "Pata arifa kutoka kwa vikundi vinavyoshirikiana (chagua moja kwa ajili yako): Hapa unaweza kushiriki katika mialiko ya wazi kutoka kwa vikundi vifuatavyo na wamisionari vijana kanisani.",
+    
+    step4Title: "Hatua ya 4 ya 4: Chagua muundo",
+    step4Subtitle: "Chagua muundo unaofaa zaidi maisha yako.",
+
+    formatPhysicalTitle: "Kihalisia mahali husika",
+    formatPhysicalDesc: "Kihalisia mahali husika: Ninashiriki kwa furaha ana kwa ana (k.m. nyumbani kwa mtu, kanisani, siku za huduma au milo ya pamoja).",
+    formatDigitalTitle: "Kupitia simu / video / mbali",
+    formatDigitalDesc: "Kupitia simu / video / mbali: Ninashiriki kwa furaha kupitia simu au kidijitali inapohitajika.",
+    formatSpiritualTitle: "Kupitia mawazo ya kiroho",
+    formatSpiritualDesc: "Kupitia mawazo ya kiroho: Naweza kufikiria kupokea au kushiriki mawazo mafupi ya kiroho yanayojenga kupitia arifa za kimya au maswali yanayotumwa na wamisionari wa mtaa na wa muda wote.",
+
     orgChoiceLabel: "Shirika langu (chagua moja):",
     orgBror: "Akidi ya Wazee (Kaka)",
     orgSyster: "Muungano wa Usaidizi (Dada)",
-    step2LangHeader: "Msaada wa Lugha",
-    step2LangSubtitle: "Bofya kwenye lugha unazoweza kusaidia nazo wakati wa mikutano au masomo (unaweza kuchagua nyingi).",
 
-    step3Title: "Hatua ya 3 ya 5: Ungependa kushiriki vipi?",
-    step3Subtitle: "Chagua muundo unaofaa zaidi maisha yako.",
-    formatPhysicalTitle: "Kihalisia mahali husika",
-    formatPhysicalDesc: "Ningependa kushiriki ana kwa ana (k.m., nyumbani kwa mtu, kanisani, miradi ya huduma, au milo ya pamoja).",
-    formatDigitalTitle: "Kupitia simu / video / mbali",
-    formatDigitalDesc: "Niko tayari kushiriki kwa mbali au kidijitali inapohitajika.",
-    
-    step4Title: "Hatua ya 4 na 5 ya 5: Badilisha arifa zako",
-    step4Subtitle: "Kurekebisha jinsi gani na wakati gani unataka kuarifiwa.",
-    notifyOptionTitle: "Tuma arifa za moja kwa moja kwenye kifaa changu",
-    notifyOptionDesc: "Utapokea ujumbe mzuri av wakati halisi wakati mwaliko mpya unapoundwa katika maeneo yako yanayofuatiliwa. Unajiamulia kwa uhuru jika unataka kukubali.",
-    spiritualOptionTitle: "Jiandikishe kwa mawazo ya kiroho ya kila wiki",
-    spiritualOptionDesc: "Pokea wazo fupi, la kuinua lililotumwa kama arifa ya kimya mara moja kwa wiki.",
-    
     iosTipHeader: "Kidokezo muhimu kwa watumiaji av iPhone/iOS:",
-    iosTipBody: "Huduma hii inafanya kazi vizuri zaidi jika imesakinishwa kwenye simu yako ya mkononi. Ikiwa unatumia iPhone, kwanza gusa kitufe cha Shiriki (mraba wenye mshale av juu) katika Safari na uchague \"Ongeza kwenye Skrini ya Nyumbani\". Kisha fungua programu kutoka hapo ili kuwezesha arifa za moja kwa moja.",
+    iosTipBody: "Huduma hii inafanya kazi vizuri daha ikiwa imesakinishwa kwenye simu yako ya mkononi. Ikiwa unatumia iPhone, kwanza gusa kitufe cha Shiriki (mraba wenye mshale av juu) katika Safari na uchague \"Ongeza kwenye Skrini ya Nyumbani\". Kisha fungua programu kutoka hapo ili kuwezesha arifa za moja kwa mo.",
     pushHeader: "Jiandikishe kwa arifa",
     pushSubtitle: "Utapokea arifa ya siri moja kwa moja kwenye simu yako wakati kuna mwaliko kwako.",
     pushBtnActive: "✓ Arifa zimewezeshwa",
@@ -370,36 +360,34 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewayTitle: "Lời mời dành cho bạn",
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
-    onboardingHeader: "Nhận thông báo về lời mời mới",
-    onboardingSubtitle: "Nhận thông báo nhanh về các bữa ăn, phục vụ và hoạt động gần bạn.",
-    onboardingIntro: "Bằng cách tùy chỉnh các lựa chọn bên dưới, bạn sẽ nhận được thông báo kín đáo trực tiếp trên điện thoại hoặc máy tính của mình ngay khi có người trong hội thánh chia sẻ lời mời hoặc hoạt động mới tại các khu vực bạn đã chọn. Bạn có thể dễ dàng đọc chi tiết và trả lời qua SMS.",
-    step1Title: "Bước 1 trên 5: Chọn các khu vực bạn muốn theo dõi",
-    step1Subtitle: "Nhấp vào các khu vực ở Göteborg mà bạn muốn xem lời mời và hoạt động. Được sắp xếp theo thứ tự địa lý từ bắc xuống nam.",
     
-    step2Title: "Bước 2 trên 5: Hợp tác & Quan tâm",
-    step2Subtitle: "Chúng tôi điều phối các nhu cầu và lời mời để thắt chặt tình thân hữu trong hội thánh.",
-    step2OrgHeader: "Các nhóm hợp tác",
-    step2OrgText: "Tại đây, bạn có thể xem các lời mời mở từ Hội Cứu Trợ (tổ chức phụ nữ), Nhóm túc số Trưởng Lão (tổ chức nam giới) và các truyền giáo trẻ. Mọi thứ được tập hợp trên một bảng thông tin duy nhất để dễ dàng truy cập.",
+    onboardingHeader: "Nhận thông báo về lời mời mới",
+    onboardingSubtitle: "Bạn sẽ nhận được thông báo kín đáo trực tiếp trên điện thoại của mình khi có lời mời phù hợp với các lựa chọn của bạn. Mọi thứ được lưu trong một nguồn cấp dữ liệu.",
+    onboardingIntro: "Chào mừng! Bằng cách thiết lập bốn tùy chọn cá nhân khác nhau bên dưới, bạn có thể chọn chính xác nơi và cách bạn muốn tham gia và giúp đỡ. Ngay khi có nhu cầu phù hợp với hồ sơ của bạn, bạn sẽ nhận được thông báo di động kín đáo trong thời gian thực trong khi quyền riêng tư của bạn được bảo vệ. Không ai ngoài bạn có thể thấy thông báo nào bạn theo dõi hoặc nhận. Chỉ người bạn trả lời qua SMS mới có thể biết khi bạn trả lời.",
+    
+    step1Title: "Bước 1 trên 4: Nỗ lực hỗ trợ địa phương của bạn",
+    step1Subtitle: "Chúng tôi điều phối nhu cầu và lời mời để thắt chặt tình thân hữu địa phương. Chọn địa điểm nơi bạn có thể hỗ trợ địa phương là chính (ví dụ: trong các buổi học hoặc trò chuyện). Địa điểm này sẽ là khu vực giám sát chính của bạn.",
+    
+    step2Title: "Bước 2 trên 4: Hỗ trợ ngôn ngữ",
+    step2Subtitle: "Nhấp vào các ngôn ngữ bạn có thể giúp đỡ trong các buổi gặp gỡ hoặc bài học (không có ngôn ngữ nào được chọn sẵn, bạn không bắt buộc phải chọn).",
+
+    step3Title: "Bước 3 trên 4: Thành viên nhóm",
+    step3Subtitle: "Nhận thông báo từ các nhóm hợp tác (chọn một nhóm dành cho bạn): Tại đây bạn có thể tham gia vào các lời mời mở từ các nhóm sau và các truyền giáo trẻ trong giáo hội.",
+    
+    step4Title: "Bước 4 trên 4: Chọn định dạng",
+    step4Subtitle: "Chọn định dạng phù hợp nhất với hoàn cảnh sống của bạn.",
+
+    formatPhysicalTitle: "Gặp mặt trực tiếp",
+    formatPhysicalDesc: "Trực tiếp: Tôi rất sẵn lòng tham gia trực tiếp (ví dụ: tại nhà của ai đó, nhà thờ, các ngày phục vụ hoặc bữa ăn chung).",
+    formatDigitalTitle: "Qua điện thoại / video / từ xa",
+    formatDigitalDesc: "Qua điện thoại / video / từ xa: Tôi sẵn sàng tham gia qua điện thoại hoặc kỹ thuật số khi cần thiết.",
+    formatSpiritualTitle: "Qua ý tưởng tâm linh",
+    formatSpiritualDesc: "Qua ý tưởng tâm linh: Tôi có thể xem xét việc nhận hoặc chia sẻ những suy nghĩ tâm linh ngắn gọn, mang tính nâng đỡ thông qua thông báo im lặng hoặc các yêu cầu từ những người truyền giáo của giáo khu và toàn thời gian gửi cho tôi.",
+
     orgChoiceLabel: "Tổ chức của tôi (chọn một):",
     orgBror: "Nhóm túc số Trưởng lão (Anh em)",
     orgSyster: "Hội Cứu trợ (Chị em)",
-    step2LangHeader: "Hỗ trợ ngôn ngữ",
-    step2LangSubtitle: "Nhấp vào các ngôn ngữ bạn có thể giúp đỡ trong các buổi gặp gỡ hoặc bài học (bạn có thể chọn nhiều ngôn ngữ).",
 
-    step3Title: "Bước 3 trên 5: Bạn muốn tham gia như thế nào?",
-    step3Subtitle: "Chọn phương thức phù hợp nhất với lối sống của bạn.",
-    formatPhysicalTitle: "Gặp mặt trực tiếp",
-    formatPhysicalDesc: "Tôi rất sẵn lòng tham gia trực tiếp (ví dụ: tại nhà của ai đó, nhà thờ, các dự án phục vụ hoặc bữa ăn chung).",
-    formatDigitalTitle: "Qua điện thoại / video / từ xa",
-    formatDigitalDesc: "Tôi sẵn sàng tham gia từ xa hoặc qua kỹ thuật số khi cần thiết.",
-    
-    step4Title: "Bước 4 & 5 trên 5: Tùy chỉnh thông báo của bạn",
-    step4Subtitle: "Tinh chỉnh cách thức và thời điểm bạn muốn nhận thông báo.",
-    notifyOptionTitle: "Gửi thông báo trực tiếp đến thiết bị của tôi",
-    notifyOptionDesc: "Bạn sẽ nhận được một tin nhắn thân thiện trong thời gian thực khi có lời mời mới được tạo trong các khu vực bạn theo dõi. Bạn tự do quyết định ngay lúc đó có chấp nhận hay không.",
-    spiritualOptionTitle: "Đăng ký nhận những suy nghĩ tâm linh hàng tuần",
-    spiritualOptionDesc: "Nhận một suy nghĩ ngắn gọn, mang tính khích lệ được gửi dưới dạng thông báo im lặng mỗi tuần một lần.",
-    
     iosTipHeader: "Mẹo quan trọng cho người dùng iPhone/iOS:",
     iosTipBody: "Dịch vụ này hoạt động tốt nhất khi được cài đặt trên điện thoại di động của bạn. Nếu sử dụng iPhone, trước tiên hãy chạm vào nút Chia sẻ (hình vuông có mũi tên hướng lên) trong Safari và chọn \"Thêm vào màn hình chính\". Sau đó mở ứng dụng từ đó để kích hoạt thông báo tự động.",
     pushHeader: "Đăng ký nhận thông báo",

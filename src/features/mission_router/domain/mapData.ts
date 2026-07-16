@@ -1575,7 +1575,7 @@ export const GOTEBORG_AREAS = [
   "Hisingen",
   "Sävedalen / Partille Norra",
   "Furulund / Partille Södra",
-  "Centrum / Olskroken & Bagaregården",
+  "Kålltorp / Olskroken & Bagaregården",
   "Landvetter & Härryda"
 ];
 
@@ -1591,7 +1591,7 @@ export const AREA_TO_DISTRICT_MAP: Record<string, string> = {
   "Hisingen": "Hisingen",
   "Sävedalen / Partille Norra": "Partille Norra",
   "Furulund / Partille Södra": "Partille Södra",
-  "Centrum / Olskroken & Bagaregården": "Östra Centrum 1",
+  "Kålltorp / Olskroken & Bagaregården": "Östra Centrum 1",
   "Landvetter & Härryda": "Landvetter/Härryda"
 };
 
@@ -1607,6 +1607,6 @@ export const DISTRICT_NAME_MAPPING: Record<string, string> = {
   "Hisingen": "Hisingen",
   "Partille Norra": "Sävedalen / Partille Norra",
   "Partille Södra": "Furulund / Partille Södra",
-  "Östra Centrum 1": "Centrum / Olskroken & Bagaregården",
+  "Östra Centrum 1": "Kålltorp / Olskroken & Bagaregården",
   "Landvetter/Härryda": "Landvetter & Härryda"
 };

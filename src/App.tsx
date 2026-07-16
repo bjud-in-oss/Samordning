@@ -339,6 +339,7 @@ export default function App() {
                         onEnablePush={handleEnablePush}
                         onDisablePush={handleDisablePush}
                         uiLanguage={uiLanguage || "sv"}
+                        onClose={() => setShowSettingsSidebar(false)}
                       />
                     </aside>
                   </>

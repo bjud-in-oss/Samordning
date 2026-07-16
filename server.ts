@@ -1,9 +1,10 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/sms_assistant/4_Produce]
 import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { runAiWash, runGeminiWash, getCoordsForArea, isApprovedSender, STODDISTRIKT, calculateSecondsUntilTime } from "./src/features/mission_router/domain/parser";
+import { runSupportAgent } from "./src/features/sms_assistant/domain/supportAgent";
 import { 
   subscriptions, 
   saveSubscriptions, 
@@ -310,6 +311,10 @@ app.get("/api/alerts/:id", (req, res) => {
 
 // SMS Gateway & Admin Kill Switch Route
 app.post("/api/incoming-sms", async (req, res) => {
+  // INFRASTRUKTUR:
+  // 1. Automate (Android): Använd 'SMS Received' -> 'HTTP POST' till denna endpoint -> 'Send SMS' med svaret.
+  // 2. Render Sleep: Gratis-instanser somnar efter 15 min. Sätt upp ett externt cron-jobb (t.ex. cron-job.org) som anropar bas-URL:en (GET /) var 14:e minut mellan kl 07-23 för att undvika SMS-timeouts.
+
   // Validate Webhook Security API Secret
   const requestSecret = req.headers["x-api-secret"] || req.body.secret;
   if (requestSecret !== API_SECRET) {
@@ -327,276 +332,290 @@ app.post("/api/incoming-sms", async (req, res) => {
 
   const isAdmin = adminNumbers.includes(sender);
 
-  // Check for Help Commands
+  // Command & Regex Matching for Route B (Strikta kommandon)
   const isHelp = trimmedText === "#" || trimmedText.toUpperCase() === "#HJÄLP" || trimmedText.toUpperCase() === "#HELP";
-  if (isHelp) {
-    addSimLog("system", `SMS-HJÄLP BEGÄRD av ${sender}.`);
-    return res.json({
-      success: true,
-      replyMessage: "Hjälpmeny:\n1. Skapa inlägg: Skriv din inbjudan. AI:n svarar med förslag som du godkänner.\n2. Godkänn webbinlägg: Svara #GODKÄNN [ID].\n3. Radera inlägg: Svara DEL [ID].\n4. Markera fullbokad: Svara FULL [ID].\n5. Expandera larm: Svara #EXPANDERA [ID].\n6. Ändra avsändare i utkast: #AVSÄNDARE [Namn]."
-    });
-  }
-
-  // 1. Check for Admin Moderation Commands
   const godkannMatch = trimmedText.match(/^#GODKÄNN\s+(\d+)$/i);
   const avvisaMatch = trimmedText.match(/^#AVVISA\s+(\d+)$/i);
+  const delMatch = trimmedText.match(/^DEL\s+(\d+)$/i);
+  const fullMatch = trimmedText.match(/^FULL\s+(\d+)$/i);
+  const expanderaMatch = trimmedText.match(/^#EXPANDERA\s+(\d+)$/i);
+  const isPublicera = trimmedText.toUpperCase() === "#PUBLICERA";
+  const avsandareMatch = trimmedText.match(/^#AVSÄNDARE\s+(.+)$/i);
 
-  if (godkannMatch || avvisaMatch) {
-    if (!isAdmin) {
-      addSimLog("system", `AVVISAD MODERERING: Obehörig avsändare ${sender} försökte moderera.`);
-      return res.status(403).json({ error: "Obehörig avsändare för moderering." });
-    }
+  // Determine if it is a strict command
+  const isStrictCommand = isHelp || !!godkannMatch || !!avvisaMatch || !!delMatch || !!fullMatch || !!expanderaMatch || isPublicera || !!avsandareMatch;
 
-    if (godkannMatch) {
-      const id = godkannMatch[1];
-      const alert = activeAlerts[id];
-      if (!alert) {
-        addSimLog("system", `KOMMANDO MISSLYCKADES: #GODKÄNN ${id} hittades inte.`);
-        return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
-      }
-      if (alert.status === "active") {
-        return res.json({ success: true, replyMessage: `Inbjudan ${id} är redan aktiv.` });
-      }
+  if (isStrictCommand) {
+    // ROUTE B: Execute Strict Commands
 
-      alert.status = "active";
-      saveActiveAlerts();
-
-      // Trigger push notifications now that it is active
-      await triggerPushAlert(alert);
-
-      addSimLog("system", `SMS MODERERING: Inbjudan ${id} har godkänts av ${sender} och är nu aktiv.`);
+    // 1. Help Menu
+    if (isHelp) {
+      addSimLog("system", `SMS-HJÄLP BEGÄRD av ${sender}.`);
       return res.json({
         success: true,
-        replyMessage: `Inbjudan ${id} har godkänts och lagts upp på tavlan! Volontärer har meddelats.`
+        replyMessage: "Hjälpmeny:\n1. Skapa inlägg: Skriv din inbjudan. AI:n svarar med förslag som du godkänner.\n2. Godkänn webbinlägg: Svara #GODKÄNN [ID].\n3. Radera inlägg: Svara DEL [ID].\n4. Markera fullbokad: Svara FULL [ID].\n5. Expandera larm: Svara #EXPANDERA [ID].\n6. Ändra avsändare i utkast: #AVSÄNDARE [Namn]."
       });
     }
 
-    if (avvisaMatch) {
-      const id = avvisaMatch[1];
+    // 2. Moderation commands (#GODKÄNN / #AVVISA)
+    if (godkannMatch || avvisaMatch) {
+      if (!isAdmin) {
+        addSimLog("system", `AVVISAD MODERERING: Obehörig avsändare ${sender} försökte moderera.`);
+        return res.status(403).json({ error: "Obehörig avsändare för moderering." });
+      }
+
+      if (godkannMatch) {
+        const id = godkannMatch[1];
+        const alert = activeAlerts[id];
+        if (!alert) {
+          addSimLog("system", `KOMMANDO MISSLYCKADES: #GODKÄNN ${id} hittades inte.`);
+          return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
+        }
+        if (alert.status === "active") {
+          return res.json({ success: true, replyMessage: `Inbjudan ${id} är redan aktiv.` });
+        }
+
+        alert.status = "active";
+        saveActiveAlerts();
+
+        // Trigger push notifications now that it is active
+        await triggerPushAlert(alert);
+
+        addSimLog("system", `SMS MODERERING: Inbjudan ${id} har godkänts av ${sender} och är nu aktiv.`);
+        return res.json({
+          success: true,
+          replyMessage: `Inbjudan ${id} har godkänts och lagts upp på tavlan! Volontärer har meddelats.`
+        });
+      }
+
+      if (avvisaMatch) {
+        const id = avvisaMatch[1];
+        const alert = activeAlerts[id];
+        if (!alert) {
+          addSimLog("system", `KOMMANDO MISSLYCKADES: #AVVISA ${id} hittades inte.`);
+          return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
+        }
+
+        delete activeAlerts[id];
+        saveActiveAlerts();
+
+        addSimLog("system", `SMS MODERERING: Inbjudan ${id} har avvisats av ${sender} och raderats.`);
+        return res.json({
+          success: true,
+          replyMessage: `Inbjudan ${id} har avvisats och raderats.`
+        });
+      }
+    }
+
+    // 3. Delete command (DEL <ID>)
+    if (delMatch) {
+      const id = delMatch[1];
       const alert = activeAlerts[id];
       if (!alert) {
-        addSimLog("system", `KOMMANDO MISSLYCKADES: #AVVISA ${id} hittades inte.`);
+        addSimLog("system", `KOMMANDO MISSLYCKADES: DEL ${id} hittades inte.`);
         return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
+      }
+
+      const isAuthorized = isAdmin || sender === alert.contactValue;
+      if (!isAuthorized) {
+        addSimLog("system", `AVVISAD DEL: ${sender} har inte behörighet att radera inbjudan ${id}.`);
+        return res.status(403).json({ error: "Obehörig avsändare." });
       }
 
       delete activeAlerts[id];
       saveActiveAlerts();
+      await broadcastCancelPush(id, alert.area);
+      addSimLog("system", `SMS KILL SWITCH: Inbjudan ${id} har raderats permanent via SMS.`);
+      return res.json({ success: true, replyMessage: `Inbjudan ${id} har raderats permanent.` });
+    }
 
-      addSimLog("system", `SMS MODERERING: Inbjudan ${id} har avvisats av ${sender} och raderats.`);
+    // 4. Full command (FULL <ID>)
+    if (fullMatch) {
+      const id = fullMatch[1];
+      const alert = activeAlerts[id];
+      if (!alert) {
+        addSimLog("system", `KOMMANDO MISSLYCKADES: FULL ${id} hittades inte.`);
+        return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
+      }
+
+      const isAuthorized = isAdmin || sender === alert.contactValue;
+      if (!isAuthorized) {
+        addSimLog("system", `AVVISAD FULL: ${sender} har inte behörighet att markera ${id} som fullbokat.`);
+        return res.status(403).json({ error: "Obehörig avsändare." });
+      }
+
+      alert.isFull = true;
+      saveActiveAlerts();
+      addSimLog("system", `SMS KILL SWITCH: Inbjudan ${id} har markerats som fullbokad via SMS.`);
+      return res.json({ success: true, replyMessage: `Inbjudan ${id} har markerats som fullbokad.` });
+    }
+
+    // 5. Expand command (#EXPANDERA <ID>)
+    if (expanderaMatch) {
+      const id = expanderaMatch[1];
+      const alert = activeAlerts[id];
+      if (!alert) {
+        addSimLog("system", `KOMMANDO MISSLYCKADES: #EXPANDERA ${id} hittades inte.`);
+        return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
+      }
+
+      const isAuthorized = isAdmin || sender === alert.contactValue;
+      if (!isAuthorized) {
+        addSimLog("system", `AVVISAD EXPANDERA: ${sender} har inte behörighet att expandera inbjudan ${id}.`);
+        return res.status(403).json({ error: "Obehörig avsändare." });
+      }
+
+      alert.escalationLevel = 2;
+      saveActiveAlerts();
+
+      // Trigger push notifications now with level 2
+      await triggerPushAlert(alert);
+
+      addSimLog("system", `SMS EXPANDERA: Inbjudan ${id} har expanderats till alla bevakare av ${sender}.`);
       return res.json({
         success: true,
-        replyMessage: `Inbjudan ${id} har avvisats och raderats.`
-      });
-    }
-  }
-
-  // Parse Command DEL <ID> or FULL <ID>
-  const delMatch = trimmedText.match(/^DEL\s+(\d+)$/i);
-  const fullMatch = trimmedText.match(/^FULL\s+(\d+)$/i);
-
-  if (delMatch) {
-    const id = delMatch[1];
-    const alert = activeAlerts[id];
-    if (!alert) {
-      addSimLog("system", `KOMMANDO MISSLYCKADES: DEL ${id} hittades inte.`);
-      return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
-    }
-
-    const isAuthorized = isAdmin || sender === alert.contactValue;
-    if (!isAuthorized) {
-      addSimLog("system", `AVVISAD DEL: ${sender} har inte behörighet att radera inbjudan ${id}.`);
-      return res.status(403).json({ error: "Obehörig avsändare." });
-    }
-
-    delete activeAlerts[id];
-    saveActiveAlerts();
-    await broadcastCancelPush(id, alert.area);
-    addSimLog("system", `SMS KILL SWITCH: Inbjudan ${id} har raderats permanent via SMS.`);
-    return res.json({ success: true, replyMessage: `Inbjudan ${id} har raderats permanent.` });
-  }
-
-  if (fullMatch) {
-    const id = fullMatch[1];
-    const alert = activeAlerts[id];
-    if (!alert) {
-      addSimLog("system", `KOMMANDO MISSLYCKADES: FULL ${id} hittades inte.`);
-      return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
-    }
-
-    const isAuthorized = isAdmin || sender === alert.contactValue;
-    if (!isAuthorized) {
-      addSimLog("system", `AVVISAD FULL: ${sender} har inte behörighet att markera ${id} som fullbokat.`);
-      return res.status(403).json({ error: "Obehörig avsändare." });
-    }
-
-    alert.isFull = true;
-    saveActiveAlerts();
-    addSimLog("system", `SMS KILL SWITCH: Inbjudan ${id} har markerats som fullbokad via SMS.`);
-    return res.json({ success: true, replyMessage: `Inbjudan ${id} har markerats som fullbokad.` });
-  }
-
-  // Parse Command #EXPANDERA <ID>
-  const expanderaMatch = trimmedText.match(/^#EXPANDERA\s+(\d+)$/i);
-  if (expanderaMatch) {
-    const id = expanderaMatch[1];
-    const alert = activeAlerts[id];
-    if (!alert) {
-      addSimLog("system", `KOMMANDO MISSLYCKADES: #EXPANDERA ${id} hittades inte.`);
-      return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
-    }
-
-    const isAuthorized = isAdmin || sender === alert.contactValue;
-    if (!isAuthorized) {
-      addSimLog("system", `AVVISAD EXPANDERA: ${sender} har inte behörighet att expandera inbjudan ${id}.`);
-      return res.status(403).json({ error: "Obehörig avsändare." });
-    }
-
-    alert.escalationLevel = 2;
-    saveActiveAlerts();
-
-    // Trigger push notifications now with level 2
-    await triggerPushAlert(alert);
-
-    addSimLog("system", `SMS EXPANDERA: Inbjudan ${id} har expanderats till alla bevakare av ${sender}.`);
-    return res.json({
-      success: true,
-      replyMessage: `Inbjudan ${id} har expanderats! Aviseringar har skickats till övriga stödsyskon som bevakar området.`
-    });
-  }
-
-  // Handle #PUBLICERA command
-  const isPublicera = trimmedText.toUpperCase() === "#PUBLICERA";
-  if (isPublicera) {
-    const draft = smsDrafts.get(sender);
-    if (!draft) {
-      return res.json({
-        success: false,
-        replyMessage: "Du har inget aktivt utkast att publicera. Skriv först din inbjudan."
+        replyMessage: `Inbjudan ${id} har expanderats! Aviseringar har skickats till övriga stödsyskon som bevakar området.`
       });
     }
 
-    if (draft.missingAreaForTeaching) {
-      return res.json({
-        success: false,
-        replyMessage: "Inlägget kan inte publiceras. För att rätt lokala stödsyskon ska nås måste du ange vilket område personen bor i. Skicka ett nytt meddelande som innehåller området."
-      });
-    }
+    // 6. Publicera command (#PUBLICERA)
+    if (isPublicera) {
+      const draft = smsDrafts.get(sender);
+      if (!draft) {
+        return res.json({
+          success: false,
+          replyMessage: "Du har inget aktivt utkast att publicera. Skriv först din inbjudan."
+        });
+      }
 
-    const id = getNextFreeId();
-    const area = draft.extractedMetadata.area || "Kortedala";
-    const { coords, cloakedCoords } = getCoordsForArea(area);
-    const offsetSeconds = calculateSecondsUntilTime(draft.extractedMetadata.time || "18:00");
-    const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
-    const status = isAdmin ? "active" : "pending";
+      if (draft.missingAreaForTeaching) {
+        return res.json({
+          success: false,
+          replyMessage: "Inlägget kan inte publiceras. För att rätt lokala stödsyskon ska nås måste du ange vilket område personen bor i. Skicka ett nytt meddelande som innehåller området."
+        });
+      }
 
-    const draftCategory = draft.extractedMetadata.category || "Måltid & Gemenskap";
-    const draftOrg = draft.extractedMetadata.organization || (isAdmin ? "Arrangör" : "Medlem");
-    const isLektionAndSamtal = draftCategory === "Lektion & Samtal" && draftOrg === "Missionärerna";
-    const escalationLevel = isLektionAndSamtal ? 1 : undefined;
+      const id = getNextFreeId();
+      const area = draft.extractedMetadata.area || "Kortedala";
+      const { coords, cloakedCoords } = getCoordsForArea(area);
+      const offsetSeconds = calculateSecondsUntilTime(draft.extractedMetadata.time || "18:00");
+      const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
+      const status = isAdmin ? "active" : "pending";
 
-    const newAnnouncement: ActiveAlert = {
-      id,
-      type: "leader_invitation",
-      rawText: draft.rawText,
-      scrubbedText: draft.rawText, // Maintain original personal text exactly
-      area,
-      time: draft.extractedMetadata.time || "Ospecificerad tid",
-      gender: draft.extractedMetadata.audience || "Alla",
-      language: draft.extractedMetadata.language || "Svenska",
-      locationName: draft.extractedMetadata.locationName || area,
-      coords,
-      cloakedCoords,
-      timestamp: Date.now(),
-      responsibleParty: draftOrg,
-      contactType: "sms",
-      contactValue: sender,
-      expiryTimestamp,
-      category: draftCategory,
-      isFull: false,
-      status,
-      escalationLevel
-    };
+      const draftCategory = draft.extractedMetadata.category || "Måltid & Gemenskap";
+      const draftOrg = draft.extractedMetadata.organization || (isAdmin ? "Arrangör" : "Medlem");
+      const isLektionAndSamtal = draftCategory === "Lektion & Samtal" && draftOrg === "Missionärerna";
+      const escalationLevel = isLektionAndSamtal ? 1 : undefined;
 
-    activeAlerts[id] = newAnnouncement;
-    saveActiveAlerts();
-    smsDrafts.delete(sender);
+      const newAnnouncement: ActiveAlert = {
+        id,
+        type: "leader_invitation",
+        rawText: draft.rawText,
+        scrubbedText: draft.rawText, // Maintain original personal text exactly
+        area,
+        time: draft.extractedMetadata.time || "Ospecificerad tid",
+        gender: draft.extractedMetadata.audience || "Alla",
+        language: draft.extractedMetadata.language || "Svenska",
+        locationName: draft.extractedMetadata.locationName || area,
+        coords,
+        cloakedCoords,
+        timestamp: Date.now(),
+        responsibleParty: draftOrg,
+        contactType: "sms",
+        contactValue: sender,
+        expiryTimestamp,
+        category: draftCategory,
+        isFull: false,
+        status,
+        escalationLevel
+      };
 
-    if (status === "pending") {
-      const adminListStr = adminNumbers.filter(num => num !== "+46701234567").join(", ");
-      const modMsg = `MODERERINGS-NOTIFIERING till samordningsgruppen [${adminListStr}]: "Nytt inlägg för granskning (ID: ${id}). Svara #GODKÄNN ${id} eller #AVVISA ${id}."`;
-      addSimLog("system", modMsg);
-      console.log(`[MODERATION] ${modMsg}`);
+      activeAlerts[id] = newAnnouncement;
+      saveActiveAlerts();
+      smsDrafts.delete(sender);
 
+      if (status === "pending") {
+        const adminListStr = adminNumbers.filter(num => num !== "+46701234567").join(", ");
+        const modMsg = `MODERERINGS-NOTIFIERING till samordningsgruppen [${adminListStr}]: "Nytt inlägg för granskning (ID: ${id}). Svara #GODKÄNN ${id} eller #AVVISA ${id}."`;
+        addSimLog("system", modMsg);
+        console.log(`[MODERATION] ${modMsg}`);
+
+        return res.json({
+          success: true,
+          id,
+          replyMessage: `Tack! Ditt inlägg (ID: ${id}) har placerats i väntrummet för granskning. En samordnare kommer att granska och godkänna det via SMS inom kort.`
+        });
+      }
+
+      await triggerPushAlert(newAnnouncement);
+      addSimLog("system", `NY INBJUDAN SKAPAD VIA SMS: "${newAnnouncement.scrubbedText.substring(0, 50)}..." i [${newAnnouncement.area}] av ${newAnnouncement.responsibleParty}.`);
       return res.json({
         success: true,
         id,
-        replyMessage: `Tack! Ditt inlägg (ID: ${id}) har placerats i väntrummet för granskning. En samordnare kommer att granska och godkänna det via SMS inom kort.`
+        replyMessage: `Din inbjudan (ID: ${id}) har lagts upp direkt på tavlan! Radera med DEL ${id} eller markera som full med FULL ${id}.`
       });
     }
 
-    await triggerPushAlert(newAnnouncement);
-    addSimLog("system", `NY INBJUDAN SKAPAD VIA SMS: "${newAnnouncement.scrubbedText.substring(0, 50)}..." i [${newAnnouncement.area}] av ${newAnnouncement.responsibleParty}.`);
-    return res.json({
-      success: true,
-      id,
-      replyMessage: `Din inbjudan (ID: ${id}) har lagts upp direkt på tavlan! Radera med DEL ${id} eller markera som full med FULL ${id}.`
-    });
+    // 7. Avsändare command (#AVSÄNDARE <Namn>)
+    if (avsandareMatch) {
+      const draft = smsDrafts.get(sender);
+      if (!draft) {
+        return res.json({
+          success: false,
+          replyMessage: "Du har inget aktivt utkast att uppdatera. Skriv din inbjudan först."
+        });
+      }
+
+      const proposedOrg = avsandareMatch[1].trim();
+      const allowedOrgs = [
+        "Enskild/Familj", "Missionärerna", "Församlingsmissionärerna", "Biskopsrådet", "Äldstekvorumet", 
+        "Hjälpföreningen", "Unga Män (UM)", "Unga Kvinnor (UK)", "Primär", "Söndagsskolan", 
+        "Aktivitetskommittén", "Unga vuxna (UV)", "Ensamstående vuxna (EV)", "Institutet", 
+        "Seminariet", "Staven"
+      ];
+
+      const matchedOrg = allowedOrgs.find(org => 
+        org.toLowerCase() === proposedOrg.toLowerCase() || 
+        org.toLowerCase().includes(proposedOrg.toLowerCase())
+      );
+
+      if (matchedOrg) {
+        draft.extractedMetadata.organization = matchedOrg;
+        draft.timestamp = Date.now();
+        return res.json({
+          success: true,
+          replyMessage: `Utkastet uppdaterat! Ny avsändare: ${matchedOrg}. Svara #PUBLICERA för att godkänna och lägga upp.`
+        });
+      } else {
+        return res.json({
+          success: false,
+          replyMessage: `Hittade inte avsändaren. Tillåtna avsändare: Enskild/Familj, Missionärerna, Församlingsmissionärerna, Biskopsrådet, Äldstekvorumet, Hjälpföreningen, Unga Män (UM), Unga Kvinnor (UK), Primär, Söndagsskolan, Aktivitetskommittén, Unga vuxna (UV), Ensamstående vuxna (EV), Institutet, Seminariet, Staven.`
+        });
+      }
+    }
   }
 
-  // Handle #AVSÄNDARE <Namn> command
-  const avsandareMatch = trimmedText.match(/^#AVSÄNDARE\s+(.+)$/i);
-  if (avsandareMatch) {
-    const draft = smsDrafts.get(sender);
-    if (!draft) {
-      return res.json({
-        success: false,
-        replyMessage: "Du har inget aktivt utkast att uppdatera. Skriv din inbjudan först."
-      });
-    }
-
-    const proposedOrg = avsandareMatch[1].trim();
-    const allowedOrgs = [
-      "Enskild/Familj", "Missionärerna", "Församlingsmissionen", "Biskopsrådet", "Äldstekvorumet", 
-      "Hjälpföreningen", "Unga Män (UM)", "Unga Kvinnor (UK)", "Primär", "Söndagsskolan", 
-      "Aktivitetskommittén", "Unga vuxna (UV)", "Ensamstående vuxna (EV)", "Institutet", 
-      "Seminariet", "Staven"
-    ];
-
-    const matchedOrg = allowedOrgs.find(org => 
-      org.toLowerCase() === proposedOrg.toLowerCase() || 
-      org.toLowerCase().includes(proposedOrg.toLowerCase())
-    );
-
-    if (matchedOrg) {
-      draft.extractedMetadata.organization = matchedOrg;
-      draft.timestamp = Date.now();
+  // If it is NOT a strict command, but starts with "#", it is ROUTE C (AI Support)
+  if (trimmedText.startsWith("#")) {
+    const textToProcess = trimmedText.substring(1).trim();
+    addSimLog("system", `SMS SUPPORT-FRÅGA från ${sender}: "${textToProcess}"`);
+    try {
+      const reply = await runSupportAgent(textToProcess);
+      addSimLog("system", `Svar från support-AI: "${reply}"`);
       return res.json({
         success: true,
-        replyMessage: `Utkastet uppdaterat! Ny avsändare: ${matchedOrg}. Svara #PUBLICERA för att godkänna och lägga upp.`
+        replyMessage: reply
       });
-    } else {
-      return res.json({
-        success: false,
-        replyMessage: `Hittade inte avsändaren. Tillåtna avsändare: Enskild/Familj, Missionärerna, Församlingsmissionen, Biskopsrådet, Äldstekvorumet, Hjälpföreningen, Unga Män (UM), Unga Kvinnor (UK), Primär, Söndagsskolan, Aktivitetskommittén, Unga vuxna (UV), Ensamstående vuxna (EV), Institutet, Seminariet, Staven.`
-      });
+    } catch (err: any) {
+      console.error("SMS support agent call failed:", err);
+      return res.status(500).json({ error: "Internt serverfel vid support-fråga." });
     }
   }
 
-  // 2. Validate non-admin text prefix requirements
-  if (!isAdmin && !trimmedText.startsWith("#")) {
-    addSimLog("system", `AVVISAT INLÄGG från ${sender}: Meddelandet saknar '#' prefix.`);
-    return res.json({
-      success: false,
-      replyMessage: "Inlägget avvisades. Som medlem i allmänheten måste du starta med '#' framför ditt meddelande för att köa det i väntrummet (t.ex: # [Kortedala] [18:00] Middag), eller be en samordnare lägga upp det."
-    });
-  }
-
-  // Strip leading '#' for parsing if present
-  const textToProcess = trimmedText.startsWith("#") ? trimmedText.substring(1).trim() : trimmedText;
-
-  // Process as potential new SMS draft
+  // Otherwise, it is ROUTE A (Utkast) - SMS does not start with "#"
   try {
-    const washed = await runGeminiWash(textToProcess);
+    addSimLog("system", `SMS UTKAST-BEARBETNING från ${sender}: "${trimmedText}"`);
+    const washed = await runGeminiWash(trimmedText);
 
     if (washed.warnings.missingAreaForTeaching) {
       return res.json({
@@ -606,7 +625,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     }
 
     const newDraft: SmsDraft = {
-      rawText: textToProcess,
+      rawText: trimmedText,
       extractedMetadata: washed.extractedMetadata,
       missingAreaForTeaching: washed.warnings.missingAreaForTeaching,
       timestamp: Date.now()
@@ -620,7 +639,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     });
 
   } catch (err: any) {
-    console.error("Failed to process incoming SMS:", err);
+    console.error("Failed to process incoming SMS draft:", err);
     addSimLog("system", `Fel vid bearbetning av SMS: ${err.message}`);
     res.status(500).json({ error: "Internt serverfel vid bearbetning av SMS." });
   }

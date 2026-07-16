@@ -20,3 +20,5 @@
   - Ta bort all komplex in-memory chatt.
 * **GDPR & Allmänna handboken § 33.8**:
   - Ny, explicit svensk ansvarsfriskrivning som förtydligar att anslagstavlan är ett lokalt initiativ med tillfällig lagring.
+
+  Uses https://console.cron-job.org/dashboard for keeping Render server awake.

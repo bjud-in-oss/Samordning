@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { ShieldAlert, Radio, Smartphone, Languages, Sliders, Share, PlusSquare, X, Bell } from "lucide-react";
-import OnboardingForm from "./features/mission_router/components/OnboardingForm";
+import OnboardingWizard from "./features/mission_router/components/onboarding/OnboardingWizard";
 import AlertDetail from "./features/mission_router/components/AlertDetail";
 import ActiveStream from "./features/mission_router/components/ActiveStream";
 import Disclaimer from "./features/mission_router/components/Disclaimer";
@@ -332,7 +332,7 @@ export default function App() {
                         </button>
                       </div>
                       
-                      <OnboardingForm
+                      <OnboardingWizard
                         onSave={handleSaveTags}
                         savedTags={savedTags}
                         pushEnabled={pushEnabled}

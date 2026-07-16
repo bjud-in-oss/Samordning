@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
 import React, { useState, useEffect, useCallback } from "react";
-import { ShieldAlert, Radio, Smartphone, Languages, Sliders, Share, PlusSquare, X, Bell } from "lucide-react";
+import { ShieldAlert, Languages, Bell, Share, Smartphone, X, CheckSquare, Sparkles } from "lucide-react";
 import OnboardingWizard from "./features/mission_router/components/onboarding/OnboardingWizard";
 import AlertDetail from "./features/mission_router/components/AlertDetail";
 import ActiveStream from "./features/mission_router/components/ActiveStream";
@@ -21,8 +21,6 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export default function App() {
   const [showIosModal, setShowIosModal] = useState<boolean>(false);
-  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
-  
   const [uiLanguage, setUiLanguage] = useState<UiLanguage | null>(() => {
     return localStorage.getItem("mission_router_ui_language") as UiLanguage | null;
   });
@@ -39,12 +37,22 @@ export default function App() {
 
   const [pushEnabled, setPushEnabled] = useState<boolean>(false);
   const [pushError, setPushError] = useState<string | null>(null);
-
-  // Left sidebar visibility state (Collapses on desktop start if push is enabled)
-  const [showSettingsSidebar, setShowSettingsSidebar] = useState<boolean>(false);
-  
-  // Total unfiltered active invitations count from the stream
   const [totalActiveCount, setTotalActiveCount] = useState<number>(0);
+
+  // Unified Tab Management (Mobile has "stream" | "create" | "settings"; Desktop has "stream" | "create")
+  const [activeTab, setActiveTab] = useState<"stream" | "create" | "settings">("stream");
+
+  // Real-time visual feedback syncing state
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
+  // Sync state feedback whenever tags are saved
+  useEffect(() => {
+    if (savedTags) {
+      setIsSyncing(true);
+      const timer = setTimeout(() => setIsSyncing(false), 900);
+      return () => clearTimeout(timer);
+    }
+  }, [savedTags]);
 
   useEffect(() => {
     const handleRoute = () => {
@@ -66,13 +74,9 @@ export default function App() {
     if ("serviceWorker" in navigator && "PushManager" in window) {
       navigator.serviceWorker.ready.then(registration => {
         registration.pushManager.getSubscription().then(subscription => {
-          const enabled = !!subscription;
-          setPushEnabled(enabled);
-          setShowSettingsSidebar(!enabled);
+          setPushEnabled(!!subscription);
         });
       });
-    } else {
-      setShowSettingsSidebar(true);
     }
   }, []);
 
@@ -121,12 +125,12 @@ export default function App() {
           id: subscriptionId,
           subscription,
           tags: savedTags || {
-            areas: ["Kortedala Norra"],
-            languages: ["Svenska"],
-            organization: "bror",
-            formats: ["physical"],
+            areas: [],
+            languages: [],
+            organization: "",
+            formats: ["physical", "telephone"],
             alwaysNotify: true,
-            spiritualTips: false
+            spiritualTips: true
           }
         })
       });
@@ -137,7 +141,6 @@ export default function App() {
       localStorage.setItem("mission_router_sub_id", data.id);
       setSubscriptionId(data.id);
       setPushEnabled(true);
-      setShowSettingsSidebar(false); 
     } catch (err: any) {
       console.error("Failed to enable push", err);
       setPushError(err.message || String(err));
@@ -190,6 +193,11 @@ export default function App() {
     }
   }, [pushEnabled, subscriptionId]);
 
+  const handleTabChange = (tab: "stream" | "create" | "settings") => {
+    setActiveTab(tab);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   if (!uiLanguage) {
     return (
       <div id="language-gateway-container" className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 text-brand-ink font-sans">
@@ -201,7 +209,7 @@ export default function App() {
           </div>
 
           <div className="w-24 h-24 bg-white text-brand-accent rounded-full flex items-center justify-center mx-auto border border-brand-ink/5 transition-transform hover:scale-105 duration-300">
-            <Languages size={40} className="stroke-[1.2]" />
+            <span className="text-3xl">🇸🇪</span>
           </div>
 
           <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-brand-accent">
@@ -238,61 +246,155 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-bg flex flex-col font-sans text-brand-ink selection:bg-brand-accent selection:text-white">
+    <div className="min-h-screen bg-brand-bg flex flex-col font-sans text-brand-ink selection:bg-brand-accent selection:text-white pb-12">
       
-      {/* Top Header - Refined Lifestyle with Centered limits */}
-      <header id="app-header" className="py-8 px-6 md:px-12 flex flex-row items-baseline justify-between shrink-0 max-w-2xl w-full mx-auto">
+      {/* Sticky Top Header Bar */}
+      <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-brand-ink/10 z-50 w-full shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between text-xs sm:text-sm font-mono text-brand-ink/80 select-none">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse shrink-0"></span>
+            <span className="font-semibold text-brand-ink">
+              Primärt område:{" "}
+              <span className="text-brand-accent italic font-serif">
+                {savedTags?.primaryArea || "Inget förvalt område"}
+              </span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-[10px] sm:text-xs">
+            {isSyncing ? (
+              <span className="flex items-center gap-1.5 text-emerald-600 font-semibold animate-pulse">
+                <svg
+                  className="animate-spin h-3.5 w-3.5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Synkroniserar...
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-brand-ink/50 font-medium">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Synkroniserad i realtid
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Brand Header Section */}
+      <header id="app-header" className="py-6 px-4 max-w-7xl mx-auto w-full flex items-baseline justify-between shrink-0">
         <div className="title-block">
-          <h1 className="font-serif italic text-2xl md:text-3xl font-medium tracking-tight text-brand-ink leading-none">
+          <h1 className="font-serif italic text-2xl sm:text-3xl font-medium tracking-tight text-brand-ink leading-none">
             {TRANSLATIONS[uiLanguage].gatewayTitle}
           </h1>
         </div>
 
-        {/* Dynamic Header Actions */}
-        <div className="flex items-center gap-4">
-          {/* "+ Bjud in andra" button in the menu (Header) - shown if total active stream > 0 */}
-          {uiLanguage && !activeAlertId && totalActiveCount > 0 && (
+        {/* Change language action */}
+        {uiLanguage && (
+          <button
+            id="change-language-btn"
+            onClick={() => {
+              localStorage.removeItem("mission_router_ui_language");
+              setUiLanguage(null);
+            }}
+            className="text-brand-ink opacity-60 hover:opacity-100 transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs font-mono uppercase tracking-wider"
+            title="Ändra språk / Change language"
+          >
+            <Languages size={15} className="stroke-[1.5]" />
+            <span>Språk</span>
+          </button>
+        )}
+      </header>
+
+      {/* Tab Menu Header Row (Positioned above Stage) */}
+      <div className="bg-white/80 border-b border-brand-ink/5 sticky top-[49px] z-40 w-full mb-6">
+        <div className="max-w-7xl mx-auto px-4 py-2.5">
+          
+          {/* Mobile Navigation Tabs Selector (< lg) */}
+          <div className="flex lg:hidden items-center justify-around bg-brand-bg p-1 rounded-xl border border-brand-ink/5">
             <button
-              id="invite-header-btn"
-              onClick={() => setShowCreateModal(true)}
-              className="font-mono text-[10px] uppercase tracking-[0.12em] text-brand-accent hover:opacity-100 transition-all cursor-pointer border-b border-transparent hover:border-brand-accent pb-0.5"
+              id="mobile-tab-stream"
+              onClick={() => handleTabChange("stream")}
+              className={`flex-1 py-2.5 text-xs font-medium rounded-lg text-center transition-all ${
+                activeTab === "stream"
+                  ? "bg-white text-brand-ink shadow-xs font-semibold"
+                  : "text-brand-ink/65 hover:text-brand-ink"
+              }`}
+            >
+              Inbjudan till dig
+            </button>
+            <button
+              id="mobile-tab-create"
+              onClick={() => handleTabChange("create")}
+              className={`flex-1 py-2.5 text-xs font-medium rounded-lg text-center transition-all ${
+                activeTab === "create"
+                  ? "bg-white text-brand-ink shadow-xs font-semibold"
+                  : "text-brand-ink/65 hover:text-brand-ink"
+              }`}
             >
               + Bjud in andra
             </button>
-          )}
-
-          {/* Settings Toggle */}
-          {uiLanguage && !activeAlertId && (
             <button
-              id="settings-toggle-btn"
-              onClick={() => setShowSettingsSidebar(prev => !prev)}
-              className="font-mono text-[10px] uppercase tracking-[0.12em] text-brand-ink hover:opacity-100 transition-all cursor-pointer border-b border-transparent hover:border-brand-ink pb-0.5"
-              style={{ opacity: showSettingsSidebar ? 1 : 0.6 }}
+              id="mobile-tab-settings"
+              onClick={() => handleTabChange("settings")}
+              className={`flex-1 py-2.5 text-xs font-medium rounded-lg text-center transition-all ${
+                activeTab === "settings"
+                  ? "bg-white text-brand-ink shadow-xs font-semibold"
+                  : "text-brand-ink/65 hover:text-brand-ink"
+              }`}
             >
-              {uiLanguage === "sv" ? "Anpassa" : "Customize"}
+              Anpassa mina val
             </button>
-          )}
+          </div>
 
-          {uiLanguage && (
+          {/* Desktop Navigation Tabs Selector (>= lg) */}
+          <div className="hidden lg:flex items-center justify-start gap-6">
             <button
-              id="change-language-btn"
-              onClick={() => {
-                localStorage.removeItem("mission_router_ui_language");
-                setUiLanguage(null);
-              }}
-              className="text-brand-ink opacity-60 hover:opacity-100 transition-all cursor-pointer flex items-center justify-center"
-              title="Ändra språk / Change language"
+              id="desktop-tab-stream"
+              onClick={() => handleTabChange("stream")}
+              className={`py-2 text-sm font-medium border-b-2 transition-all cursor-pointer ${
+                activeTab === "stream" || activeTab === "settings"
+                  ? "border-brand-accent text-brand-ink font-semibold"
+                  : "border-transparent text-brand-ink/65 hover:text-brand-ink"
+              }`}
             >
-              <Languages size={16} className="stroke-[1.5]" />
+              Inbjudan till dig
             </button>
-          )}
+            <button
+              id="desktop-tab-create"
+              onClick={() => handleTabChange("create")}
+              className={`py-2 text-sm font-medium border-b-2 transition-all cursor-pointer ${
+                activeTab === "create"
+                  ? "border-brand-accent text-brand-ink font-semibold"
+                  : "border-transparent text-brand-ink/65 hover:text-brand-ink"
+              }`}
+            >
+              + Bjud in andra
+            </button>
+          </div>
+
         </div>
-      </header>
+      </div>
 
-      {/* Main Content Stage - Centered layout */}
-      <main className="flex-1 p-6 md:p-12 max-w-2xl w-full mx-auto">
+      {/* Main Responsive Grid Layout */}
+      <main className="flex-1 p-4 max-w-7xl w-full mx-auto">
         {pushError && (
-          <div className="mb-8 bg-brand-error/10 border border-brand-error/20 rounded-2xl p-4 flex items-center gap-3 text-xs text-brand-error animate-in fade-in duration-200">
+          <div className="mb-6 bg-brand-error/10 border border-brand-error/20 rounded-2xl p-4 flex items-center gap-3 text-xs text-brand-error animate-in fade-in duration-200">
             <ShieldAlert size={16} className="shrink-0 text-brand-error" />
             <p className="font-mono uppercase tracking-wider">{pushError}</p>
           </div>
@@ -308,82 +410,56 @@ export default function App() {
           />
         ) : (
           <div className="animate-in fade-in duration-200">
+            {/* The Unified Grid containing Sidebar (Left) and Content (Right) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
-              {/* Left Sidebar - Collapsible on Desktop, Overlay Drawer on Mobile */}
-              <div className={`transition-all duration-300 ${showSettingsSidebar ? "lg:col-span-12" : "lg:col-span-12"}`}>
-                {showSettingsSidebar ? (
-                  <>
-                    {/* Backdrop for Mobile Drawer */}
-                    <div 
-                      className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
-                      onClick={() => setShowSettingsSidebar(false)}
-                    ></div>
-                    
-                    {/* Sidebar Panel Container */}
-                    <aside className="fixed inset-y-0 left-0 w-[85vw] max-w-sm bg-white z-50 p-6 overflow-y-auto shadow-2xl border-r border-slate-100 lg:relative lg:inset-auto lg:w-auto lg:max-w-none lg:shadow-none lg:border-none lg:p-0 lg:mb-8">
-                      <div className="flex items-center justify-between lg:hidden mb-5 pb-2 border-b border-slate-100">
-                        <h3 className="font-bold text-slate-900">Anpassa</h3>
-                        <button 
-                          onClick={() => setShowSettingsSidebar(false)}
-                          className="p-1 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
-                        >
-                          <X size={18} />
-                        </button>
-                      </div>
-                      
-                      <OnboardingWizard
-                        onSave={handleSaveTags}
-                        savedTags={savedTags}
-                        pushEnabled={pushEnabled}
-                        onEnablePush={handleEnablePush}
-                        onDisablePush={handleDisablePush}
-                        uiLanguage={uiLanguage || "sv"}
-                        onClose={() => setShowSettingsSidebar(false)}
-                      />
-                    </aside>
-                  </>
-                ) : (
-                  /* Premium closed-state icon strip at the top or side */
-                  <div className="flex items-center gap-4 p-4 bg-white border border-brand-ink/5 rounded-2xl shadow-xs mb-6 justify-between">
-                    <div className="flex items-center gap-3">
-                      <button
-                        id="expand-sidebar-indicator-btn"
-                        onClick={() => setShowSettingsSidebar(true)}
-                        className="text-brand-accent hover:scale-105 transition-transform cursor-pointer flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider bg-brand-paper px-3 py-1.5 rounded-lg"
-                        title="Öppna inställningar"
-                      >
-                        <Sliders size={14} />
-                        <span>Mina val</span>
-                      </button>
-                      <div className="w-[1px] h-4 bg-brand-ink/10"></div>
-                      <div className="text-[11px] text-brand-ink/60 font-light">
-                        {savedTags?.primaryArea ? `Primärt område: ${savedTags.primaryArea}` : "Inga inställningar valda."}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className={`p-1.5 rounded-full ${pushEnabled ? "text-teal-600 bg-teal-50" : "text-slate-300"}`}
-                        title={pushEnabled ? "Aviseringar aktiverade" : "Aviseringar inaktiverade"}
-                      >
-                        <Bell size={16} />
-                      </div>
-                    </div>
-                  </div>
-                )}
+              {/* LEFT SPALT (Desktop: Permanent settings; Mobile: Shown only on "settings" tab) */}
+              <div className={`lg:col-span-5 ${activeTab === "settings" ? "block" : "hidden lg:block"}`}>
+                <div className="bg-white/40 p-4 rounded-3xl border border-brand-ink/5 lg:sticky lg:top-[120px]">
+                  <OnboardingWizard
+                    onSave={handleSaveTags}
+                    savedTags={savedTags}
+                    pushEnabled={pushEnabled}
+                    onEnablePush={handleEnablePush}
+                    onDisablePush={handleDisablePush}
+                    uiLanguage={uiLanguage || "sv"}
+                  />
+                </div>
               </div>
 
-              {/* Notices Stream */}
-              <div className="lg:col-span-12">
-                <ActiveStream
-                  onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
-                  uiLanguage={uiLanguage || "sv"}
-                  savedTags={savedTags}
-                  showCreateModal={showCreateModal}
-                  setShowCreateModal={setShowCreateModal}
-                  onStreamCountChange={setTotalActiveCount}
-                />
+              {/* RIGHT SPALT (Desktop: Dynamic feed/create tabs; Mobile: Shown on "stream" or "create" tab) */}
+              <div className={`lg:col-span-7 ${activeTab !== "settings" ? "block" : "hidden lg:block"}`}>
+                
+                {/* Notice Stream Tab content */}
+                {(activeTab === "stream" || activeTab === "settings") && (
+                  <div className="animate-in fade-in duration-200">
+                    <ActiveStream
+                      onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
+                      uiLanguage={uiLanguage || "sv"}
+                      savedTags={savedTags}
+                      showCreateModal={false}
+                      setShowCreateModal={() => {}}
+                      onStreamCountChange={setTotalActiveCount}
+                      inlineCreate={false}
+                    />
+                  </div>
+                )}
+
+                {/* Create Invitation Inline Form Tab content */}
+                {activeTab === "create" && (
+                  <div className="animate-in fade-in duration-200">
+                    <ActiveStream
+                      onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
+                      uiLanguage={uiLanguage || "sv"}
+                      savedTags={savedTags}
+                      showCreateModal={false}
+                      setShowCreateModal={() => {}}
+                      onStreamCountChange={setTotalActiveCount}
+                      inlineCreate={true}
+                    />
+                  </div>
+                )}
+
               </div>
 
             </div>
@@ -391,20 +467,51 @@ export default function App() {
         )}
       </main>
 
-      {/* Foot Disclaimers */}
+      {/* Centered Foot Disclaimer */}
       <Disclaimer uiLanguage={uiLanguage || "sv"} />
 
-      {/* Footer Connection Status Indicator */}
-      <footer id="app-footer" className="mt-auto py-8 border-t border-slate-100 bg-slate-50/50 w-full px-6 flex flex-col items-center gap-4 text-center">
-        <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-500 shadow-sm">
-          <span className={`w-2 h-2 rounded-full ${subscriptionId ? "bg-teal-500 animate-pulse" : "bg-slate-300"}`}></span>
-          <span>
-            {subscriptionId 
-              ? `${uiLanguage === "sv" ? "Ansluten till Ge stöd" : "Connected to Ge stöd"} (ID: ${subscriptionId.substring(0, 8)}...)` 
-              : (uiLanguage === "sv" ? "Ej ansluten till aviseringar" : "Not connected to notifications")}
-          </span>
+      {/* IOS Web Push Instructions modal */}
+      {showIosModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full space-y-6 border border-slate-100 shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setShowIosModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X size={18} />
+            </button>
+            <div className="text-center space-y-2">
+              <div className="w-16 h-16 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mx-auto">
+                <Smartphone size={32} />
+              </div>
+              <h3 className="font-bold text-slate-900 text-lg">Installera på iPhone / iPad</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                För att ta emot Web Push-aviseringar på iOS måste du lägga till denna webbapp på din hemskärm först:
+              </p>
+            </div>
+            <ol className="text-xs text-slate-700 space-y-3 font-medium bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              <li className="flex gap-2">
+                <span className="text-teal-600">1.</span>
+                <span>Klicka på <strong>Dela-knappen</strong> i Safari (fyrkant med pil uppåt).</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-teal-600">2.</span>
+                <span>Scrolla ner och välj <strong>"Lägg till på hemskärmen"</strong>.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-teal-600">3.</span>
+                <span>Öppna appen från din hemskärm och anslut aviseringarna igen!</span>
+              </li>
+            </ol>
+            <button
+              onClick={() => setShowIosModal(false)}
+              className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all"
+            >
+              Jag förstår
+            </button>
+          </div>
         </div>
-      </footer>
+      )}
     </div>
   );
 }

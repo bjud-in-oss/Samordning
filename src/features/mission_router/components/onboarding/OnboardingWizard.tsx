@@ -55,9 +55,9 @@ export default function OnboardingWizard({
   // Wizard active step (1 to 4)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Core preferences states (SSOT)
+  // Core preferences states (SSOT) - Defaulting to empty/undefined from start
   const [primaryArea, setPrimaryArea] = useState<string | undefined>(
-    savedTags?.primaryArea === undefined ? "Kortedala Norra" : (savedTags.primaryArea || undefined)
+    savedTags?.primaryArea
   );
   const [limitAreas, setLimitAreas] = useState<boolean>(
     savedTags?.limitAreas ?? false
@@ -72,10 +72,10 @@ export default function OnboardingWizard({
     savedTags?.limitedOrganizations || ORGANIZATIONS
   );
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
-    savedTags?.languages || ["Svenska"]
+    savedTags?.languages || []
   );
   const [organization, setOrganization] = useState<string>(
-    savedTags?.organization || "bror"
+    savedTags?.organization || ""
   );
   const [formats, setFormats] = useState<("physical" | "telephone")[]>(
     savedTags?.formats || ["physical", "telephone"]
@@ -130,88 +130,47 @@ export default function OnboardingWizard({
     gdprAccepted
   ]);
 
-  const pushBoxTitle = uiLanguage === "sv" ? "Prenumerera på aviseringar" : t.pushHeader;
-  const pushBoxSubtitle = uiLanguage === "sv"
-    ? "Du får då en diskret avisering direkt i din telefon när det finns en inbjudan till dig."
-    : t.pushSubtitle;
-
   return (
     <div className="space-y-6 max-w-2xl mx-auto pb-12">
       
-      {/* Push Subscription Box (Always Visible at the top of settings) */}
-      <div id="notification-subscription-box" className="bg-brand-ink rounded-2xl p-6 md:p-8 text-brand-bg shadow-sm flex items-center justify-between gap-6">
-        <div className="space-y-1.5 flex-1 pr-4">
-          <div className="flex items-center gap-2 text-brand-paper font-mono text-[10px] tracking-wider uppercase">
-            <Bell size={12} className="text-brand-accent animate-pulse" />
-            <span>{pushBoxTitle}</span>
-          </div>
-          <p className="text-brand-paper/80 text-[11px] md:text-xs leading-normal font-light">
-            {pushBoxSubtitle}
-          </p>
-        </div>
-
-        <button
-          id="push-toggle-button"
-          type="button"
-          onClick={() => {
-            if (pushEnabled) {
-              onDisablePush();
-            } else {
-              onEnablePush();
-            }
-          }}
-          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-            pushEnabled ? "bg-brand-accent" : "bg-brand-bg/20"
-          }`}
-          aria-label="Toggle push notifications"
-        >
-          <span
-            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
-              pushEnabled ? "translate-x-5" : "translate-x-0"
-            }`}
-          />
-        </button>
-      </div>
-
-      {/* Intro Text / Header */}
-      <div id="welcome-intro-card" className="bg-brand-paper/50 rounded-2xl p-6 border border-brand-ink/5">
-        <h2 className="font-serif italic text-lg sm:text-xl text-brand-ink tracking-tight mb-2 font-medium">
-          {t.onboardingHeader}
-        </h2>
-        <p className="text-brand-ink/70 text-xs md:text-sm leading-relaxed font-light">
-          {t.onboardingIntro}
-        </p>
-      </div>
-
-      {/* Progress & Wizard Step Indicators */}
-      <div className="bg-white rounded-2xl p-4 border border-brand-ink/5 flex flex-col space-y-3">
-        <div className="flex items-center justify-between gap-1 px-1">
-          {[1, 2, 3, 4].map(stepNum => {
-            const isActive = stepNum === currentStep;
-            const isCompleted = stepNum < currentStep;
-            return (
-              <button
-                key={stepNum}
-                type="button"
-                onClick={() => setCurrentStep(stepNum)}
-                className={`flex-1 h-2.5 rounded-full transition-all cursor-pointer ${
-                  isActive
-                    ? "bg-brand-accent"
-                    : isCompleted
-                    ? "bg-brand-accent/50"
-                    : "bg-brand-ink/10 hover:bg-brand-ink/20"
+      {/* Header med integrerad switch */}
+      <div className="flex flex-col space-y-3 bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-ink/10 pb-4">
+          <h2 className="font-serif italic text-2xl text-brand-ink font-medium tracking-tight">
+            Anpassa mina val
+          </h2>
+          <div className="flex items-center gap-3">
+            <span className="font-sans text-xs font-medium text-brand-ink/80 flex items-center gap-1.5 select-none">
+              <Bell size={14} className="text-brand-accent shrink-0" />
+              Bli notifierad om inbjudningar
+            </span>
+            <button
+              id="push-toggle-button"
+              type="button"
+              onClick={() => {
+                if (pushEnabled) {
+                  onDisablePush();
+                } else {
+                  onEnablePush();
+                }
+              }}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                pushEnabled ? "bg-emerald-600" : "bg-brand-ink/20"
+              }`}
+              aria-label="Toggle push notifications"
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+                  pushEnabled ? "translate-x-5" : "translate-x-0"
                 }`}
-                title={`Gå till steg ${stepNum}`}
               />
-            );
-          })}
+            </button>
+          </div>
         </div>
-        <div className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-brand-accent font-semibold text-center pt-1">
-          {currentStep === 1 && t.step1Title}
-          {currentStep === 2 && t.step2Title}
-          {currentStep === 3 && t.step3Title}
-          {currentStep === 4 && t.step4Title}
-        </div>
+        
+        <p className="text-brand-ink/75 text-xs sm:text-sm leading-relaxed font-light">
+          När en inbjudan matchar dina preferenser får du en diskret avisering direkt i din telefon samtidigt som din integritet skyddas. Avsändaren kan inte se att du fått dennes meddelande annat än genom att du svarar med ett personligt SMS endast mellan er två.
+        </p>
       </div>
 
       {/* Step Contents */}
@@ -261,46 +220,58 @@ export default function OnboardingWizard({
         )}
       </div>
 
-      {/* Footer wizard navigation panel */}
-      <div className="bg-brand-paper/45 border border-brand-ink/5 p-4 rounded-2xl flex items-center justify-between gap-4">
-        <button
-          type="button"
-          disabled={currentStep === 1}
-          onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
-          className={`flex items-center gap-2 px-5 py-3 rounded-xl border border-brand-ink/10 font-medium text-xs sm:text-sm cursor-pointer transition-all active:scale-95 ${
-            currentStep === 1 ? "opacity-30 cursor-not-allowed" : "bg-white hover:bg-slate-50 text-brand-ink"
-          }`}
-        >
-          <ArrowLeft size={16} />
-          <span>Bakåt</span>
-        </button>
+      {/* Spacer to prevent fixed bottom bar from covering content */}
+      <div className="h-24"></div>
 
-        {currentStep < 4 ? (
+      {/* Fixerad bottenrad (Navigation) */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50">
+        <div className="bg-white/95 backdrop-blur-md border border-brand-ink/10 p-4 rounded-2xl shadow-xl flex items-center justify-between gap-4">
           <button
             type="button"
-            onClick={() => setCurrentStep(prev => Math.min(4, prev + 1))}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-ink hover:bg-brand-ink/90 text-brand-bg font-medium text-xs sm:text-sm cursor-pointer transition-all active:scale-95 ml-auto"
-          >
-            <span>Nästa</span>
-            <ArrowRight size={16} />
-          </button>
-        ) : (
-          <button
-            type="button"
-            disabled={!gdprAccepted}
-            onClick={() => {
-              if (onClose) {
-                onClose();
-              }
-            }}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-accent hover:opacity-95 text-white font-medium text-xs sm:text-sm cursor-pointer transition-all active:scale-95 ml-auto ${
-              !gdprAccepted ? "opacity-50 cursor-not-allowed" : ""
+            disabled={currentStep === 1}
+            onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium text-xs sm:text-sm transition-all active:scale-95 ${
+              currentStep === 1
+                ? "bg-transparent text-transparent border-transparent cursor-default pointer-events-none select-none"
+                : "bg-brand-bg hover:bg-brand-paper border border-brand-ink/10 text-brand-ink cursor-pointer"
             }`}
           >
-            <ShieldCheck size={16} />
-            <span>Klart!</span>
+            <ArrowLeft size={16} />
+            <span>Bakåt</span>
           </button>
-        )}
+
+          {/* Centered fraction indicator */}
+          <span className="font-mono text-xs font-semibold text-brand-accent">
+            {currentStep}/4
+          </span>
+
+          {currentStep < 4 ? (
+            <button
+              type="button"
+              onClick={() => setCurrentStep(prev => Math.min(4, prev + 1))}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-ink hover:bg-brand-ink/90 text-brand-bg font-medium text-xs sm:text-sm cursor-pointer transition-all active:scale-95"
+            >
+              <span>Nästa</span>
+              <ArrowRight size={16} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={!gdprAccepted}
+              onClick={() => {
+                if (onClose) {
+                  onClose();
+                }
+              }}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-accent hover:opacity-95 text-white font-medium text-xs sm:text-sm cursor-pointer transition-all active:scale-95 ${
+                !gdprAccepted ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              <ShieldCheck size={16} />
+              <span>Klart!</span>
+            </button>
+          )}
+        </div>
       </div>
 
     </div>

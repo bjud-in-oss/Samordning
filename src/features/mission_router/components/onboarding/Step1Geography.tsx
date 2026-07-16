@@ -127,7 +127,6 @@ export default function Step1Geography({
   uiLanguage
 }: Step1GeographyProps) {
   const [modalArea, setModalArea] = useState<string | null>(null);
-  const t = TRANSLATIONS[uiLanguage];
 
   const toggleLimitedArea = (area: string) => {
     setLimitedAreas(prev =>
@@ -137,13 +136,23 @@ export default function Step1Geography({
 
   return (
     <div id="step-1-container" className="bg-white rounded-2xl p-6 md:p-8 border border-brand-ink/5 space-y-6 shadow-xs animate-in fade-in duration-200">
-      <div className="flex flex-col items-start pb-2 border-b border-brand-ink/5">
-        <span className="font-mono text-[9px] uppercase tracking-wider text-brand-accent bg-brand-paper px-2.5 py-1 rounded">
-          Steg 1 av 4
-        </span>
-        <p className="text-brand-ink/70 text-xs leading-relaxed font-light mt-2">
-          {t.step1Subtitle}
-        </p>
+      
+      {/* Snygg grön bakgrundsbanner bakom sektionsrubriken */}
+      <div className="relative overflow-hidden rounded-xl bg-emerald-800 text-white p-6 shadow-sm">
+        <div className="absolute right-0 bottom-0 opacity-10 translate-y-6 translate-x-6 pointer-events-none">
+          <svg width="130" height="130" fill="currentColor" viewBox="0 0 100 100">
+            <path d="M50 0 L100 50 L50 100 L0 50 Z" />
+          </svg>
+        </div>
+        <div className="relative z-10 space-y-2">
+          <span className="font-mono text-[9px] uppercase tracking-wider bg-white/20 text-white px-2.5 py-1 rounded">
+            Steg 1 av 4
+          </span>
+          <h3 className="font-serif italic text-xl font-medium">Din insats som lokalt stöd</h3>
+          <p className="text-white/90 text-xs leading-relaxed font-light">
+            Välj den plats där du i första hand kan ge lokalt stöd (t.ex. vid lektioner, samtal eller praktisk hjälp). Denna plats blir ditt primära bevakningsområde.
+          </p>
+        </div>
       </div>
 
       {/* Area Grid selector (Single select for Primary area) */}
@@ -209,7 +218,7 @@ export default function Step1Geography({
             id="no-area-btn"
             onClick={() => {
               setPrimaryArea(undefined);
-              setLimitAreas(true);
+              // When "Inget område" is selected, don't auto-limit or restrict unless custom areas are clicked
               setLimitedAreas([]);
             }}
             className={`flex items-center justify-between p-4 rounded-xl border text-left transition-all min-h-[58px] duration-200 ${
@@ -220,7 +229,7 @@ export default function Step1Geography({
           >
             <div className="flex-1 flex flex-col justify-center">
               <span className="font-serif italic text-sm sm:text-base font-medium text-brand-ink leading-tight">Inget område</span>
-              <span className="text-[10px] text-brand-ink/65 font-light mt-1">Bevaka inga geografiska områden</span>
+              <span className="text-[10px] text-brand-ink/65 font-light mt-1">Inget förvalt område från start</span>
             </div>
             <div
               className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
@@ -235,69 +244,71 @@ export default function Step1Geography({
         </div>
       </div>
 
-      {/* Additional areas expander (only visible if primaryArea is chosen) */}
-      {primaryArea && (
-        <div className="pt-4 border-t border-brand-ink/5 space-y-4">
-          <label className="flex items-start p-4 rounded-xl bg-brand-bg hover:bg-brand-paper/50 transition-colors cursor-pointer select-none border border-brand-ink/5">
-            <input
-              id="limit-areas-checkbox"
-              type="checkbox"
-              checked={limitAreas}
-              onChange={e => {
-                setLimitAreas(e.target.checked);
-                if (e.target.checked && limitedAreas.length === 0) {
-                  setLimitedAreas([primaryArea]);
-                }
-              }}
-              className="w-4 h-4 rounded border-brand-ink/20 text-brand-accent mr-4 mt-1 cursor-pointer accent-brand-accent shrink-0"
-            />
-            <div>
-              <div className="font-serif italic text-sm text-brand-ink font-medium">
-                Bevaka endast specifika områden
-              </div>
-              <div className="text-[11px] text-brand-ink/70 mt-1 leading-normal font-light">
-                Få endast aviseringar för specifika områden du bockar för nedan. Om omarkerad bevakar du automatiskt ALLA områden i hela församlingen.
-              </div>
+      {/* Additional areas expander (Always visible so they can customize list) */}
+      <div className="pt-4 border-t border-brand-ink/5 space-y-4">
+        <label className="flex items-start p-4 rounded-xl bg-brand-bg hover:bg-brand-paper/50 transition-colors cursor-pointer select-none border border-brand-ink/5">
+          <input
+            id="limit-areas-checkbox"
+            type="checkbox"
+            checked={limitAreas}
+            onChange={e => {
+              const checked = e.target.checked;
+              setLimitAreas(checked);
+              if (checked) {
+                // All areas pre-selected by default
+                setLimitedAreas(GOTEBORG_AREAS);
+              } else {
+                setLimitedAreas([]);
+              }
+            }}
+            className="w-4 h-4 rounded border-brand-ink/20 text-brand-accent mr-4 mt-1 cursor-pointer accent-brand-accent shrink-0"
+          />
+          <div>
+            <div className="font-serif italic text-sm text-brand-ink font-medium">
+              Begränsa övriga notiser från dessa områden.
             </div>
-          </label>
+            <div className="text-[11px] text-brand-ink/70 mt-1 leading-normal font-light">
+              Få endast aviseringar för specifika områden du bockar för nedan. Om omarkerad bevakar du automatiskt ALLA områden i hela församlingen.
+            </div>
+          </div>
+        </label>
 
-          {limitAreas && (
-            <div className="pt-2 pl-2 animate-in fade-in duration-200">
-              <h5 className="font-serif italic text-xs text-brand-ink mb-3 font-medium">Välj områden att bevaka:</h5>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {GOTEBORG_AREAS.map(area => {
-                  const isChecked = limitedAreas.includes(area) || primaryArea === area;
-                  const isPrimary = primaryArea === area;
-                  return (
-                    <button
-                      key={area}
-                      id={`limited-area-btn-${area.replace(/\s+/g, "-")}`}
-                      type="button"
-                      disabled={isPrimary}
-                      onClick={() => toggleLimitedArea(area)}
-                      className={`flex items-center justify-between p-3 rounded-lg border text-left transition-all text-xs ${
-                        isChecked
-                          ? "border-brand-accent bg-brand-paper/20 text-brand-ink font-medium"
-                          : "border-brand-ink/5 bg-brand-bg hover:border-brand-accent/10 text-brand-ink/70"
-                      } ${isPrimary ? "opacity-75 cursor-not-allowed" : ""}`}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        {area}
-                        {isPrimary && <span className="text-[9px] font-mono text-brand-accent uppercase">(Primärt)</span>}
-                      </span>
-                      <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
-                        isChecked ? "bg-brand-accent border-brand-accent text-white" : "border-brand-ink/15 bg-white"
-                      }`}>
-                        {isChecked && <Check size={10} strokeWidth={3} />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+        {limitAreas && (
+          <div className="pt-2 pl-2 animate-in fade-in duration-200">
+            <h5 className="font-serif italic text-xs text-brand-ink mb-3 font-medium">Välj områden att bevaka:</h5>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {GOTEBORG_AREAS.map(area => {
+                const isChecked = limitedAreas.includes(area) || (primaryArea === area);
+                const isPrimary = primaryArea === area;
+                return (
+                  <button
+                    key={area}
+                    id={`limited-area-btn-${area.replace(/\s+/g, "-")}`}
+                    type="button"
+                    disabled={isPrimary}
+                    onClick={() => toggleLimitedArea(area)}
+                    className={`flex items-center justify-between p-3 rounded-lg border text-left transition-all text-xs ${
+                      isChecked
+                        ? "border-brand-accent bg-brand-paper/20 text-brand-ink font-medium"
+                        : "border-brand-ink/5 bg-brand-bg hover:border-brand-accent/10 text-brand-ink/70"
+                    } ${isPrimary ? "opacity-75 cursor-not-allowed" : ""}`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      {area}
+                      {isPrimary && <span className="text-[9px] font-mono text-brand-accent uppercase">(Primärt)</span>}
+                    </span>
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
+                      isChecked ? "bg-brand-accent border-brand-accent text-white" : "border-brand-ink/15 bg-white"
+                    }`}>
+                      {isChecked && <Check size={10} strokeWidth={3} />}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Full-screen Leaflet Modal */}
       {modalArea && (

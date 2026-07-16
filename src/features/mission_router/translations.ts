@@ -11,6 +11,7 @@ export interface TranslationDict {
   onboardingHeader: string;
   onboardingSubtitle: string;
   onboardingIntro: string;
+  customizeChoicesBtn: string;
   
   // Step 1: Plats och närområde
   step1Title: string;
@@ -85,12 +86,13 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     
-    onboardingHeader: "Bli notifierad om nya inbjudningar",
+    onboardingHeader: "Bli notifierad om inbjudningar",
     onboardingSubtitle: "Du får då en diskret avisering direkt i din telefon när det finns en inbjudan till dig som matchar dina val. Allt sparas i ett flöde.",
     onboardingIntro: "Välkommen! Genom att ställa in fyra olika personliga preferenser nedan kan du välja exakt var och hur du vill delta och hjälpa till. Så fort ett behov uppstår som matchar din profil får du en diskret mobilavisering i realtid samtidigt som din integritet skyddas. Ingen annan än du kan se vilka notiser du följer eller tar emot. Endast den som du SMS:ar ett svar kan se när du svarar.",
+    customizeChoicesBtn: "ANPASSA MINA VAL",
     
     step1Title: "Steg 1 av 4: Din insats som lokalt stöd",
-    step1Subtitle: "Vi samordnar behov och inbjudningar för att stärka församlingens lokala gemenskap. Välj den plats där du i första hand kan ge lokalt stöd (t.ex. vid lektioner eller samtal). Denna plats blir ditt primära bevakningsområde.",
+    step1Subtitle: "Välj den plats där du i första hand kan ge lokalt stöd (t.ex. vid lektioner, samtal eller praktisk hjälp). Denna plats blir ditt primära bevakningsområde.",
     
     step2Title: "Steg 2 av 4: Språkstöd",
     step2Subtitle: "Klicka på de språk du kan hjälpa till med under gemensamma träffar eller lektioner (inget är förvalt, man måste inte välja).",
@@ -154,12 +156,13 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     
-    onboardingHeader: "Get notified of new invitations",
+    onboardingHeader: "Get notified of invitations",
     onboardingSubtitle: "You will receive a discrete notification directly on your phone when there is an invitation for you that matches your choices. Everything is saved in a feed.",
     onboardingIntro: "Welcome! By setting four different personal preferences below, you can choose exactly where and how you want to participate and help. As soon as a need arises that matches your profile, you will receive a discrete mobile notification in real-time while your privacy is protected. No one but you can see which notifications you follow or receive. Only the person you SMS a reply to can see when you answer.",
+    customizeChoicesBtn: "CUSTOMIZE MY CHOICES",
     
     step1Title: "Step 1 of 4: Your effort as local support",
-    step1Subtitle: "We coordinate needs and invitations to strengthen the ward's local community. Select the location where you can primarily provide local support (e.g., during lessons or conversations). This location will be your primary monitoring area.",
+    step1Subtitle: "Select the location where you can primarily provide local support (e.g., during lessons, conversations, or practical help). This location will be your primary monitoring area.",
     
     step2Title: "Step 2 of 4: Language support",
     step2Subtitle: "Click on the languages you can help with during common gatherings or lessons (none is selected by default, you do not have to choose).",
@@ -223,12 +226,13 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     
-    onboardingHeader: "Recibe notificaciones sobre nuevas invitaciones",
+    onboardingHeader: "Recibe notificaciones sobre invitaciones",
     onboardingSubtitle: "Recibirá una notificación discreta directamente en su teléfono cuando haya una invitación que coincida con sus elecciones. Todo se guarda en un flujo.",
-    onboardingIntro: "¡Bienvenido! Al configurar cuatro preferencias personales diferentes a continuación, puede elegir exactamente dónde y cómo desea participar y ayudar. Tan pronto como surja una necesidad que coincida con su perfil, recibirá una notificación móvil discreta en tiempo real mientras se protege su privacidad. Nadie más que usted puede ver qué notificaciones sigue o recibe. Solo la persona a la que responda por SMS podrá ver cuando responda.",
+    onboardingIntro: "¡Bienvenido! Al configurar cuatro preferencias personales diferentes a continuación, puede elegir exactamente dónde y cómo desea participar y ayudar. Tan pronto como surja una necesidad que coincida con su perfil, recibirá una notificación móvil discreta en tiempo real mientras se protege su privacidad. Nadie más que usted puede ver qué notificaciones sigue o recibe. Solo la persona a la que responda por SMS de forma privada podrá ver cuando responda.",
+    customizeChoicesBtn: "PERSONALIZAR MIS SELECCIONES",
     
     step1Title: "Paso 1 de 4: Tu esfuerzo como apoyo local",
-    step1Subtitle: "Coordinamos necesidades e invitaciones para fortalecer la comunidad local de la congregación. Seleccione el lugar donde principalmente puede brindar apoyo local (por ejemplo, durante lecciones o conversaciones). Este lugar será su área de monitoreo principal.",
+    step1Subtitle: "Seleccione el lugar donde principalmente puede brindar apoyo local (por ejemplo, durante lecciones, conversaciones o ayuda práctica). Este lugar será su área de monitoreo principal.",
     
     step2Title: "Paso 2 de 4: Soporte de idiomas",
     step2Subtitle: "Haga clic en los idiomas con los que puede ayudar durante reuniones comunes o lecciones (ninguno está preseleccionado, no es obligatorio elegir).",
@@ -292,12 +296,13 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     
-    onboardingHeader: "Pata arifa kuhusu mialiko mipya",
+    onboardingHeader: "Pata arifa kuhusu mialiko",
     onboardingSubtitle: "Utapokea arifa ya siri moja kwa moja kwenye simu yako wakati kuna mwaliko unaolingana na chaguo zako. Kila kitu kinahifadhiwa kwenye mkondo.",
     onboardingIntro: "Karibu! Kwa kuweka mapendeleo manne tofauti ya kibinafsi hapa chini, unaweza chagua haswa wapi na jinsi unavyotaka kushiriki na kusaidia. Mara tu hitaji linapotokea linalolingana na wasifu wako, utapokea arifa ya siri ya rununu kwa wakati halisi huku faragha yako ikilindwa. Hakuna mtu isipokuwa wewe anayeweza kuona ni arifa gani unazofuata au kupokea. Ni mtu tu unayemjibu kwa SMS ndiye anayeweza kuona unapojibu.",
+    customizeChoicesBtn: "GEUZA CHAGUO ZANGU",
     
     step1Title: "Hatua ya 1 ya 4: Juhudi zako kama msaada wa kienyeji",
-    step1Subtitle: "Tunaratibu mahitaji na mialiko ili kuimarisha jumuiya ya mahali hapo. Chagua eneo ambalo unaweza kutoa msaada wa kienyeji kwanza (k.m., wakati wa masomo au mazungumzo). Eneo hili litakuwa eneo lako kuu la ufuatiliaji.",
+    step1Subtitle: "Chagua eneo ambalo unaweza kutoa msaada wa kienyeji kwanza (k.m., wakati wa masomo, mazungumzo, au msaada wa vitendo). Eneo hili litakuwa eneo lako kuu la ufuatiliaji.",
     
     step2Title: "Hatua ya 2 ya 4: Msaada wa lugha",
     step2Subtitle: "Bofya kwenye lugha unazoweza kusaidia nazo wakati wa mikutano au masomo (hakuna iliyochaguliwa mapema, sio lazima kuchagua).",
@@ -361,12 +366,13 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     
-    onboardingHeader: "Nhận thông báo về lời mời mới",
+    onboardingHeader: "Nhận thông báo về lời mời",
     onboardingSubtitle: "Bạn sẽ nhận được thông báo kín đáo trực tiếp trên điện thoại của mình khi có lời mời phù hợp với các lựa chọn của bạn. Mọi thứ được lưu trong một nguồn cấp dữ liệu.",
-    onboardingIntro: "Chào mừng! Bằng cách thiết lập bốn tùy chọn cá nhân khác nhau bên dưới, bạn có thể chọn chính xác nơi và cách bạn muốn tham gia và giúp đỡ. Ngay khi có nhu cầu phù hợp với hồ sơ của bạn, bạn sẽ nhận được thông báo di động kín đáo trong thời gian thực trong khi quyền riêng tư của bạn được bảo vệ. Không ai ngoài bạn có thể thấy thông báo nào bạn theo dõi hoặc nhận. Chỉ người bạn trả lời qua SMS mới có thể biết khi bạn trả lời.",
+    onboardingIntro: "Chào mừng! Bằng cách thiết lập bốn tùy chọn cá nhân khác nhau bên dưới, bạn có thể chọn chính xác nơi và cách bạn muốn tham gia và giúp đỡ. Ngay khi có nhu cầu phù hợp với hồ sơ của bạn, bạn sẽ nhận được thông báo di động kín đáo trong thời gian thực trong khi quyền riêng tư của bạn được bảo vệ. Không ai ngoài bạn có thể thấy thông báo nào bạn theo dõi hoặc nhận. Chỉ người bạn trả lời qua SMS riêng tư mới có thể biết khi bạn trả lời.",
+    customizeChoicesBtn: "TÙY CHỈNH LỰA CHỌN CỦA TÔI",
     
-    step1Title: "Bước 1 trên 4: Nỗ lực hỗ trợ địa phương của bạn",
-    step1Subtitle: "Chúng tôi điều phối nhu cầu và lời mời để thắt chặt tình thân hữu địa phương. Chọn địa điểm nơi bạn có thể hỗ trợ địa phương là chính (ví dụ: trong các buổi học hoặc trò chuyện). Địa điểm này sẽ là khu vực giám sát chính của bạn.",
+    step1Title: "Bước 1 trên 4: Nỗ lực hỗ trợ địa phương",
+    step1Subtitle: "Chọn địa điểm nơi bạn có thể hỗ trợ địa phương là chính (ví dụ: trong các buổi học, trò chuyện hoặc giúp đỡ thực tế). Địa điểm này sẽ là khu vực giám sát chính của bạn.",
     
     step2Title: "Bước 2 trên 4: Hỗ trợ ngôn ngữ",
     step2Subtitle: "Nhấp vào các ngôn ngữ bạn có thể giúp đỡ trong các buổi gặp gỡ hoặc bài học (không có ngôn ngữ nào được chọn sẵn, bạn không bắt buộc phải chọn).",

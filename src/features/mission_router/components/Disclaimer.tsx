@@ -17,10 +17,10 @@ const DISCLAIMERS: Record<UiLanguage, string> = {
 
 export default function Disclaimer({ uiLanguage }: DisclaimerProps) {
   return (
-    <footer className="w-full bg-slate-50 border-t border-slate-200 flex items-center justify-center py-4 px-6 shrink-0 text-slate-400 text-center">
-      <p className="text-xs md:text-sm">
+    <div className="w-full max-w-2xl mx-auto px-6 py-8 text-center text-brand-ink/40">
+      <p className="text-[10px] leading-relaxed font-mono uppercase tracking-wider">
         {DISCLAIMERS[uiLanguage]}
       </p>
-    </footer>
+    </div>
   );
 }

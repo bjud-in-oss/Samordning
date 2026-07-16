@@ -13,6 +13,7 @@ interface ActiveStreamProps {
   showCreateModal: boolean;
   setShowCreateModal: (open: boolean) => void;
   onStreamCountChange?: (count: number) => void;
+  inlineCreate?: boolean;
 }
 
 const ORGANIZATIONS = [
@@ -40,7 +41,8 @@ export default function ActiveStream({
   savedTags,
   showCreateModal,
   setShowCreateModal,
-  onStreamCountChange
+  onStreamCountChange,
+  inlineCreate = false
 }: ActiveStreamProps) {
   const [stream, setStream] = useState<ActiveAlert[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -251,6 +253,214 @@ export default function ActiveStream({
     return (
       <div className="flex justify-center items-center py-12">
         <div className="w-6 h-6 border-2 border-brand-accent border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (inlineCreate) {
+    return (
+      <div className="space-y-6 w-full max-w-2xl mx-auto">
+        {toast && (
+          <div id="toast-success-message" className="p-4 bg-brand-accent/5 border border-brand-accent/10 text-brand-accent text-xs font-mono uppercase tracking-wider rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-3 duration-200">
+            <CheckCircle size={14} className="text-brand-accent shrink-0" />
+            <span>{toast}</span>
+          </div>
+        )}
+
+        <div className="bg-white rounded-2xl p-6 md:p-8 border border-brand-ink/5 space-y-6 shadow-xs animate-in fade-in duration-200">
+          <div>
+            <h3 className="font-serif italic text-xl text-brand-ink font-medium">Bjud in andra</h3>
+            <p className="font-mono text-[9px] text-brand-accent uppercase tracking-wider mt-1">
+              {currentStep === 1 
+                ? "Steg 1: Beskriv inbjudan och låt AI extrahera detaljer" 
+                : "Steg 2: Granska förslag, justera och godkänn"
+              }
+            </p>
+          </div>
+
+          {currentStep === 1 ? (
+            <form onSubmit={handleWash} className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
+                  Beskriv aktivitet eller inbjudan (fritext)
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={announcementText}
+                  onChange={(e) => setAnnouncementText(e.target.value)}
+                  placeholder="Skriv helt fritt, t.ex: Bjuder på fika och varm soppa hemma hos oss i Partille nu på tisdag kl 18. Vi talar svenska och engelska!"
+                  className="w-full px-4 py-3 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-xl text-brand-ink text-xs focus:outline-none transition-all placeholder-brand-ink/30 resize-none leading-relaxed font-light"
+                />
+                <span className="font-mono text-[9px] text-brand-accent/70 block mt-1 leading-normal uppercase">
+                  Tips: Berätta vad ni bjuder in till, stadsdel, dag/tid och vilka språk som talas. AI:n föreslår taggar automatiskt!
+                </span>
+              </div>
+
+              <div className="flex items-center justify-end gap-4 pt-3 border-t border-brand-ink/5">
+                <button
+                  type="submit"
+                  disabled={washing || !announcementText.trim()}
+                  className="px-5 py-2.5 text-[10px] font-mono uppercase tracking-wider text-white bg-brand-accent hover:opacity-90 disabled:opacity-40 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  {washing ? (
+                    <span>Analyserar...</span>
+                  ) : (
+                    <>
+                      <span>Förhandsgranska</span>
+                      <Send size={10} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmitAnnouncement} className="space-y-4">
+              <div className="p-4 bg-brand-accent/5 rounded-xl border border-brand-accent/15 flex gap-3">
+                <Sparkles size={16} className="text-brand-accent shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-brand-accent font-semibold">AI Rådgivare</div>
+                  <p className="text-brand-ink/80 text-xs leading-relaxed font-light whitespace-pre-line">
+                    {washResult?.aiFeedback}
+                  </p>
+                </div>
+              </div>
+
+              {washResult?.warnings?.missingAreaForTeaching && !selectedArea && (
+                <div className="p-3 bg-brand-error/10 text-brand-error rounded-xl border border-brand-error/20 font-mono text-[10px] uppercase tracking-wider flex items-center gap-2">
+                  <ShieldAlert size={14} className="shrink-0" />
+                  <span>Geografisk Blockering: Du måste välja ett område i listan nedan för att kunna skicka.</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Kategori</label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                  >
+                    <option value="Måltid & Gemenskap">Måltid & Gemenskap</option>
+                    <option value="Lektion & Samtal">Lektion & Samtal</option>
+                    <option value="Tjänande">Tjänande</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Stöddistrikt / Område</label>
+                  <select
+                    value={selectedArea}
+                    onChange={(e) => setSelectedArea(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                  >
+                    <option value="">Välj område...</option>
+                    {GOTEBORG_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Tidpunkt (t.ex. 18:00)</label>
+                  <input
+                    type="text"
+                    placeholder="HH:MM"
+                    value={selectedTime}
+                    onChange={(e) => setSelectedTime(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Ansvarig Avsändare</label>
+                  <select
+                    value={selectedOrganization}
+                    onChange={(e) => setSelectedOrganization(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                  >
+                    {ORGANIZATIONS.map(org => <option key={org} value={org}>{org}</option>)}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Platsnamn / Mötesplats</label>
+                  <input
+                    type="text"
+                    value={selectedLocationName}
+                    onChange={(e) => setSelectedLocationName(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Språk / Tolkning</label>
+                  <input
+                    type="text"
+                    value={selectedLanguage}
+                    onChange={(e) => setSelectedLanguage(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1 col-span-2">
+                  <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Målgrupp</label>
+                  <select
+                    value={selectedAudience}
+                    onChange={(e) => setSelectedAudience(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                  >
+                    <option value="Alla">Alla medlemmar & vänner</option>
+                    <option value="Enbart missionärerna">Enbart heltidsmissionärerna</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1 bg-brand-paper p-3 rounded-lg border border-brand-ink/5">
+                <div className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Originaltext</div>
+                <p className="text-xs text-brand-ink/80 italic">”{announcementText}”</p>
+              </div>
+
+              <div className="pt-2">
+                <label className="flex items-start gap-2.5 text-[11px] text-brand-ink/70 leading-normal cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={gdprChecked}
+                    onChange={(e) => setGdprChecked(e.target.checked)}
+                    className="mt-0.5 accent-brand-accent cursor-pointer shrink-0"
+                  />
+                  <span>
+                    Jag bekräftar att detta inlägg <strong>inte innehåller några personuppgifter</strong> (t.ex. efternamn eller telefonnummer till intresserade/sökande) för utomstående, samt godkänner GDPR-efterlevnad.
+                  </span>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t border-brand-ink/5">
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(1)}
+                  className="font-mono text-[10px] uppercase tracking-wider text-brand-ink/60 hover:text-brand-ink transition-all cursor-pointer"
+                >
+                  Föregående steg
+                </button>
+                <div className="flex items-center gap-4">
+                  <button
+                    type="submit"
+                    disabled={sending || (washResult?.warnings?.missingAreaForTeaching && !selectedArea) || !gdprChecked}
+                    className="px-5 py-2.5 text-[10px] font-mono uppercase tracking-wider text-white bg-brand-accent hover:opacity-90 disabled:opacity-40 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {sending ? (
+                      <span>Skickar...</span>
+                    ) : (
+                      <>
+                        <span>Godkänn & Spara</span>
+                        <Send size={10} />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     );
   }

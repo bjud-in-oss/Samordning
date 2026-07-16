@@ -33,13 +33,15 @@ export default function Step4Formats({
 
   return (
     <div id="step-4-container" className="bg-white rounded-2xl p-6 md:p-8 border border-brand-ink/5 space-y-6 shadow-xs animate-in fade-in duration-200">
+      
+      {/* Sektionsrubrik och introduktion */}
       <div className="flex flex-col items-start pb-2 border-b border-brand-ink/5">
         <span className="font-mono text-[9px] uppercase tracking-wider text-brand-accent bg-brand-paper px-2.5 py-1 rounded">
           Steg 4 av 4
         </span>
-        <p className="text-brand-ink/70 text-xs leading-relaxed font-light mt-2">
-          {t.step4Subtitle}
-        </p>
+        <h3 className="font-serif italic text-base sm:text-lg text-brand-ink font-medium mt-3">
+          Välj de format som passar din livssituation bäst.
+        </h3>
       </div>
 
       {/* Three main toggles / option cards */}
@@ -64,12 +66,12 @@ export default function Step4Formats({
           >
             {formats.includes("physical") && <Check size={12} strokeWidth={2.5} />}
           </div>
-          <div>
+          <div className="flex-1">
             <div className="font-serif italic text-sm text-brand-ink font-medium mb-1">
-              {t.formatPhysicalTitle}
+              Fysiskt på plats
             </div>
             <div className="text-[11px] text-brand-ink/70 font-light leading-relaxed">
-              {t.formatPhysicalDesc}
+              Fysiskt på plats: Jag deltar gärna fysiskt på plats (t.ex. hemma hos någon, i kyrkan, städdagar eller gemensamma middagar).
             </div>
           </div>
         </button>
@@ -94,12 +96,12 @@ export default function Step4Formats({
           >
             {formats.includes("telephone") && <Check size={12} strokeWidth={2.5} />}
           </div>
-          <div>
+          <div className="flex-1">
             <div className="font-serif italic text-sm text-brand-ink font-medium mb-1">
-              {t.formatDigitalTitle}
+              Via telefon / video / distans
             </div>
             <div className="text-[11px] text-brand-ink/70 font-light leading-relaxed">
-              {t.formatDigitalDesc}
+              Via telefon / video / distans: Jag deltar gärna via telefon eller digitalt vid behov.
             </div>
           </div>
         </button>
@@ -124,12 +126,12 @@ export default function Step4Formats({
           >
             {spiritualTips && <Check size={12} strokeWidth={2.5} />}
           </div>
-          <div>
+          <div className="flex-1">
             <div className="font-serif italic text-sm text-brand-ink font-medium mb-1">
-              {t.formatSpiritualTitle}
+              Via Andliga tankar
             </div>
             <div className="text-[11px] text-brand-ink/70 font-light leading-relaxed">
-              {t.formatSpiritualDesc}
+              Via Andliga tankar: Jag kan tänka mig ta emot eller dela korta upplyftande andliga tankar via tysta aviseringar eller förfrågningar som församlings- och heltidsmissionärerna sänder till mig.
             </div>
           </div>
         </button>
@@ -145,8 +147,8 @@ export default function Step4Formats({
             onChange={e => setGdprAccepted(e.target.checked)}
             className="w-4 h-4 rounded border-brand-ink/25 text-brand-accent mr-4 mt-1 cursor-pointer accent-brand-accent shrink-0"
           />
-          <div className="text-[10px] sm:text-[11px] leading-relaxed text-brand-ink/80 font-light">
-            Jag samtycker till att mina anpassade val sparas i min webbläsare för att tjänsten ska kunna skicka relevanta aviseringar. Jag förstår att ingen personlig historik eller personuppgifter sparas centralt och att jag när som helst kan radera mina inställningar genom att inaktivera aviseringar.
+          <div className="text-[11px] leading-relaxed text-brand-ink/80 font-light">
+            Jag lovar att inte dela någons personuppgifter utan att jag fått deras uttryckliga medgivande.
           </div>
         </label>
         {!gdprAccepted && (

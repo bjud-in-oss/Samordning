@@ -1,4 +1,5 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
+import { GoogleGenAI } from "@google/genai";
 
 // 15 Fasta Stöddistrikt i Göteborg (Geografiskt sorterat Norr -> Söder)
 export const STODDISTRIKT = [
@@ -195,92 +196,7 @@ export function parseMissionaryMessage(text: string): CleanedData | null {
   };
 }
 
-// Local robust runAiWash that replaces Gemini logic completely
-export async function runAiWash(
-  rawText: string, 
-  senderInfo: { role: string; contact: string; originalType?: "missionary_alert" | "leader_invitation" }
-): Promise<any> {
-  const bracketRegex = /\[(.*?)\]/g;
-  const matches: string[] = [];
-  let match;
-  while ((match = bracketRegex.exec(rawText)) !== null) {
-    matches.push(match[1].trim());
-  }
-
-  let area = "Kortedala";
-  let time = "Ospecificerad tid";
-  let category = "Måltid & Gemenskap";
-  let scrubbedText = rawText;
-  let responsibleParty = senderInfo.role;
-  let contactValue = senderInfo.contact;
-
-  if (matches.length >= 4) {
-    // If we have at least 4 matches, assume structured SMS format:
-    // [Area] [Time] [Category] [Text] [Arrangör/Responsible] [Contact]
-    area = matches[0] || "Kortedala";
-    time = matches[1] || "Ospecificerad tid";
-    category = matches[2] || "Måltid & Gemenskap";
-    scrubbedText = matches[3] || rawText;
-    if (matches[4]) responsibleParty = matches[4];
-    if (matches[5]) contactValue = matches[5];
-  } else {
-    // Unstructured text format fallback:
-    // Try to extract area from text if it contains any of the known district names
-    const foundDistrict = STODDISTRIKT.find(d => 
-      rawText.toLowerCase().includes(d.name.toLowerCase())
-    );
-    if (foundDistrict) {
-      area = foundDistrict.name;
-    }
-
-    // Try to extract time (like 18:00 or 19.30)
-    const timeMatch = rawText.match(/\b\d{1,2}[:.]\d{2}\b/);
-    if (timeMatch) {
-      time = timeMatch[0].replace(".", ":");
-    }
-
-    // Classify category based on keywords
-    const lowerText = rawText.toLowerCase();
-    if (lowerText.includes("mat") || lowerText.includes("middag") || lowerText.includes("fika") || lowerText.includes("bjuder") || lowerText.includes("äta")) {
-      category = "Måltid & Gemenskap";
-    } else if (lowerText.includes("lektion") || lowerText.includes("samtal") || lowerText.includes("undervisa") || lowerText.includes("möte") || lowerText.includes("skriva")) {
-      category = "Lektion & Samtal";
-    } else if (lowerText.includes("städa") || lowerText.includes("flytta") || lowerText.includes("bära") || lowerText.includes("hjälpa") || lowerText.includes("tjänande") || lowerText.includes("städdag") || lowerText.includes("hjälp")) {
-      category = "Tjänande";
-    } else {
-      category = "Måltid & Gemenskap";
-    }
-
-    // Scrub phone numbers and email addresses from public display text, BUT keep URLs
-    let processedText = rawText;
-    
-    const urls: string[] = [];
-    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
-    processedText = processedText.replace(urlRegex, (url) => {
-      urls.push(url);
-      return `__URL_PLACEHOLDER_${urls.length - 1}__`;
-    });
-
-    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
-    processedText = processedText.replace(emailRegex, "[E-POST TVÄTTAD]");
-
-    const phoneRegex = /\b(?:\+?\d{1,3}[- ]?)?\d{2,4}[- ]?\d{2,3}[- ]?\d{2,4}\b/g;
-    processedText = processedText.replace(phoneRegex, (phone) => {
-      const cleanPhone = phone.replace(/[- ]/g, "");
-      if (cleanPhone.length >= 8 && cleanPhone.length <= 15) {
-        return "[TELEFON TVÄTTAD]";
-      }
-      return phone;
-    });
-
-    processedText = processedText.replace(/__URL_PLACEHOLDER_(\d+)__/g, (m, index) => {
-      return urls[parseInt(index, 10)];
-    });
-
-    scrubbedText = processedText;
-  }
-
-  // Resolve geocoding
+export function getCoordsForArea(area: string) {
   const cleanKey = area.toLowerCase();
   let coords = { lat: 57.7088, lng: 11.9745 };
   if (GEOMAP[cleanKey]) {
@@ -302,17 +218,274 @@ export async function runAiWash(
     lng: Math.round(coords.lng / 0.02) * 0.02
   };
 
-  const resolvedArea = findClosestDistrict(coords.lat, coords.lng);
+  return { coords, cloakedCoords };
+}
+
+let aiClient: GoogleGenAI | null = null;
+function getAi(): GoogleGenAI | null {
+  if (aiClient) return aiClient;
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) {
+    console.warn("GEMINI_API_KEY environment variable is not defined. Using local fallback wash.");
+    return null;
+  }
+  aiClient = new GoogleGenAI({ apiKey: key });
+  return aiClient;
+}
+
+export interface GeminiWashResult {
+  originalText: string;
+  extractedMetadata: {
+    category: "Måltid & Gemenskap" | "Lektion & Samtal" | "Tjänande";
+    area: string | null;
+    time: string | null;
+    audience: "Alla" | "Enbart missionärerna";
+    organization: string;
+    locationName: string;
+    language: string | null;
+  };
+  aiFeedback: string;
+  warnings: {
+    missingAreaForTeaching: boolean;
+    audienceWarning: boolean;
+  };
+}
+
+export async function runGeminiWash(text: string): Promise<GeminiWashResult> {
+  const ai = getAi();
+  if (!ai) {
+    return runFallbackWash(text);
+  }
+
+  const prompt = `Du är en intelligent AI-rådgivare och extraherare för en digital anslagstavla (Ge stöd till missionärerna).
+Du ska analysera en inbjudan (fritext) skriven av en medlem eller ledare i kyrkan och extrahera strukturerad metadata, samt ge varma råd och tips på svenska.
+
+VIKTIGT: Du får ALDRIG ändra eller skriva om användarens personliga text.
+
+Här är reglerna för extrahering:
+1. Kategori (category): Bestäm om inbjudan handlar om:
+   - "Måltid & Gemenskap" (t.ex. middag, fika, lunch, umgänge, bjuda hem)
+   - "Lektion & Samtal" (t.ex. undervisning, lektioner, samtalsstöd, träffa personer som missionärerna undervisar)
+   - "Tjänande" (t.ex. flytthjälp, städning, trädgårdsarbete)
+
+2. Område (area): Matcha mot följande 15 tillåtna stöddistrikt i Göteborg:
+   "Angered", "Kortedala", "Gamlestaden", "Hisingen", "Biskopsgården", "Lundby", "Partille", "Örgryte", "Johanneberg", "Majorna", "Mölndal", "Frölunda", "Torslanda", "Askim", "Härryda".
+   Om något av dessa områden nämns i texten (skiftlägesokänsligt), returnera dess exakta namn (t.ex. "Kortedala"). Annars returnera null.
+
+3. Tid (time): Extrahera tidpunkten om den nämns (t.ex. "18:00" eller "kl 19.30"). Konvertera till formatet "HH:MM". Om ingen tid nämns, returnera null.
+
+4. Målgrupp (audience): Får ENDAST vara "Alla" eller "Enbart missionärerna".
+   - Om texten nämner att inbjudan endast är för heltidsmissionärerna (t.ex. "för äldsterna", "systrarna", "missionärerna", "heltidsmissionärerna"), sätt till "Enbart missionärerna".
+   - Annars, defaulta till "Alla".
+   - Om texten nämner någon annan specifik målgrupp (t.ex. "bara för unga män", "hjälpföreningen", "biskopsrådet"), sätt "audienceWarning" till true, men behåll "audience" som "Alla" (eller "Enbart missionärerna" om det gäller dem).
+
+5. Avsändande Organisation (organization): Matcha mot följande tillåtna lista:
+   "Enskild/Familj", "Missionärerna", "Församlingsmissionen", "Biskopsrådet", "Äldstekvorumet", "Hjälpföreningen", "Unga Män (UM)", "Unga Kvinnor (UK)", "Primär", "Söndagsskolan", "Aktivitetskommittén", "Unga vuxna (UV)", "Ensamstående vuxna (EV)", "Institutet", "Seminariet", "Staven".
+   Om en organisation nämns eller antyds (t.ex. "biskopen bjuder in" -> "Biskopsrådet", "äldsterna bjuder" -> "Missionärerna"), välj det matchande alternativet.
+   Om inget nämns eller om det är en vanlig medlem/familj som bjuder in, defaulta till "Enskild/Familj".
+
+6. Specifik plats (locationName): Om en specifik mötesplats eller adress nämns (t.ex. "kapellet i Västra Frölunda", "Mariaplan", "hemma hos oss"), extrahera den. Om ingen specifik plats nämns, defaulta till "Kapellet".
+
+7. Språk (language): Vilka språk som talas eller tolkas (t.ex. "Svenska", "Engelska", "Spanska"). Om inget nämns, returnera null.
+
+Här är reglerna för feedback (aiFeedback) och varningar:
+- Geografisk blockering (missingAreaForTeaching):
+  Om inbjudan handlar om att missionärerna ska undervisa någon (lektion, träffa en intresserad/undersökare) OCH inget av de 15 stöddistrikten (områdena) ovan nämns i texten, MÅSTE du sätta "missingAreaForTeaching" till true och i "aiFeedback" skriva exakt:
+  "För att rätt lokala stödsyskon ska nås måste du ange vilket område personen bor i."
+  (Om inlägget INTE handlar om att undervisa någon, eller om ett område är angett, ska "missingAreaForTeaching" vara false).
+
+- Tips och råd i "aiFeedback":
+  Du ska bygga en sammanhängande, varm, välkomnande och rådgivande text på svenska (aiFeedback).
+  - Om "missingAreaForTeaching" är true, måste feedbacken börja med varningsmeddelandet ovan.
+  - Om inget språk nämns (language är null), lägg till ett vänligt tips: "Tips: Nämn gärna vilka språk som talas/tolkas så att fler kan delta."
+  - Om inbjudan handlar om att undervisa någon, besöka eller ha en lektion, lägg till ett tips: "Tips: Överväg att skriva att stödsyskon kan ringa in via video på 5 minuter – perfekt för nya bekantskaper som kanske inte dyker upp."
+  - Om allt är perfekt, ge en varm uppmuntran!
+
+Texten som ska analyseras är:
+"""
+${text}
+"""
+
+Returnera ett JSON-objekt som matchar följande TypeScript-gränssnitt:
+{
+  "originalText": string,
+  "extractedMetadata": {
+    "category": "Måltid & Gemenskap" | "Lektion & Samtal" | "Tjänande",
+    "area": string | null,
+    "time": string | null,
+    "audience": "Alla" | "Enbart missionärerna",
+    "organization": string,
+    "locationName": string,
+    "language": string | null
+  },
+  "aiFeedback": string,
+  "warnings": {
+    "missingAreaForTeaching": boolean,
+    "audienceWarning": boolean
+  }
+}
+Returnera ENDAST JSON-objektet. Inga förklarande texter runt omkring.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      },
+    });
+
+    const responseText = response.text;
+    if (!responseText) {
+      throw new Error("Empty response from Gemini.");
+    }
+
+    const data = JSON.parse(responseText.trim()) as GeminiWashResult;
+    data.originalText = text;
+    return data;
+  } catch (err) {
+    console.error("Gemini call failed, using fallback:", err);
+    return runFallbackWash(text);
+  }
+}
+
+export function runFallbackWash(text: string): GeminiWashResult {
+  const lowerText = text.toLowerCase();
+
+  // 1. Category
+  let category: "Måltid & Gemenskap" | "Lektion & Samtal" | "Tjänande" = "Måltid & Gemenskap";
+  if (lowerText.includes("lektion") || lowerText.includes("undervisa") || lowerText.includes("samtal") || lowerText.includes("intresserad") || lowerText.includes("undersökare") || lowerText.includes("träffa")) {
+    category = "Lektion & Samtal";
+  } else if (lowerText.includes("städa") || lowerText.includes("flytta") || lowerText.includes("bära") || lowerText.includes("hjälpa") || lowerText.includes("tjänande")) {
+    category = "Tjänande";
+  }
+
+  // 2. Area
+  let area: string | null = null;
+  const foundDistrict = STODDISTRIKT.find(d => lowerText.includes(d.name.toLowerCase()));
+  if (foundDistrict) {
+    area = foundDistrict.name;
+  }
+
+  // 3. Time
+  let time: string | null = null;
+  const timeMatch = text.match(/\b\d{1,2}[:.]\d{2}\b/);
+  if (timeMatch) {
+    time = timeMatch[0].replace(".", ":");
+  }
+
+  // 4. Audience
+  let audience: "Alla" | "Enbart missionärerna" = "Alla";
+  if (lowerText.includes("äldsterna") || lowerText.includes("systrarna") || lowerText.includes("enbart missionärerna") || lowerText.includes("bara missionärerna")) {
+    audience = "Enbart missionärerna";
+  }
+
+  let audienceWarning = false;
+  if (lowerText.includes("unga män") || lowerText.includes("unga kvinnor") || lowerText.includes("primär") || lowerText.includes("hjälpforeningen") || lowerText.includes("hjälpföreningen")) {
+    audienceWarning = true;
+  }
+
+  // 5. Organization
+  let organization = "Enskild/Familj";
+  const orgs = [
+    { name: "Missionärerna", keywords: ["äldste", "äldsterna", "systrarna", "syster", "missionärerna", "missionärer"] },
+    { name: "Biskopsrådet", keywords: ["biskop", "biskopen", "biskopsrådet"] },
+    { name: "Äldstekvorumet", keywords: ["äldstekvorumet", "kvorumet"] },
+    { name: "Hjälpföreningen", keywords: ["hjälpföreningen", "hjalpforeningen", "hf"] },
+    { name: "Unga Män (UM)", keywords: ["unga män", "um", "pionjär"] },
+    { name: "Unga Kvinnor (UK)", keywords: ["unga kvinnor", "uk"] },
+    { name: "Primär", keywords: ["primär", "barnen"] },
+    { name: "Söndagsskolan", keywords: ["söndagsskolan"] },
+    { name: "Aktivitetskommittén", keywords: ["aktivitetskommitté", "aktivitetskommitte"] },
+    { name: "Unga vuxna (UV)", keywords: ["unga vuxna", "uv"] },
+    { name: "Ensamstående vuxna (EV)", keywords: ["ensamstående vuxna", "ev"] },
+    { name: "Institutet", keywords: ["institut", "institutet"] },
+    { name: "Seminariet", keywords: ["seminariet", "seminarie"] },
+    { name: "Staven", keywords: ["staven", "stavspresident"] },
+    { name: "Församlingsmissionen", keywords: ["församlingsmissionen", "församlingsmissionärer", "församlingsmission"] }
+  ];
+
+  for (const org of orgs) {
+    if (org.keywords.some(k => lowerText.includes(k))) {
+      organization = org.name;
+      break;
+    }
+  }
+
+  // 6. LocationName
+  let locationName = "Kapellet";
+  if (lowerText.includes("hemma hos") || lowerText.includes("hos oss") || lowerText.includes("vårt hem")) {
+    locationName = "Medlemmens hem";
+  } else {
+    const locMatch = text.match(/plats:\s*([^,.\n]+)/i);
+    if (locMatch) {
+      locationName = locMatch[1].trim();
+    }
+  }
+
+  // 7. Language
+  let language: string | null = null;
+  if (lowerText.includes("svenska")) language = "Svenska";
+  else if (lowerText.includes("engelska") || lowerText.includes("english")) language = "Engelska";
+  else if (lowerText.includes("spanska")) language = "Spanska";
+
+  // missingAreaForTeaching
+  const isTeaching = lowerText.includes("undervisa") || lowerText.includes("lektion") || lowerText.includes("träffa en intresserad") || lowerText.includes("undersökare");
+  const missingAreaForTeaching = isTeaching && !area;
+
+  // Build feedback
+  let aiFeedback = "";
+  if (missingAreaForTeaching) {
+    aiFeedback += "För att rätt lokala stödsyskon ska nås måste du ange vilket område personen bor i.\n";
+  } else {
+    aiFeedback += "Ditt utkast ser jättefint ut! Vi har taggat upp det åt dig.\n";
+  }
+
+  if (!language) {
+    aiFeedback += "Tips: Nämn gärna vilka språk som talas/tolkas så att fler kan delta.\n";
+  }
+
+  if (isTeaching) {
+    aiFeedback += "Tips: Överväg att skriva att stödsyskon kan ringa in via video på 5 minuter – perfekt för nya bekantskaper som kanske inte dyker upp.\n";
+  }
 
   return {
-    scrubbedText,
-    responsibleParty,
+    originalText: text,
+    extractedMetadata: {
+      category,
+      area,
+      time,
+      audience,
+      organization,
+      locationName,
+      language
+    },
+    aiFeedback: aiFeedback.trim(),
+    warnings: {
+      missingAreaForTeaching,
+      audienceWarning
+    }
+  };
+}
+
+// Local robust runAiWash that wraps runGeminiWash for backwards compatibility
+export async function runAiWash(
+  rawText: string, 
+  senderInfo: { role: string; contact: string; originalType?: "missionary_alert" | "leader_invitation" }
+): Promise<any> {
+  const result = await runGeminiWash(rawText);
+  const area = result.extractedMetadata.area || "Kortedala";
+  const { coords, cloakedCoords } = getCoordsForArea(area);
+
+  return {
+    scrubbedText: rawText,
+    responsibleParty: result.extractedMetadata.organization,
     contactType: "sms" as const,
-    contactValue,
-    area: resolvedArea,
-    time,
-    locationName: area,
-    category,
+    contactValue: senderInfo.contact,
+    area: area,
+    time: result.extractedMetadata.time || "Ospecificerad tid",
+    locationName: result.extractedMetadata.locationName || area,
+    category: result.extractedMetadata.category,
     coords,
     cloakedCoords,
     type: senderInfo.originalType || "leader_invitation"

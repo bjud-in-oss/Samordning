@@ -3,7 +3,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
-import { runAiWash, isApprovedSender, STODDISTRIKT, calculateSecondsUntilTime } from "./src/features/mission_router/domain/parser";
+import { runAiWash, runGeminiWash, getCoordsForArea, isApprovedSender, STODDISTRIKT, calculateSecondsUntilTime } from "./src/features/mission_router/domain/parser";
 import { 
   subscriptions, 
   saveSubscriptions, 
@@ -15,6 +15,23 @@ import {
   getVapidPublicKey 
 } from "./src/features/mission_router/domain/pushService";
 import { ActiveAlert } from "./src/features/mission_router/types";
+
+interface SmsDraft {
+  rawText: string;
+  extractedMetadata: {
+    category: "Måltid & Gemenskap" | "Lektion & Samtal" | "Tjänande";
+    area: string | null;
+    time: string | null;
+    audience: "Alla" | "Enbart missionärerna";
+    organization: string;
+    locationName: string;
+    language: string | null;
+  };
+  missingAreaForTeaching: boolean;
+  timestamp: number;
+}
+
+const smsDrafts = new Map<string, SmsDraft>();
 
 const app = express();
 const PORT = 3000;
@@ -120,6 +137,17 @@ setInterval(() => {
   }
 }, 60000); // Check every minute
 
+// Automatic Expiry Cleanup Loop for SMS drafts (every minute, clears drafts > 30 mins old)
+setInterval(() => {
+  const now = Date.now();
+  for (const [sender, draft] of smsDrafts.entries()) {
+    if (now - draft.timestamp > 30 * 60 * 1000) {
+      smsDrafts.delete(sender);
+      addSimLog("system", `AUTOMATISK RENSNING: SMS-utkast från ${sender} har tagits bort på grund av inaktivitet.`);
+    }
+  }
+}, 60000);
+
 // ==========================================
 // Express API Endpoints
 // ==========================================
@@ -140,9 +168,25 @@ app.post("/api/admins", (req, res) => {
   res.json({ success: true, admins: adminNumbers });
 });
 
+// Analyze raw text invitation with Gemini
+app.post("/api/wash", async (req, res) => {
+  const { text } = req.body;
+  if (!text || !text.trim()) {
+    return res.status(400).json({ error: "Text krävs." });
+  }
+
+  try {
+    const washed = await runGeminiWash(text.trim());
+    res.json(washed);
+  } catch (err: any) {
+    console.error("Wash error:", err);
+    res.status(500).json({ error: "Kunde inte analysera inbjudan med AI: " + err.message });
+  }
+});
+
 // Create announcement from Web client (pending by default, requiring admin moderation)
 app.post("/api/announcements", async (req, res) => {
-  const { text } = req.body;
+  const { text, area, time, audience, organization, language, category, locationName } = req.body;
   if (!text || !text.trim()) {
     return res.status(400).json({ error: "Text krävs." });
   }
@@ -150,34 +194,31 @@ app.post("/api/announcements", async (req, res) => {
   const trimmedText = text.trim();
 
   try {
-    const washed = await runAiWash(trimmedText, {
-      role: "Allmänhet",
-      contact: "Webbklient",
-      originalType: "leader_invitation"
-    });
-
     const id = getNextFreeId();
-    const offsetSeconds = calculateSecondsUntilTime(washed.time);
+    const targetArea = area || "Kortedala";
+    const { coords, cloakedCoords } = getCoordsForArea(targetArea);
+
+    const offsetSeconds = calculateSecondsUntilTime(time || "18:00");
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
 
     const newAnnouncement: ActiveAlert = {
       id,
       type: "leader_invitation",
       rawText: trimmedText,
-      scrubbedText: washed.scrubbedText,
-      area: washed.area || "Kortedala",
-      time: washed.time || "Ospecificerad tid",
-      gender: "Alla",
-      language: "Svenska",
-      locationName: washed.locationName || washed.area || "Göteborg",
-      coords: washed.coords,
-      cloakedCoords: washed.cloakedCoords,
+      scrubbedText: trimmedText, // Maintain original personal text exactly, never rewrite
+      area: targetArea,
+      time: time || "Ospecificerad tid",
+      gender: audience || "Alla", // gender holds the target audience in ActiveAlert
+      language: language || "Svenska",
+      locationName: locationName || targetArea || "Kapellet",
+      coords,
+      cloakedCoords,
       timestamp: Date.now(),
-      responsibleParty: washed.responsibleParty || "Medlem",
+      responsibleParty: organization || "Enskild/Familj",
       contactType: "web",
       contactValue: "Webbklient",
       expiryTimestamp,
-      category: washed.category || "Måltid & Gemenskap",
+      category: category || "Måltid & Gemenskap",
       isFull: false,
       status: "pending"
     };
@@ -297,7 +338,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     addSimLog("system", `SMS-HJÄLP BEGÄRD av ${sender}.`);
     return res.json({
       success: true,
-      replyMessage: "Instruktioner:\n- Skapa inlägg (allmänhet): Börja med # (t.ex. '# [Kortedala] [18:00] Middag'). Det hamnar i väntrummet.\n- Samordnare har en gräddfil och inlägg godkänns direkt utan '#'.\n- Moderering (samordnare): Svara #GODKÄNN <ID> eller #AVVISA <ID>.\n- Avsluta: Svara DEL <ID> eller FULL <ID>.\nOBS: Inga namn eller personuppgifter får sparas!"
+      replyMessage: "Hjälpmeny:\n1. Skapa inlägg: Skriv din inbjudan. AI:n svarar med förslag som du godkänner.\n2. Godkänn webbinlägg: Svara #GODKÄNN [ID].\n3. Radera inlägg: Svara DEL [ID].\n4. Ändra avsändare i utkast: #AVSÄNDARE [Namn]."
     });
   }
 
@@ -399,60 +440,58 @@ app.post("/api/incoming-sms", async (req, res) => {
     return res.json({ success: true, replyMessage: `Inbjudan ${id} har markerats som fullbokad.` });
   }
 
-  // 2. Validate non-admin text prefix requirements
-  if (!isAdmin && !trimmedText.startsWith("#")) {
-    addSimLog("system", `AVVISAT INLÄGG från ${sender}: Meddelandet saknar '#' prefix.`);
-    return res.json({
-      success: false,
-      replyMessage: "Inlägget avvisades. Som medlem i allmänheten måste du starta med '#' framför ditt meddelande för att köa det i väntrummet (t.ex: # [Kortedala] [18:00] Middag), eller be en samordnare lägga upp det."
-    });
-  }
+  // Handle #PUBLICERA command
+  const isPublicera = trimmedText.toUpperCase() === "#PUBLICERA";
+  if (isPublicera) {
+    const draft = smsDrafts.get(sender);
+    if (!draft) {
+      return res.json({
+        success: false,
+        replyMessage: "Du har inget aktivt utkast att publicera. Skriv först din inbjudan."
+      });
+    }
 
-  // Strip leading '#' for parsing if present
-  const textToProcess = trimmedText.startsWith("#") ? trimmedText.substring(1).trim() : trimmedText;
-
-  // standard SMS parsing to create new Invitation
-  try {
-    const washed = await runAiWash(textToProcess, {
-      role: isAdmin ? "Arrangör" : "Allmänhet",
-      contact: sender,
-      originalType: "leader_invitation"
-    });
+    if (draft.missingAreaForTeaching) {
+      return res.json({
+        success: false,
+        replyMessage: "Inlägget kan inte publiceras. För att rätt lokala stödsyskon ska nås måste du ange vilket område personen bor i. Skicka ett nytt meddelande som innehåller området."
+      });
+    }
 
     const id = getNextFreeId();
-    // Expiry calculated as scheduled time of day + 2 hours
-    const offsetSeconds = calculateSecondsUntilTime(washed.time);
+    const area = draft.extractedMetadata.area || "Kortedala";
+    const { coords, cloakedCoords } = getCoordsForArea(area);
+    const offsetSeconds = calculateSecondsUntilTime(draft.extractedMetadata.time || "18:00");
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
-
     const status = isAdmin ? "active" : "pending";
 
     const newAnnouncement: ActiveAlert = {
       id,
       type: "leader_invitation",
-      rawText: trimmedText,
-      scrubbedText: washed.scrubbedText,
-      area: washed.area || "Kortedala",
-      time: washed.time || "Ospecificerad tid",
-      gender: "Alla",
-      language: "Svenska",
-      locationName: washed.locationName || washed.area || "Göteborg",
-      coords: washed.coords,
-      cloakedCoords: washed.cloakedCoords,
+      rawText: draft.rawText,
+      scrubbedText: draft.rawText, // Maintain original personal text exactly
+      area,
+      time: draft.extractedMetadata.time || "Ospecificerad tid",
+      gender: draft.extractedMetadata.audience || "Alla",
+      language: draft.extractedMetadata.language || "Svenska",
+      locationName: draft.extractedMetadata.locationName || area,
+      coords,
+      cloakedCoords,
       timestamp: Date.now(),
-      responsibleParty: washed.responsibleParty || (isAdmin ? "Arrangör" : "Medlem"),
+      responsibleParty: draft.extractedMetadata.organization || (isAdmin ? "Arrangör" : "Medlem"),
       contactType: "sms",
-      contactValue: washed.contactValue || sender,
+      contactValue: sender,
       expiryTimestamp,
-      category: washed.category || "Måltid & Gemenskap",
+      category: draft.extractedMetadata.category || "Måltid & Gemenskap",
       isFull: false,
       status
     };
 
     activeAlerts[id] = newAnnouncement;
     saveActiveAlerts();
+    smsDrafts.delete(sender);
 
     if (status === "pending") {
-      // Log internal simulation moderation message
       const adminListStr = adminNumbers.filter(num => num !== "+46701234567").join(", ");
       const modMsg = `MODERERINGS-NOTIFIERING till samordningsgruppen [${adminListStr}]: "Nytt inlägg för granskning (ID: ${id}). Svara #GODKÄNN ${id} eller #AVVISA ${id}."`;
       addSimLog("system", modMsg);
@@ -465,14 +504,89 @@ app.post("/api/incoming-sms", async (req, res) => {
       });
     }
 
-    // Trigger background Web Push to matching volunteers for active announcements
     await triggerPushAlert(newAnnouncement);
-
-    addSimLog("system", `NY INBJUDAN SKAPAD: "${newAnnouncement.scrubbedText.substring(0, 50)}..." i [${newAnnouncement.area}] av ${newAnnouncement.responsibleParty}. Kategori: ${newAnnouncement.category}.`);
-    res.json({
+    addSimLog("system", `NY INBJUDAN SKAPAD VIA SMS: "${newAnnouncement.scrubbedText.substring(0, 50)}..." i [${newAnnouncement.area}] av ${newAnnouncement.responsibleParty}.`);
+    return res.json({
       success: true,
       id,
       replyMessage: `Din inbjudan (ID: ${id}) har lagts upp direkt på tavlan! Radera med DEL ${id} eller markera som full med FULL ${id}.`
+    });
+  }
+
+  // Handle #AVSÄNDARE <Namn> command
+  const avsandareMatch = trimmedText.match(/^#AVSÄNDARE\s+(.+)$/i);
+  if (avsandareMatch) {
+    const draft = smsDrafts.get(sender);
+    if (!draft) {
+      return res.json({
+        success: false,
+        replyMessage: "Du har inget aktivt utkast att uppdatera. Skriv din inbjudan först."
+      });
+    }
+
+    const proposedOrg = avsandareMatch[1].trim();
+    const allowedOrgs = [
+      "Enskild/Familj", "Missionärerna", "Församlingsmissionen", "Biskopsrådet", "Äldstekvorumet", 
+      "Hjälpföreningen", "Unga Män (UM)", "Unga Kvinnor (UK)", "Primär", "Söndagsskolan", 
+      "Aktivitetskommittén", "Unga vuxna (UV)", "Ensamstående vuxna (EV)", "Institutet", 
+      "Seminariet", "Staven"
+    ];
+
+    const matchedOrg = allowedOrgs.find(org => 
+      org.toLowerCase() === proposedOrg.toLowerCase() || 
+      org.toLowerCase().includes(proposedOrg.toLowerCase())
+    );
+
+    if (matchedOrg) {
+      draft.extractedMetadata.organization = matchedOrg;
+      draft.timestamp = Date.now();
+      return res.json({
+        success: true,
+        replyMessage: `Utkastet uppdaterat! Ny avsändare: ${matchedOrg}. Svara #PUBLICERA för att godkänna och lägga upp.`
+      });
+    } else {
+      return res.json({
+        success: false,
+        replyMessage: `Hittade inte avsändaren. Tillåtna avsändare: Enskild/Familj, Missionärerna, Församlingsmissionen, Biskopsrådet, Äldstekvorumet, Hjälpföreningen, Unga Män (UM), Unga Kvinnor (UK), Primär, Söndagsskolan, Aktivitetskommittén, Unga vuxna (UV), Ensamstående vuxna (EV), Institutet, Seminariet, Staven.`
+      });
+    }
+  }
+
+  // 2. Validate non-admin text prefix requirements
+  if (!isAdmin && !trimmedText.startsWith("#")) {
+    addSimLog("system", `AVVISAT INLÄGG från ${sender}: Meddelandet saknar '#' prefix.`);
+    return res.json({
+      success: false,
+      replyMessage: "Inlägget avvisades. Som medlem i allmänheten måste du starta med '#' framför ditt meddelande för att köa det i väntrummet (t.ex: # [Kortedala] [18:00] Middag), eller be en samordnare lägga upp det."
+    });
+  }
+
+  // Strip leading '#' for parsing if present
+  const textToProcess = trimmedText.startsWith("#") ? trimmedText.substring(1).trim() : trimmedText;
+
+  // Process as potential new SMS draft
+  try {
+    const washed = await runGeminiWash(textToProcess);
+
+    if (washed.warnings.missingAreaForTeaching) {
+      return res.json({
+        success: false,
+        replyMessage: "Inlägget avvisades. För att rätt lokala stödsyskon ska nås måste du ange vilket område personen bor i."
+      });
+    }
+
+    const newDraft: SmsDraft = {
+      rawText: textToProcess,
+      extractedMetadata: washed.extractedMetadata,
+      missingAreaForTeaching: washed.warnings.missingAreaForTeaching,
+      timestamp: Date.now()
+    };
+
+    smsDrafts.set(sender, newDraft);
+
+    return res.json({
+      success: true,
+      replyMessage: `Föreslagen avsändare: ${washed.extractedMetadata.organization}. Svara #PUBLICERA för att godkänna, eller justera (t.ex. #AVSÄNDARE Enskild/Familj).`
     });
 
   } catch (err: any) {

@@ -82,7 +82,10 @@ export function getVapidPublicKey() {
 // Trigger Web Push notifications to matching volunteers and await delivery to return the final count
 export async function triggerPushAlert(alert: ActiveAlert): Promise<number> {
   let pushCount = 0;
-  addSimLog("system", `Router matchar larm i [${alert.area}] mot anonyma prenumeranter.`);
+  const escalation = alert.escalationLevel || 1;
+  const isCommon = ["Biskopsrådet", "Församlingsmissionärerna", "Aktivitetskommittén", "Staven"].includes(alert.responsibleParty);
+
+  addSimLog("system", `Router matchar inbjudan i [${alert.area}] från ${alert.responsibleParty} (Escalation Level: ${alert.escalationLevel || 0}, Gemensam: ${isCommon}).`);
 
   const ttlSeconds = calculateSecondsUntilTime(alert.time);
   addSimLog("system", `Beräknat larm TTL: ${ttlSeconds} sekunder fram till kl ${alert.time}.`);
@@ -105,39 +108,61 @@ export async function triggerPushAlert(alert: ActiveAlert): Promise<number> {
   const normAlert = normalize(alertLang);
 
   for (const s of subscriptions) {
-    const areaMatch = s.tags.areas.includes(alert.area);
-    const hasMatch = areaMatch || s.tags.alwaysNotify;
+    let hasMatch = false;
+
+    if (isCommon) {
+      // Scenario 1: Gemensam aktivitet - skicka till ALLA aktiva prenumeranter
+      hasMatch = true;
+    } else if (alert.escalationLevel === 1) {
+      // Scenario 2: Lokalt Stöd - Nivå 1 - ENBART prenumeranter vars valda stödområde (Sektion A) matchar stadsdelen
+      hasMatch = s.tags.primaryArea === alert.area;
+    } else if (alert.escalationLevel === 2) {
+      // Scenario 3: Lokalt Stöd - Nivå 2 / #EXPANDERA - samtliga resterande prenumeranter som bevakar området
+      const isRemaining = s.tags.primaryArea !== alert.area;
+      const monitorsArea = !s.tags.limitAreas || (s.tags.limitedAreas || []).includes(alert.area);
+      hasMatch = isRemaining && monitorsArea;
+    } else {
+      // Standard filtering for non-escalation / default alerts
+      const monitorsArea = s.tags.primaryArea === alert.area || !s.tags.limitAreas || (s.tags.limitedAreas || []).includes(alert.area);
+      const matchesOrg = !s.tags.limitOrganizations || (s.tags.limitedOrganizations || []).includes(alert.responsibleParty);
+      hasMatch = monitorsArea && matchesOrg;
+    }
 
     if (hasMatch) {
-      // Organization-based filtering
-      const subOrg = s.tags.organization || "bror";
-      let orgMatches = true;
-      if (isBrorRequest && !isSysterRequest) {
-        orgMatches = subOrg === "bror";
-      } else if (isSysterRequest && !isBrorRequest) {
-        orgMatches = subOrg === "syster";
-      }
+      // For non-common messages, we can respect legacy brother/sister constraints & language
+      if (!isCommon) {
+        // Organization-based filtering (legacy brother/sister tag)
+        const subOrg = s.tags.organization || "bror";
+        let orgMatches = true;
+        if (isBrorRequest && !isSysterRequest) {
+          orgMatches = subOrg === "bror";
+        } else if (isSysterRequest && !isBrorRequest) {
+          orgMatches = subOrg === "syster";
+        }
 
-      if (!orgMatches) {
-        addSimLog("system", `Hoppar över prenumerant ${s.id.substring(0, 6)}... då larmet kräver ${alert.gender} och prenumeranten tillhör ${subOrg === "bror" ? "Äldstekvorum" : "Hjälpförening"}.`);
-        continue;
-      }
+        if (!orgMatches) {
+          addSimLog("system", `Hoppar över prenumerant ${s.id.substring(0, 6)}... då larmet kräver ${alert.gender} och prenumeranten tillhör ${subOrg === "bror" ? "Äldstekvorum" : "Hjälpförening"}.`);
+          continue;
+        }
 
-      // Language-based filtering
-      const subLangs = s.tags.languages || [];
-      const isMatched = subLangs.some(lang => {
-        const normSub = normalize(lang);
-        return normSub === normAlert || lang.toLowerCase().includes(alertLang) || alertLang.includes(lang.toLowerCase());
-      });
+        // Language-based filtering
+        const subLangs = s.tags.languages || [];
+        if (subLangs.length > 0) {
+          const isMatched = subLangs.some(lang => {
+            const normSub = normalize(lang);
+            return normSub === normAlert || lang.toLowerCase().includes(alertLang) || alertLang.includes(lang.toLowerCase());
+          });
 
-      if (!isMatched) {
-        addSimLog("system", `Hoppar över prenumerant ${s.id.substring(0, 6)}... då prenumeranten inte stödjer det önskade språket [${alert.language}].`);
-        continue;
+          if (!isMatched) {
+            addSimLog("system", `Hoppar över prenumerant ${s.id.substring(0, 6)}... då prenumeranten inte stödjer det önskade språket [${alert.language}].`);
+            continue;
+          }
+        }
       }
 
       // Build personalized payload including requireInteraction if user wanted it sticky
       const payload = JSON.stringify({
-        title: `Missionärsbehov i ${alert.area}!`,
+        title: isCommon ? `Gemensam inbjudan: ${alert.responsibleParty}` : `Missionärsbehov i ${alert.area}!`,
         body: `Plats: ~${alert.locationName} (${alert.gender}, ${alert.language}) kl ${alert.time}`,
         id: alert.id,
         requireInteraction: s.tags.requireInteraction ?? true // True by default

@@ -8,7 +8,7 @@ interface DisclaimerProps {
 }
 
 const DISCLAIMERS: Record<UiLanguage, string> = {
-  sv: "Fristående inofficiell tjänst, ej sponsrad av kyrkan. Ingen lagring av personuppgifter sker. Systemet sparar ingen historik.",
+  sv: "Detta är en fristående, inofficiell tjänst utan sponsring från kyrkan. Alla dina anpassade val sparas endast lokalt i din webbläsare och tjänsten varken ser eller sparar dina personuppgifter för att värna om din integritet.",
   en: "Independent unofficial service, not sponsored by the Church. No personal data storage takes place. The system stores no history.",
   es: "Servicio independiente no oficial, no patrocinado por la Iglesia. No se realiza almacenamiento de datos personales. El sistema no guarda historial.",
   sw: "Huduma huru isiyo rasmi, haijafadhiliwa na Kanisa. Hakuna uhifadhi wa data ya kibinafsi unaofanyika. Mfumo hauhifadhi historia yoyote.",

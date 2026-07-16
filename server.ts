@@ -152,21 +152,7 @@ setInterval(() => {
 // Express API Endpoints
 // ==========================================
 
-// GET and POST administrator numbers
-app.get("/api/admins", (req, res) => {
-  res.json({ admins: adminNumbers });
-});
-
-app.post("/api/admins", (req, res) => {
-  const { admins } = req.body;
-  if (!Array.isArray(admins)) {
-    return res.status(400).json({ error: "admins must be an array" });
-  }
-  adminNumbers = admins.map(num => String(num).trim()).filter(Boolean);
-  saveAdmins();
-  addSimLog("system", `SAMORDNINGSGRUPP UPPDATERAD: Ny lista med ${adminNumbers.length} nummer sparad.`);
-  res.json({ success: true, admins: adminNumbers });
-});
+// Administrator list is maintained strictly server-side/file-side.
 
 // Analyze raw text invitation with Gemini
 app.post("/api/wash", async (req, res) => {
@@ -201,6 +187,9 @@ app.post("/api/announcements", async (req, res) => {
     const offsetSeconds = calculateSecondsUntilTime(time || "18:00");
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
 
+    const isLektionAndSamtal = (category || "Måltid & Gemenskap") === "Lektion & Samtal" && (organization || "Enskild/Familj") === "Missionärerna";
+    const escalationLevel = isLektionAndSamtal ? 1 : undefined;
+
     const newAnnouncement: ActiveAlert = {
       id,
       type: "leader_invitation",
@@ -220,7 +209,8 @@ app.post("/api/announcements", async (req, res) => {
       expiryTimestamp,
       category: category || "Måltid & Gemenskap",
       isFull: false,
-      status: "pending"
+      status: "pending",
+      escalationLevel
     };
 
     activeAlerts[id] = newAnnouncement;
@@ -264,6 +254,11 @@ app.post("/api/subscription", (req, res) => {
     subscription,
     tags: {
       areas: tags?.areas || [],
+      primaryArea: tags?.primaryArea || "",
+      limitAreas: !!tags?.limitAreas,
+      limitedAreas: tags?.limitedAreas || [],
+      limitOrganizations: !!tags?.limitOrganizations,
+      limitedOrganizations: tags?.limitedOrganizations || [],
       languages: tags?.languages || [],
       organization: tags?.organization || "bror",
       formats: tags?.formats || ["physical"],
@@ -338,7 +333,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     addSimLog("system", `SMS-HJÄLP BEGÄRD av ${sender}.`);
     return res.json({
       success: true,
-      replyMessage: "Hjälpmeny:\n1. Skapa inlägg: Skriv din inbjudan. AI:n svarar med förslag som du godkänner.\n2. Godkänn webbinlägg: Svara #GODKÄNN [ID].\n3. Radera inlägg: Svara DEL [ID].\n4. Ändra avsändare i utkast: #AVSÄNDARE [Namn]."
+      replyMessage: "Hjälpmeny:\n1. Skapa inlägg: Skriv din inbjudan. AI:n svarar med förslag som du godkänner.\n2. Godkänn webbinlägg: Svara #GODKÄNN [ID].\n3. Radera inlägg: Svara DEL [ID].\n4. Markera fullbokad: Svara FULL [ID].\n5. Expandera larm: Svara #EXPANDERA [ID].\n6. Ändra avsändare i utkast: #AVSÄNDARE [Namn]."
     });
   }
 
@@ -440,6 +435,35 @@ app.post("/api/incoming-sms", async (req, res) => {
     return res.json({ success: true, replyMessage: `Inbjudan ${id} har markerats som fullbokad.` });
   }
 
+  // Parse Command #EXPANDERA <ID>
+  const expanderaMatch = trimmedText.match(/^#EXPANDERA\s+(\d+)$/i);
+  if (expanderaMatch) {
+    const id = expanderaMatch[1];
+    const alert = activeAlerts[id];
+    if (!alert) {
+      addSimLog("system", `KOMMANDO MISSLYCKADES: #EXPANDERA ${id} hittades inte.`);
+      return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
+    }
+
+    const isAuthorized = isAdmin || sender === alert.contactValue;
+    if (!isAuthorized) {
+      addSimLog("system", `AVVISAD EXPANDERA: ${sender} har inte behörighet att expandera inbjudan ${id}.`);
+      return res.status(403).json({ error: "Obehörig avsändare." });
+    }
+
+    alert.escalationLevel = 2;
+    saveActiveAlerts();
+
+    // Trigger push notifications now with level 2
+    await triggerPushAlert(alert);
+
+    addSimLog("system", `SMS EXPANDERA: Inbjudan ${id} har expanderats till alla bevakare av ${sender}.`);
+    return res.json({
+      success: true,
+      replyMessage: `Inbjudan ${id} har expanderats! Aviseringar har skickats till övriga stödsyskon som bevakar området.`
+    });
+  }
+
   // Handle #PUBLICERA command
   const isPublicera = trimmedText.toUpperCase() === "#PUBLICERA";
   if (isPublicera) {
@@ -465,6 +489,11 @@ app.post("/api/incoming-sms", async (req, res) => {
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
     const status = isAdmin ? "active" : "pending";
 
+    const draftCategory = draft.extractedMetadata.category || "Måltid & Gemenskap";
+    const draftOrg = draft.extractedMetadata.organization || (isAdmin ? "Arrangör" : "Medlem");
+    const isLektionAndSamtal = draftCategory === "Lektion & Samtal" && draftOrg === "Missionärerna";
+    const escalationLevel = isLektionAndSamtal ? 1 : undefined;
+
     const newAnnouncement: ActiveAlert = {
       id,
       type: "leader_invitation",
@@ -478,13 +507,14 @@ app.post("/api/incoming-sms", async (req, res) => {
       coords,
       cloakedCoords,
       timestamp: Date.now(),
-      responsibleParty: draft.extractedMetadata.organization || (isAdmin ? "Arrangör" : "Medlem"),
+      responsibleParty: draftOrg,
       contactType: "sms",
       contactValue: sender,
       expiryTimestamp,
-      category: draft.extractedMetadata.category || "Måltid & Gemenskap",
+      category: draftCategory,
       isFull: false,
-      status
+      status,
+      escalationLevel
     };
 
     activeAlerts[id] = newAnnouncement;
@@ -622,6 +652,9 @@ app.post("/api/incoming-email", async (req, res) => {
     const offsetSeconds = calculateSecondsUntilTime(washed.time);
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
 
+    const isLektionAndSamtal = (washed.category || "Måltid & Gemenskap") === "Lektion & Samtal" && (washed.responsibleParty || "Församlingsledare") === "Missionärerna";
+    const escalationLevel = isLektionAndSamtal ? 1 : undefined;
+
     const newAnnouncement: ActiveAlert = {
       id,
       type: "leader_invitation",
@@ -641,7 +674,8 @@ app.post("/api/incoming-email", async (req, res) => {
       expiryTimestamp,
       category: washed.category || "Måltid & Gemenskap",
       isFull: false,
-      status: "active"
+      status: "active",
+      escalationLevel
     };
 
     activeAlerts[id] = newAnnouncement;

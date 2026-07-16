@@ -1,33 +1,52 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
+
 import React, { useState, useEffect } from "react";
 import { Info, Calendar, Phone, Mail, MessageSquare, ExternalLink, X, Send, CheckCircle, Sparkles, ShieldAlert } from "lucide-react";
 import { ActiveAlert } from "../types";
 import { TRANSLATIONS, UiLanguage } from "../translations";
+import { GOTEBORG_AREAS } from "../domain/mapData";
 
 interface ActiveStreamProps {
   onSelectAlert: (id: string) => void;
   uiLanguage: UiLanguage;
+  savedTags: any;
+  showCreateModal: boolean;
+  setShowCreateModal: (open: boolean) => void;
+  onStreamCountChange?: (count: number) => void;
 }
 
-const AREAS = [
-  "Angered", "Kortedala", "Gamlestaden", "Hisingen", "Biskopsgården", "Lundby", "Partille", 
-  "Örgryte", "Johanneberg", "Majorna", "Mölndal", "Frölunda", "Torslanda", "Askim", "Härryda"
-];
-
 const ORGANIZATIONS = [
-  "Enskild/Familj", "Missionärerna", "Församlingsmissionen", "Biskopsrådet", "Äldstekvorumet", 
-  "Hjälpföreningen", "Unga Män (UM)", "Unga Kvinnor (UK)", "Primär", "Söndagsskolan", 
-  "Aktivitetskommittén", "Unga vuxna (UV)", "Ensamstående vuxna (EV)", "Institutet", 
-  "Seminariet", "Staven"
+  "Enskild/Familj",
+  "Missionärerna",
+  "Församlingsmissionen",
+  "Biskopsrådet",
+  "Äldstekvorumet",
+  "Hjälpföreningen",
+  "Unga Män (UM)",
+  "Unga Kvinnor (UK)",
+  "Primär",
+  "Söndagsskolan",
+  "Aktivitetskommittén",
+  "Unga vuxna (UV)",
+  "Ensamstående vuxna (EV)",
+  "Institutet",
+  "Seminariet",
+  "Staven"
 ];
 
-export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStreamProps) {
+export default function ActiveStream({
+  onSelectAlert,
+  uiLanguage,
+  savedTags,
+  showCreateModal,
+  setShowCreateModal,
+  onStreamCountChange
+}: ActiveStreamProps) {
   const [stream, setStream] = useState<ActiveAlert[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // New states for creating an invitation (Väntrummet)
-  const [showModal, setShowModal] = useState<boolean>(false);
+  // Form states for creating an invitation (Väntrummet)
   const [announcementText, setAnnouncementText] = useState<string>("");
   const [sending, setSending] = useState<boolean>(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -60,8 +79,13 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
       const res = await fetch("/api/sim/active-alerts");
       if (!res.ok) throw new Error("Failed to fetch active stream.");
       const data = await res.json();
-      // Sort with newest first
-      setStream(data.sort((a: any, b: any) => b.timestamp - a.timestamp));
+      
+      const sorted = data.sort((a: any, b: any) => b.timestamp - a.timestamp);
+      setStream(sorted);
+      
+      if (onStreamCountChange) {
+        onStreamCountChange(sorted.length);
+      }
     } catch (err: any) {
       setError(err.message || "Could not retrieve live stream.");
     } finally {
@@ -74,27 +98,6 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
     const interval = setInterval(fetchStream, 5000);
     return () => clearInterval(interval);
   }, []);
-
-  // Multi-language stream label helpers
-  const getStreamTitle = () => {
-    switch (uiLanguage) {
-      case "en": return "Invitations for you";
-      case "es": return "Invitaciones para ti";
-      case "sw": return "Mialiko kwako";
-      case "vi": return "Lời mời dành cho bạn";
-      default: return "Inbjudan till dig";
-    }
-  };
-
-  const getEmptyDesc = () => {
-    switch (uiLanguage) {
-      case "en": return "There are no active invitations in your chosen areas right now. You will receive a notification as soon as a new invitation is posted.";
-      case "es": return "No hay invitaciones activas en sus áreas seleccionadas en este momento. Recibirá una notificación tan pronto como se publique una nueva invitación.";
-      case "sw": return "Hakuna mialiko hai kwa sasa katika maeneo uliyochagua. Utapokea arifa mwaliko mpya unapowekwa.";
-      case "vi": return "Hiện tại không có lời mời nào trong các khu vực bạn đã chọn. Bạn sẽ nhận được thông báo ngay khi có lời mời mới.";
-      default: return "Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en notis så fort en ny inbjudan läggs upp.";
-    }
-  };
 
   const getOrganizerLabel = () => {
     switch (uiLanguage) {
@@ -116,23 +119,56 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
     }
   };
 
-  const getCountSuffix = () => {
-    if (stream.length === 1) {
-      switch (uiLanguage) {
-        case "en": return "invitation";
-        case "es": return "invitación";
-        case "sw": return "mwaliko";
-        case "vi": return "lời mời";
-        default: return "inbjudan";
+  // Dynamic filter logic based on savedTags
+  const filteredStream = stream.filter(item => {
+    if (!savedTags) return true;
+
+    // 1. Language Filter
+    if (savedTags.languages && savedTags.languages.length > 0) {
+      if (!savedTags.languages.includes(item.language)) {
+        return false;
       }
+    }
+
+    // 2. Organization Filter
+    if (savedTags.limitOrganizations && savedTags.limitedOrganizations && savedTags.limitedOrganizations.length > 0) {
+      if (!savedTags.limitedOrganizations.includes(item.responsibleParty)) {
+        return false;
+      }
+    }
+
+    // 3. Area Filter (Primary Area always bypasses geographic limits!)
+    const primary = savedTags.primaryArea;
+    if (primary && item.area === primary) {
+      return true;
+    }
+
+    if (savedTags.limitAreas && savedTags.limitedAreas && savedTags.limitedAreas.length > 0) {
+      if (!savedTags.limitedAreas.includes(item.area)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  const getStatusText = () => {
+    const x = filteredStream.length;
+    const y = stream.length;
+    if (uiLanguage === "sv") {
+      return `Visar ${x} av totalt ${y} inbjudningar`;
     } else {
-      switch (uiLanguage) {
-        case "en": return "invitations";
-        case "es": return "invitaciones";
-        case "sw": return "mialiko";
-        case "vi": return "lời mời";
-        default: return "inbjudningar";
-      }
+      return `Showing ${x} of ${y} invitations`;
+    }
+  };
+
+  const getEmptyDesc = () => {
+    switch (uiLanguage) {
+      case "en": return "There are no active invitations in your chosen areas right now. You will receive a notification as soon as a new invitation is posted.";
+      case "es": return "No hay invitaciones activas en sus áreas seleccionadas en este momento. Recibirá una notificación tan pronto como se publique una nueva invitación.";
+      case "sw": return "Hakuna mialiko hai kwa sasa katika maeneo uliyochagua. Utapokea arifa mwaliko mpya unapowekwa.";
+      case "vi": return "Hiện tại không có lời mời nào trong các khu vực bạn đã chọn. Bạn sẽ nhận được thông báo ngay khi có lời mời mới.";
+      default: return "Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en avisering så fort en ny inbjudan läggs upp.";
     }
   };
 
@@ -153,7 +189,6 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
       const data = await res.json();
       setWashResult(data);
 
-      // Pre-fill fields from AI metadata extraction
       setSelectedCategory(data.extractedMetadata.category || "Måltid & Gemenskap");
       setSelectedArea(data.extractedMetadata.area || "");
       setSelectedTime(data.extractedMetadata.time || "");
@@ -200,10 +235,11 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
       const data = await res.json();
       setToast(data.message || "Tack! Din inbjudan har placerats i väntrummet.");
       setAnnouncementText("");
-      setShowModal(false);
+      setShowCreateModal(false);
       setCurrentStep(1);
       setWashResult(null);
       setGdprChecked(false);
+      fetchStream();
     } catch (err: any) {
       alert("Fel vid inskickning: " + err.message);
     } finally {
@@ -220,106 +256,107 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
   }
 
   return (
-    <div className="space-y-8 w-full mt-4">
+    <div className="space-y-6 w-full max-w-2xl mx-auto">
       {toast && (
-        <div className="p-4 bg-brand-accent/5 border border-brand-accent/10 text-brand-accent text-xs font-mono uppercase tracking-wider rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-3 duration-200 max-w-2xl mx-auto">
+        <div id="toast-success-message" className="p-4 bg-brand-accent/5 border border-brand-accent/10 text-brand-accent text-xs font-mono uppercase tracking-wider rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-3 duration-200">
           <CheckCircle size={14} className="text-brand-accent shrink-0" />
           <span>{toast}</span>
         </div>
       )}
 
       {error && (
-        <div className="p-4 bg-brand-error/10 text-brand-error rounded-xl border border-brand-error/20 font-mono text-xs uppercase tracking-wider max-w-2xl mx-auto">
+        <div className="p-4 bg-brand-error/10 text-brand-error rounded-xl border border-brand-error/20 font-mono text-xs uppercase tracking-wider">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start w-full">
-        {/* Left Action Area */}
-        <div className="lg:col-span-5 flex flex-col gap-6 lg:sticky lg:top-8">
-          <div className="space-y-1">
-            <div className="font-mono text-[10px] text-brand-accent uppercase tracking-[0.2em]">Aktiv Status</div>
-            <div className="font-serif italic text-4xl sm:text-5xl lg:text-6xl text-brand-ink font-medium leading-none">
-              {stream.length} {getCountSuffix()}
-            </div>
-          </div>
+      {/* Center-column Status and Action Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-brand-ink/5">
+        <div className="space-y-1">
+          <div className="font-mono text-[9px] text-brand-accent uppercase tracking-wider">Status på anslagstavlan</div>
+          <h2 id="active-stream-status" className="font-serif italic text-lg md:text-xl text-brand-ink font-semibold">
+            {getStatusText()}
+          </h2>
+        </div>
+
+        {/* Show creation button on main page ONLY if stream count is 0 */}
+        {stream.length === 0 && (
           <button
-            onClick={() => setShowModal(true)}
-            className="bg-brand-accent hover:opacity-90 text-white font-medium text-xs uppercase tracking-[0.15em] py-4 px-6 rounded-xl transition-all cursor-pointer shadow-xs text-center duration-200"
+            id="main-page-invite-btn"
+            onClick={() => setShowCreateModal(true)}
+            className="bg-brand-accent hover:opacity-90 text-white font-medium text-[11px] uppercase tracking-[0.12em] py-2.5 px-4 rounded-xl transition-all cursor-pointer shadow-xs duration-200 shrink-0"
           >
-            + Skapa ny förfrågan
+            + Bjud in andra
           </button>
-        </div>
-
-        {/* Vertical divider line (hidden on small screens) */}
-        <div className="hidden lg:block lg:col-span-1 justify-self-center">
-          <div className="w-[1px] bg-brand-ink/10 h-64"></div>
-        </div>
-
-        {/* Right Info Area / Active Cards Stream */}
-        <div className="lg:col-span-6 space-y-6">
-          <div className="font-mono text-[10px] text-brand-accent uppercase tracking-[0.2em] mb-2">Meddelanden</div>
-
-          {stream.length === 0 ? (
-            <div className="message-box font-serif italic text-lg sm:text-xl lg:text-2xl text-brand-ink/70 leading-relaxed font-light">
-              {getEmptyDesc()}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {stream.map(item => {
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => onSelectAlert(item.id)}
-                    className="p-6 rounded-2xl border border-brand-ink/5 transition-all cursor-pointer bg-white hover:border-brand-accent/40 active:scale-[0.99] group relative overflow-hidden flex flex-col gap-4 duration-200"
-                    style={{ contentVisibility: "auto" }}
-                  >
-                    {/* Minimalist Top Indicator */}
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[9px] uppercase tracking-wider text-brand-accent bg-brand-paper px-2 py-0.5 rounded">
-                          {TRANSLATIONS[uiLanguage].activeRequest}
-                        </span>
-                        {stream.length > 1 && (
-                          <span className="font-mono text-[9px] text-brand-accent/60 bg-brand-paper/50 px-1.5 py-0.5 rounded">
-                            ID: {item.id}
-                          </span>
-                        )}
-                      </div>
-                      <span className="font-mono text-[9px] text-brand-accent/70 tracking-wider">
-                        {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Distrikt: {item.area}
-                      </span>
-                    </div>
-
-                    <p className="font-serif italic text-base md:text-lg text-brand-ink/90 leading-relaxed break-words font-light">
-                      ”{item.scrubbedText}”
-                    </p>
-
-                    <div className="flex items-center justify-between gap-3 pt-3 border-t border-brand-ink/5 text-[11px]">
-                      <div className="flex items-center gap-2 text-brand-ink/70">
-                        <div className="w-5 h-5 rounded-full bg-brand-paper flex items-center justify-center font-serif italic text-[10px] text-brand-ink/80 font-bold">
-                          {item.responsibleParty.substring(0, 2)}
-                        </div>
-                        <span className="font-medium">
-                          {getOrganizerLabel()}: {item.responsibleParty}
-                        </span>
-                      </div>
-
-                      <button className="font-mono text-[9px] uppercase tracking-[0.15em] text-brand-ink group-hover:opacity-100 opacity-60 border-b border-transparent group-hover:border-brand-ink pb-0.5 transition-all duration-200 flex items-center gap-1">
-                        {getButtonText()}
-                        <ExternalLink size={10} className="stroke-[1.5]" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* 2. INSKICKNINGS-MODAL (Väntrummet för utomstående inlägg) */}
-      {showModal && (
+      {/* Stream List Cards */}
+      {filteredStream.length === 0 ? (
+        <div className="p-8 bg-white border border-brand-ink/5 rounded-2xl text-center space-y-4">
+          <p className="font-serif italic text-sm sm:text-base text-brand-ink/70 leading-relaxed font-light">
+            {getEmptyDesc()}
+          </p>
+          {stream.length === 0 && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="bg-brand-accent hover:opacity-90 text-white font-medium text-[11px] uppercase tracking-[0.12em] py-3 px-5 rounded-xl transition-all cursor-pointer shadow-xs duration-200"
+            >
+              + Bjud in andra
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredStream.map(item => {
+            return (
+              <div
+                key={item.id}
+                id={`announcement-card-${item.id}`}
+                onClick={() => onSelectAlert(item.id)}
+                className="p-6 rounded-2xl border border-brand-ink/5 transition-all cursor-pointer bg-white hover:border-brand-accent/40 active:scale-[0.99] group relative overflow-hidden flex flex-col gap-4 duration-200 shadow-xs"
+              >
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-brand-accent bg-brand-paper px-2 py-0.5 rounded">
+                      {TRANSLATIONS[uiLanguage].activeRequest}
+                    </span>
+                    <span className="font-mono text-[9px] text-brand-accent/60 bg-brand-paper/50 px-1.5 py-0.5 rounded">
+                      ID: {item.id}
+                    </span>
+                  </div>
+                  <span className="font-mono text-[9px] text-brand-accent/70 tracking-wider">
+                    {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Distrikt: {item.area}
+                  </span>
+                </div>
+
+                <p className="font-serif italic text-base md:text-lg text-brand-ink/90 leading-relaxed break-words font-light">
+                  ”{item.scrubbedText}”
+                </p>
+
+                <div className="flex items-center justify-between gap-3 pt-3 border-t border-brand-ink/5 text-[11px]">
+                  <div className="flex items-center gap-2 text-brand-ink/70">
+                    <div className="w-5 h-5 rounded-full bg-brand-paper flex items-center justify-center font-serif italic text-[10px] text-brand-ink/80 font-bold">
+                      {item.responsibleParty.substring(0, 2)}
+                    </div>
+                    <span className="font-medium">
+                      {getOrganizerLabel()}: {item.responsibleParty}
+                    </span>
+                  </div>
+
+                  <button className="font-mono text-[9px] uppercase tracking-[0.12em] text-brand-ink group-hover:opacity-100 opacity-60 border-b border-transparent group-hover:border-brand-ink pb-0.5 transition-all duration-200 flex items-center gap-1">
+                    {getButtonText()}
+                    <ExternalLink size={10} className="stroke-[1.5]" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 2. INSKICKNINGS-MODAL */}
+      {showCreateModal && (
         <div className="fixed inset-0 bg-brand-ink/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div 
             className="bg-brand-bg rounded-2xl w-full max-w-lg overflow-hidden shadow-xl border border-brand-ink/5 animate-in zoom-in-95 duration-200"
@@ -328,16 +365,16 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-brand-ink/5 flex items-center justify-between bg-white">
               <div>
-                <h3 className="font-serif italic text-lg text-brand-ink font-medium">Skapa inbjudan</h3>
+                <h3 className="font-serif italic text-lg text-brand-ink font-medium">Bjud in andra</h3>
                 <p className="font-mono text-[9px] text-brand-accent uppercase tracking-wider mt-0.5">
                   {currentStep === 1 
-                    ? "Steg 1: Skriv inbjudan och låt AI extrahera detaljer" 
+                    ? "Steg 1: Beskriv inbjudan och låt AI extrahera detaljer" 
                     : "Steg 2: Granska förslag, justera och godkänn"
                   }
                 </p>
               </div>
               <button 
-                onClick={() => setShowModal(false)}
+                onClick={() => setShowCreateModal(false)}
                 className="p-1 hover:bg-brand-paper rounded-full text-brand-ink/50 hover:text-brand-ink transition-colors cursor-pointer"
               >
                 <X size={16} />
@@ -364,11 +401,10 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                   </span>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex items-center justify-end gap-4 pt-3 border-t border-brand-ink/5">
                   <button
                     type="button"
-                    onClick={() => setShowModal(false)}
+                    onClick={() => setShowCreateModal(false)}
                     className="font-mono text-[10px] uppercase tracking-wider text-brand-ink/60 hover:text-brand-ink transition-all cursor-pointer"
                   >
                     Avbryt
@@ -391,7 +427,6 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
               </form>
             ) : (
               <form onSubmit={handleSubmitAnnouncement} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                {/* AI Advise Panel */}
                 <div className="p-4 bg-brand-accent/5 rounded-xl border border-brand-accent/15 flex gap-3">
                   <Sparkles size={16} className="text-brand-accent shrink-0 mt-0.5" />
                   <div className="space-y-1">
@@ -402,7 +437,6 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                   </div>
                 </div>
 
-                {/* Warnings / Geographic blocking */}
                 {washResult?.warnings?.missingAreaForTeaching && !selectedArea && (
                   <div className="p-3 bg-brand-error/10 text-brand-error rounded-xl border border-brand-error/20 font-mono text-[10px] uppercase tracking-wider flex items-center gap-2">
                     <ShieldAlert size={14} className="shrink-0" />
@@ -410,9 +444,7 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                   </div>
                 )}
 
-                {/* Grid with Editable Fields */}
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Category */}
                   <div className="space-y-1">
                     <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Kategori</label>
                     <select
@@ -426,7 +458,6 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                     </select>
                   </div>
 
-                  {/* Area */}
                   <div className="space-y-1">
                     <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Stöddistrikt / Område</label>
                     <select
@@ -435,11 +466,10 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                       className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
                     >
                       <option value="">Välj område...</option>
-                      {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+                      {GOTEBORG_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
                   </div>
 
-                  {/* Time */}
                   <div className="space-y-1">
                     <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Tidpunkt (t.ex. 18:00)</label>
                     <input
@@ -451,7 +481,6 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                     />
                   </div>
 
-                  {/* Organization */}
                   <div className="space-y-1">
                     <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Ansvarig Avsändare</label>
                     <select
@@ -463,7 +492,6 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                     </select>
                   </div>
 
-                  {/* Location Name */}
                   <div className="space-y-1">
                     <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Platsnamn / Mötesplats</label>
                     <input
@@ -474,7 +502,6 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                     />
                   </div>
 
-                  {/* Language */}
                   <div className="space-y-1">
                     <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Språk / Tolkning</label>
                     <input
@@ -485,7 +512,6 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                     />
                   </div>
 
-                  {/* Audience */}
                   <div className="space-y-1 col-span-2">
                     <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Målgrupp</label>
                     <select
@@ -499,13 +525,11 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                   </div>
                 </div>
 
-                {/* Original text read-only */}
                 <div className="space-y-1 bg-brand-paper p-3 rounded-lg border border-brand-ink/5">
-                  <div className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Originaltext (Omodifierad personlig inbjudan)</div>
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">Originaltext</div>
                   <p className="text-xs text-brand-ink/80 italic">”{announcementText}”</p>
                 </div>
 
-                {/* GDPR Consent Checkbox */}
                 <div className="pt-2">
                   <label className="flex items-start gap-2.5 text-[11px] text-brand-ink/70 leading-normal cursor-pointer select-none">
                     <input
@@ -520,7 +544,6 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                   </label>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex items-center justify-between pt-4 border-t border-brand-ink/5">
                   <button
                     type="button"
@@ -532,7 +555,7 @@ export default function ActiveStream({ onSelectAlert, uiLanguage }: ActiveStream
                   <div className="flex items-center gap-4">
                     <button
                       type="button"
-                      onClick={() => setShowModal(false)}
+                      onClick={() => setShowCreateModal(false)}
                       className="font-mono text-[10px] uppercase tracking-wider text-brand-ink/60 hover:text-brand-ink transition-all cursor-pointer"
                     >
                       Avbryt

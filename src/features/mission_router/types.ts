@@ -18,6 +18,11 @@ export interface SubscriptionRecord {
   subscription: ClientPushSubscription;
   tags: {
     areas: string[];
+    primaryArea?: string;
+    limitAreas?: boolean;
+    limitedAreas?: string[];
+    limitOrganizations?: boolean;
+    limitedOrganizations?: string[];
     languages?: string[];
     organization?: string;
     formats: ("physical" | "telephone")[];
@@ -57,6 +62,7 @@ export interface ActiveAlert {
   category?: string;
   isFull?: boolean;
   status?: 'active' | 'pending';
+  escalationLevel?: number;
   totalActiveAlerts?: number;
 }
 

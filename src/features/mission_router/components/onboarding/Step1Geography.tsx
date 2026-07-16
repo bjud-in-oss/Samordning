@@ -137,22 +137,15 @@ export default function Step1Geography({
   return (
     <div id="step-1-container" className="bg-white rounded-2xl p-6 md:p-8 border border-brand-ink/5 space-y-6 shadow-xs animate-in fade-in duration-200">
       
-      {/* Snygg grön bakgrundsbanner bakom sektionsrubriken */}
-      <div className="relative overflow-hidden rounded-xl bg-emerald-800 text-white p-6 shadow-sm">
-        <div className="absolute right-0 bottom-0 opacity-10 translate-y-6 translate-x-6 pointer-events-none">
-          <svg width="130" height="130" fill="currentColor" viewBox="0 0 100 100">
-            <path d="M50 0 L100 50 L50 100 L0 50 Z" />
-          </svg>
-        </div>
-        <div className="relative z-10 space-y-2">
-          <span className="font-mono text-[9px] uppercase tracking-wider bg-white/20 text-white px-2.5 py-1 rounded">
-            Steg 1 av 4
-          </span>
-          <h3 className="font-serif italic text-xl font-medium">Din insats som lokalt stöd</h3>
-          <p className="text-white/90 text-xs leading-relaxed font-light">
-            Välj den plats där du i första hand kan ge lokalt stöd (t.ex. vid lektioner, samtal eller praktisk hjälp). Denna plats blir ditt primära bevakningsområde.
-          </p>
-        </div>
+      {/* Rent och avskalat steg-rubrik-avsnitt */}
+      <div className="space-y-1.5 pb-2">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-brand-accent font-semibold">
+          Steg 1 av 4
+        </span>
+        <h3 className="font-serif italic text-xl font-medium text-brand-ink">Din insats som lokalt stöd</h3>
+        <p className="text-brand-ink/70 text-xs leading-relaxed font-light">
+          Välj den plats där du i första hand kan ge lokalt stöd (t.ex. vid lektioner, samtal eller praktisk hjälp). Denna plats blir ditt primära bevakningsområde.
+        </p>
       </div>
 
       {/* Area Grid selector (Single select for Primary area) */}

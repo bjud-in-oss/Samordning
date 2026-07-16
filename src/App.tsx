@@ -55,6 +55,21 @@ export default function App() {
 
   // Real-time visual feedback syncing state
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [isOnline, setIsOnline] = useState<boolean>(() => {
+    return typeof navigator !== "undefined" ? navigator.onLine : true;
+  });
+
+  useEffect(() => {
+    const updateOnlineStatus = () => {
+      setIsOnline(navigator.onLine);
+    };
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+    return () => {
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
+    };
+  }, []);
 
   // Sync state feedback whenever tags are saved
   useEffect(() => {
@@ -256,164 +271,67 @@ export default function App() {
     );
   }
 
+  const tabs = [
+    { id: "stream", label: TRANSLATIONS[uiLanguage].tabInvitations },
+    { id: "create", label: TRANSLATIONS[uiLanguage].tabCreateInvitation },
+    { id: "settings", label: TRANSLATIONS[uiLanguage].tabCustomize }
+  ] as const;
+
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col font-sans text-brand-ink selection:bg-brand-accent selection:text-white pb-12">
       
       {/* Sticky Top Header Bar */}
       <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-brand-ink/10 z-50 w-full shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-1.5 select-none">
-          <div className="flex items-center justify-between text-xs font-mono text-brand-ink/80">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse shrink-0"></span>
-              <span className="font-semibold text-brand-ink">
-                {TRANSLATIONS[uiLanguage].primaryAreaLabel}:{" "}
-                <span className="text-brand-accent italic font-serif">
-                  {savedTags?.primaryArea || TRANSLATIONS[uiLanguage].noAreaSelected}
-                </span>
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 text-[10px] sm:text-xs">
-              {isSyncing ? (
-                <span className="flex items-center gap-1.5 text-emerald-600 font-semibold animate-pulse">
-                  <svg
-                    className="animate-spin h-3.5 w-3.5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  {TRANSLATIONS[uiLanguage].syncingText}
-                </span>
+        <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between whitespace-nowrap overflow-hidden select-none">
+          {/* VÄNSTER SIDA */}
+          <div className="flex items-center gap-2 min-w-0 flex-1 mr-4">
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${
+                isSyncing
+                  ? "bg-brand-ocean animate-pulse"
+                  : isOnline
+                  ? "bg-brand-accent"
+                  : "bg-brand-error"
+              }`}
+              title={
+                isSyncing
+                  ? TRANSLATIONS[uiLanguage].syncSyncing
+                  : TRANSLATIONS[uiLanguage].syncSynced
+              }
+            ></span>
+            <span className="text-xs font-sans text-brand-ink/80 truncate">
+              {activeTab === "settings" ? (
+                TRANSLATIONS[uiLanguage].showingCount
+                  .replace("{count}", String(streamCounts.filtered))
+                  .replace("{total}", String(streamCounts.total))
               ) : (
-                <span className="flex items-center gap-1.5 text-brand-ink/50 font-medium">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  {TRANSLATIONS[uiLanguage].realtimeSynced}
-                </span>
+                <>
+                  {TRANSLATIONS[uiLanguage].primaryAreaLabel}:{" "}
+                  <span className="italic font-serif text-brand-accent font-medium">
+                    {savedTags?.primaryArea || TRANSLATIONS[uiLanguage].noAreaSelected}
+                  </span>
+                </>
               )}
-            </div>
-          </div>
-
-          <div className="border-t border-brand-ink/5 pt-1.5 flex items-center justify-between text-[10px] font-mono text-brand-ink/60">
-            <span>
-              {TRANSLATIONS[uiLanguage].showingCount
-                .replace("{count}", String(streamCounts.filtered))
-                .replace("{total}", String(streamCounts.total))}
             </span>
           </div>
-        </div>
-      </div>
 
-      {/* Brand Header Section */}
-      <header id="app-header" className="py-6 px-4 max-w-7xl mx-auto w-full flex items-baseline justify-between shrink-0">
-        <div className="title-block">
-          <h1 className="font-serif italic text-2xl sm:text-3xl font-medium tracking-tight text-brand-ink leading-none">
-            {TRANSLATIONS[uiLanguage].gatewayTitle}
-          </h1>
-        </div>
-
-        {/* Change language action */}
-        {uiLanguage && (
+          {/* HÖGER SIDA */}
           <button
             id="change-language-btn"
             onClick={() => {
               localStorage.removeItem("mission_router_ui_language");
               setUiLanguage(null);
             }}
-            className="text-brand-ink opacity-60 hover:opacity-100 transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs font-mono uppercase tracking-wider"
+            className="text-brand-ink opacity-60 hover:opacity-100 transition-all cursor-pointer flex items-center justify-center p-1 shrink-0"
             title="Ändra språk / Change language"
           >
-            <Languages size={15} className="stroke-[1.5]" />
-            <span>Språk</span>
+            <Languages size={18} className="stroke-[1.5]" />
           </button>
-        )}
-      </header>
-
-      {/* Tab Menu Header Row */}
-      <div className="bg-white/80 border-b border-brand-ink/5 sticky top-[69px] sm:top-[71px] z-40 w-full mb-6">
-        <div className="max-w-7xl mx-auto px-4 py-2.5">
-          
-          {/* Mobile Navigation Tabs Selector (< lg) */}
-          <div className="flex lg:hidden items-center justify-around bg-brand-bg p-1 rounded-xl border border-brand-ink/5">
-            <button
-              id="mobile-tab-stream"
-              onClick={() => handleTabChange("stream")}
-              className={`flex-1 py-2.5 text-xs font-medium rounded-lg text-center transition-all ${
-                activeTab === "stream"
-                  ? "bg-white text-brand-ink shadow-xs font-semibold"
-                  : "text-brand-ink/65 hover:text-brand-ink"
-              }`}
-            >
-              {TRANSLATIONS[uiLanguage].tabInvitations}
-            </button>
-            <button
-              id="mobile-tab-create"
-              onClick={() => handleTabChange("create")}
-              className={`flex-1 py-2.5 text-xs font-medium rounded-lg text-center transition-all ${
-                activeTab === "create"
-                  ? "bg-white text-brand-ink shadow-xs font-semibold"
-                  : "text-brand-ink/65 hover:text-brand-ink"
-              }`}
-            >
-              {TRANSLATIONS[uiLanguage].tabCreateInvitation}
-            </button>
-            <button
-              id="mobile-tab-settings"
-              onClick={() => handleTabChange("settings")}
-              className={`flex-1 py-2.5 text-xs font-medium rounded-lg text-center transition-all ${
-                activeTab === "settings"
-                  ? "bg-white text-brand-ink shadow-xs font-semibold"
-                  : "text-brand-ink/65 hover:text-brand-ink"
-              }`}
-            >
-              {TRANSLATIONS[uiLanguage].tabCustomize}
-            </button>
-          </div>
-
-          {/* Desktop Navigation Tabs Selector (>= lg) */}
-          <div className="hidden lg:flex items-center justify-start gap-6">
-            <button
-              id="desktop-tab-stream"
-              onClick={() => handleTabChange("stream")}
-              className={`py-2 text-sm font-medium border-b-2 transition-all cursor-pointer ${
-                activeTab === "stream" || activeTab === "settings"
-                  ? "border-brand-accent text-brand-ink font-semibold"
-                  : "border-transparent text-brand-ink/65 hover:text-brand-ink"
-              }`}
-            >
-              {TRANSLATIONS[uiLanguage].tabInvitations}
-            </button>
-            <button
-              id="desktop-tab-create"
-              onClick={() => handleTabChange("create")}
-              className={`py-2 text-sm font-medium border-b-2 transition-all cursor-pointer ${
-                activeTab === "create"
-                  ? "border-brand-accent text-brand-ink font-semibold"
-                  : "border-transparent text-brand-ink/65 hover:text-brand-ink"
-              }`}
-            >
-              {TRANSLATIONS[uiLanguage].tabCreateInvitation}
-            </button>
-          </div>
-
         </div>
       </div>
 
       {/* Main Responsive Grid Layout */}
-      <main className="flex-1 p-4 max-w-7xl w-full mx-auto">
+      <main className="flex-1 p-4 max-w-xl w-full mx-auto flex flex-col">
         {pushError && (
           <div className="mb-6 bg-brand-error/10 border border-brand-error/20 rounded-2xl p-4 flex items-center gap-3 text-xs text-brand-error animate-in fade-in duration-200">
             <ShieldAlert size={16} className="shrink-0 text-brand-error" />
@@ -430,13 +348,33 @@ export default function App() {
             uiLanguage={uiLanguage || "sv"}
           />
         ) : (
-          <div className="animate-in fade-in duration-200">
-            {/* The Unified Grid containing Sidebar (Left) and Content (Right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              
-              {/* LEFT SPALT (Desktop: Permanent settings; Mobile: Shown only on "settings" tab) */}
-              <div className={`lg:col-span-5 ${activeTab === "settings" ? "block" : "hidden lg:block"}`}>
-                <div className="bg-white/40 p-4 rounded-3xl border border-brand-ink/5 lg:sticky lg:top-[140px]">
+          <div className="animate-in fade-in duration-200 space-y-6">
+            
+            {/* Dynamic Navigation Links (Diskreta klickbara länkar för de två inaktiva flikarna) */}
+            <div className="flex items-center justify-center gap-6 text-[11px] font-mono text-brand-ink/40 uppercase tracking-widest pt-2">
+              {tabs.filter(t => t.id !== activeTab).map(tab => (
+                <button
+                  key={tab.id}
+                  id={`nav-link-${tab.id}`}
+                  onClick={() => handleTabChange(tab.id)}
+                  className="hover:text-brand-accent hover:underline transition-all cursor-pointer font-medium"
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Active Tab H1 Heading */}
+            <div className="text-center">
+              <h1 className="font-serif italic text-3xl sm:text-4xl font-medium tracking-tight text-brand-ink leading-tight">
+                {tabs.find(t => t.id === activeTab)?.label}
+              </h1>
+            </div>
+
+            {/* Dynamic Content */}
+            <div className="w-full">
+              {activeTab === "settings" && (
+                <div className="bg-white/40 p-5 rounded-3xl border border-brand-ink/5">
                   <OnboardingWizard
                     onSave={handleSaveTags}
                     savedTags={savedTags}
@@ -446,40 +384,29 @@ export default function App() {
                     uiLanguage={uiLanguage || "sv"}
                   />
                 </div>
-              </div>
+              )}
 
-              {/* RIGHT SPALT (Desktop: Dynamic feed/create tabs; Mobile: Shown on "stream" or "create" tab) */}
-              <div className={`lg:col-span-7 ${activeTab !== "settings" ? "block" : "hidden lg:block"}`}>
-                
-                {/* Notice Stream Tab content */}
-                {(activeTab === "stream" || activeTab === "settings") && (
-                  <div className="animate-in fade-in duration-200">
-                    <ActiveStream
-                      onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
-                      uiLanguage={uiLanguage || "sv"}
-                      savedTags={savedTags}
-                      onStreamCountChange={handleStreamCountChange}
-                      inlineCreate={false}
-                    />
-                  </div>
-                )}
+              {activeTab === "stream" && (
+                <ActiveStream
+                  onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
+                  uiLanguage={uiLanguage || "sv"}
+                  savedTags={savedTags}
+                  onStreamCountChange={handleStreamCountChange}
+                  inlineCreate={false}
+                />
+              )}
 
-                {/* Create Invitation Inline Form Tab content */}
-                {activeTab === "create" && (
-                  <div className="animate-in fade-in duration-200">
-                    <ActiveStream
-                      onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
-                      uiLanguage={uiLanguage || "sv"}
-                      savedTags={savedTags}
-                      onStreamCountChange={handleStreamCountChange}
-                      inlineCreate={true}
-                    />
-                  </div>
-                )}
-
-              </div>
-
+              {activeTab === "create" && (
+                <ActiveStream
+                  onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
+                  uiLanguage={uiLanguage || "sv"}
+                  savedTags={savedTags}
+                  onStreamCountChange={handleStreamCountChange}
+                  inlineCreate={true}
+                />
+              )}
             </div>
+
           </div>
         )}
       </main>

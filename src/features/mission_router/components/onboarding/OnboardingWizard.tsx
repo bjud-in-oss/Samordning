@@ -130,19 +130,27 @@ export default function OnboardingWizard({
     gdprAccepted
   ]);
 
+  const notificationsLabel = {
+    sv: "Mina notifieringar",
+    en: "My notifications",
+    es: "Mis notificaciones",
+    sw: "Arifa zangu",
+    vi: "Thông báo của tôi"
+  }[uiLanguage] || "Mina notifieringar";
+
   return (
-    <div className="space-y-6 max-w-2xl mx-auto pb-12">
+    <div className="space-y-6 max-w-2xl mx-auto pb-32">
       
       {/* Header med integrerad switch */}
       <div className="flex flex-col space-y-3 bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-ink/10 pb-4">
-          <h2 className="font-serif italic text-2xl text-brand-ink font-medium tracking-tight">
-            Anpassa mina val
+          <h2 className="font-sans text-xl text-brand-ink font-semibold tracking-tight">
+            {notificationsLabel}
           </h2>
           <div className="flex items-center gap-3">
             <span className="font-sans text-xs font-medium text-brand-ink/80 flex items-center gap-1.5 select-none">
               <Bell size={14} className="text-brand-accent shrink-0" />
-              Bli notifierad om inbjudningar
+              {t.onboardingHeader}
             </span>
             <button
               id="push-toggle-button"

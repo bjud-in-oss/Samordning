@@ -260,10 +260,7 @@ export default function ActiveStream({
 
         <div className="bg-white rounded-2xl p-6 md:p-8 border border-brand-ink/5 space-y-6 shadow-xs animate-in fade-in duration-200">
           <div>
-            <h3 className="font-serif italic text-xl text-brand-ink font-medium">
-              {TRANSLATIONS[uiLanguage].tabCreateInvitation.replace("+ ", "")}
-            </h3>
-            <p className="font-mono text-[9px] text-brand-accent uppercase tracking-wider mt-1">
+            <p className="font-mono text-[9px] text-brand-accent uppercase tracking-wider">
               {currentStep === 1 
                 ? (uiLanguage === "sv" ? "Steg 1: Beskriv inbjudan och låt AI extrahera detaljer" : "Step 1: Describe the invitation and let AI extract details") 
                 : (uiLanguage === "sv" ? "Steg 2: Granska förslag, justera och godkänn" : "Step 2: Review suggestions, adjust and approve")
@@ -554,6 +551,12 @@ export default function ActiveStream({
               </div>
             );
           })}
+          
+          <p className="text-center text-[10px] font-mono text-brand-ink/40 tracking-wider pt-6 pb-2">
+            {TRANSLATIONS[uiLanguage].showingCount
+              .replace("{count}", String(filteredStream.length))
+              .replace("{total}", String(stream.length))}
+          </p>
         </div>
       )}
     </div>

@@ -89,6 +89,8 @@ export interface TranslationDict {
   bulletinBoardStatus: string;
   realtimeSynced: string;
   syncingText: string;
+  syncSynced: string;
+  syncSyncing: string;
 }
 
 export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
@@ -97,7 +99,7 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     
-    onboardingHeader: "Bli notifierad om inbjudningar",
+    onboardingHeader: "Bli notifierad",
     onboardingSubtitle: "Du får då en diskret avisering direkt i din telefon när det finns en inbjudan till dig som matchar dina val. Allt sparas i ett flöde.",
     onboardingIntro: "Välkommen! Genom att ställa in fyra olika personliga preferenser nedan kan du välja exakt var och hur du vill delta och hjälpa till. Så fort ett behov uppstår som matchar din profil får du en diskret mobilavisering i realtid samtidigt som din integritet skyddas. Ingen annan än du kan se vilka notiser du följer eller tar emot. Endast den som du SMS:ar ett svar kan se när du svarar.",
     customizeChoicesBtn: "ANPASSA MINA VAL",
@@ -162,21 +164,23 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     sendingText: "Öppnar SMS...",
     footerNotice: "När du klickar på knappen öppnas din telefons inbyggda SMS-app med ett färdigskrivet meddelande till arrangörens dolda telefonnummer.",
     tabInvitations: "Inbjudan till dig",
-    tabCreateInvitation: "+ Bjud in andra",
-    tabCustomize: "Anpassa mina val",
+    tabCreateInvitation: "Bjud in andra",
+    tabCustomize: "Anpassa val",
     primaryAreaLabel: "Primärt område",
     noAreaSelected: "Inget förvalt område",
     showingCount: "Visar {count} av totalt {total} inbjudningar",
     bulletinBoardStatus: "Status på anslagstavlan",
     realtimeSynced: "Synkroniserad i realtid",
-    syncingText: "Synkroniserar..."
+    syncingText: "Synkroniserar...",
+    syncSynced: "Synkad",
+    syncSyncing: "Synkar"
   },
   en: {
     gatewayTitle: "Invitation for you",
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     
-    onboardingHeader: "Get notified of invitations",
+    onboardingHeader: "Get notified",
     onboardingSubtitle: "You will receive a discrete notification directly on your phone when there is an invitation for you that matches your choices. Everything is saved in a feed.",
     onboardingIntro: "Welcome! By setting four different personal preferences below, you can choose exactly where and how you want to participate and help. As soon as a need arises that matches your profile, you will receive a discrete mobile notification in real-time while your privacy is protected. No one but you can see which notifications you follow or receive. Only the person you SMS a reply to can see when you answer.",
     customizeChoicesBtn: "CUSTOMIZE MY CHOICES",
@@ -241,21 +245,23 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     sendingText: "Opening SMS...",
     footerNotice: "When you click the button, your phone's built-in SMS app opens with a pre-written message to the organizer's hidden phone number.",
     tabInvitations: "Invitation for you",
-    tabCreateInvitation: "+ Invite others",
-    tabCustomize: "Customize my choices",
+    tabCreateInvitation: "Invite others",
+    tabCustomize: "Customize choices",
     primaryAreaLabel: "Primary area",
     noAreaSelected: "No area selected",
     showingCount: "Showing {count} of total {total} invitations",
     bulletinBoardStatus: "Bulletin board status",
     realtimeSynced: "Synchronized in real time",
-    syncingText: "Syncing..."
+    syncingText: "Syncing...",
+    syncSynced: "Synced",
+    syncSyncing: "Syncing"
   },
   es: {
     gatewayTitle: "Invitación para ti",
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     
-    onboardingHeader: "Recibe notificaciones sobre invitaciones",
+    onboardingHeader: "Recibe notificaciones",
     onboardingSubtitle: "Recibirá una notificación discreta directamente en su teléfono cuando haya una invitación que coincida con sus elecciones. Todo se guarda en un flujo.",
     onboardingIntro: "¡Bienvenido! Al configurar cuatro preferencias personales diferentes a continuación, puede elegir exactamente dónde y cómo desea participar y ayudar. Tan pronto como surja una necesidad que coincida con su perfil, recibirá una notificación móvil discreta en tiempo real mientras se protege su privacidad. Nadie más que usted puede ver qué notificaciones sigue o recibe. Solo la persona a la que responda por SMS de forma privada podrá ver cuando responda.",
     customizeChoicesBtn: "PERSONALIZAR MIS SELECCIONES",
@@ -320,21 +326,23 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     sendingText: "Abriendo SMS...",
     footerNotice: "Al hacer clic en el botón, se abre la aplicación de SMS integrada de tu teléfono con un mensaje preescrito para el número oculto del organizador.",
     tabInvitations: "Invitación para ti",
-    tabCreateInvitation: "+ Invitar a otros",
-    tabCustomize: "Personalizar mis selecciones",
+    tabCreateInvitation: "Invitar a otros",
+    tabCustomize: "Personalizar selecciones",
     primaryAreaLabel: "Área primaria",
     noAreaSelected: "Ningún área seleccionada",
     showingCount: "Mostrando {count} de un total de {total} invitaciones",
     bulletinBoardStatus: "Estado de la cartelera",
     realtimeSynced: "Sincronizado en tiempo real",
-    syncingText: "Sincronizando..."
+    syncingText: "Sincronizando...",
+    syncSynced: "Sincronizado",
+    syncSyncing: "Sincronizando"
   },
   sw: {
     gatewayTitle: "Mwaliko kwako",
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     
-    onboardingHeader: "Pata arifa kuhusu mialiko",
+    onboardingHeader: "Pata arifa",
     onboardingSubtitle: "Utapokea arifa ya siri moja kwa moja kwenye simu yako wakati kuna mwaliko unaolingana na chaguo zako. Kila kitu kinahifadhiwa kwenye mkondo.",
     onboardingIntro: "Karibu! Kwa kuweka mapendeleo manne tofauti ya kibinafsi hapa chini, unaweza chagua haswa wapi na jinsi unavyotaka kushiriki na kusaidia. Mara tu hitaji linapotokea linalolingana na wasifu wako, utapokea arifa ya siri ya rununu kwa wakati halisi huku faragha yako ikilindwa. Hakuna mtu isipokuwa wewe anayeweza kuona ni arifa gani unazofuata au kupokea. Ni mtu tu unayemjibu kwa SMS ndiye anayeweza kuona unapojibu.",
     customizeChoicesBtn: "GEUZA CHAGUO ZANGU",
@@ -399,21 +407,23 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     sendingText: "Inafungua SMS...",
     footerNotice: "Unapobofya kitufe, programu ya SMS ya simu yako inafunguka na ujumbe uliotayarishwa kwenda kwa nambari iliyofichwa ya mratibu.",
     tabInvitations: "Mwaliko kwako",
-    tabCreateInvitation: "+ Alika wengine",
-    tabCustomize: "Anpassa chaguzi zangu",
+    tabCreateInvitation: "Alika wengine",
+    tabCustomize: "Anpassa chaguzi",
     primaryAreaLabel: "Eneo la msingi",
     noAreaSelected: "Hakuna eneo lililoteuliwa",
     showingCount: "Inaonyesha {count} kati ya jumla ya mialiko {total}",
     bulletinBoardStatus: "Hali ya ubao wa matangazo",
     realtimeSynced: "Imeoanishwa katika muda halisi",
-    syncingText: "Inasawazisha..."
+    syncingText: "Inasawazisha...",
+    syncSynced: "Imesawazishwa",
+    syncSyncing: "Inasawazisha"
   },
   vi: {
     gatewayTitle: "Lời mời dành cho bạn",
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     
-    onboardingHeader: "Nhận thông báo về lời mời",
+    onboardingHeader: "Nhận thông báo",
     onboardingSubtitle: "Bạn sẽ nhận được thông báo kín đáo trực tiếp trên điện thoại của mình khi có lời mời phù hợp với các lựa chọn của bạn. Mọi thứ được lưu trong một nguồn cấp dữ liệu.",
     onboardingIntro: "Chào mừng! Bằng cách thiết lập bốn tùy chọn cá nhân khác nhau bên dưới, bạn có thể chọn chính xác nơi và cách bạn muốn tham gia và giúp đỡ. Ngay khi có nhu cầu phù hợp với hồ sơ của bạn, bạn sẽ nhận được thông báo di động kín đáo trong thời gian thực trong khi quyền riêng tư của bạn được bảo vệ. Không ai ngoài bạn có thể thấy thông báo nào bạn theo dõi hoặc nhận. Chỉ người bạn trả lời qua SMS riêng tư mới có thể biết khi bạn trả lời.",
     customizeChoicesBtn: "TÙY CHỈNH LỰA CHỌN CỦA TÔI",
@@ -478,13 +488,15 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     sendingText: "Đang mở SMS...",
     footerNotice: "Khi bạn nhấp vào nút, ứng dụng SMS tích hợp trên điện thoại của bạn sẽ mở ra với một tin nhắn được viết sẵn gửi đến số điện thoại ẩn của người tổ chức.",
     tabInvitations: "Lời mời dành cho bạn",
-    tabCreateInvitation: "+ Mời người khác",
-    tabCustomize: "Tùy chỉnh lựa chọn của tôi",
+    tabCreateInvitation: "Mời người khác",
+    tabCustomize: "Tùy chỉnh lựa chọn",
     primaryAreaLabel: "Khu vực chính",
     noAreaSelected: "Chưa chọn khu vực",
     showingCount: "Hiển thị {count} trên tổng số {total} lời mời",
     bulletinBoardStatus: "Trạng thái bảng thông báo",
     realtimeSynced: "Được đồng bộ hóa trong thời gian thực",
-    syncingText: "Đang đồng bộ hóa..."
+    syncingText: "Đang đồng bộ hóa...",
+    syncSynced: "Đã đồng bộ",
+    syncSyncing: "Đang đồng bộ"
   }
 };

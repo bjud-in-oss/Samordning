@@ -1,4 +1,4 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/sms_assistant/4_Produce]
 
 import React, { useState, useEffect, useCallback } from "react";
 import { ShieldAlert, Languages, X, Smartphone } from "lucide-react";
@@ -7,6 +7,7 @@ import AlertDetail from "./features/mission_router/components/AlertDetail";
 import ActiveStream from "./features/mission_router/components/ActiveStream";
 import Disclaimer from "./features/mission_router/components/Disclaimer";
 import { TRANSLATIONS, UiLanguage } from "./features/mission_router/translations";
+import AdminConsole from "./features/sms_assistant/components/AdminConsole";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -20,6 +21,11 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export default function App() {
+  const isAdminConsole = typeof window !== "undefined" && window.location.search.includes("admin=true");
+  if (isAdminConsole) {
+    return <AdminConsole />;
+  }
+
   const [showIosModal, setShowIosModal] = useState<boolean>(false);
   const [uiLanguage, setUiLanguage] = useState<UiLanguage | null>(() => {
     return localStorage.getItem("mission_router_ui_language") as UiLanguage | null;

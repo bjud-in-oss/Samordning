@@ -48,7 +48,7 @@ Svara på användarens fråga kortfattat och varmt utifrån denna information.`;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemma-4-31b-it",
       contents: text,
       config: {
         systemInstruction,

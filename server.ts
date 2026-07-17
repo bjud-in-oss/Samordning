@@ -81,7 +81,7 @@ function getNextFreeId(): string {
   return String(next);
 }
 
-const API_SECRET = process.env.SMS_WEBHOOK_SECRET || "samordning-secret-2026";
+const API_SECRET = process.env.SMS_WEBHOOK_SEC || process.env.SMS_WEBHOOK_SECRET || "samordning-secret-2026";
 
 // Dynamic Administrator List backing data/admins.json
 const ADMINS_FILE = path.join(process.cwd(), "data", "admins.json");
@@ -327,7 +327,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     return res.status(400).json({ error: "Avsändare och text krävs." });
   }
 
-  const trimmedText = text.trim();
+  let trimmedText = text.trim();
   addSimLog("incoming", `Inkommande SMS från ${sender}: "${trimmedText}"`);
 
   const isAdmin = adminNumbers.includes(sender);
@@ -598,17 +598,53 @@ app.post("/api/incoming-sms", async (req, res) => {
   // If it is NOT a strict command, but starts with "#", it is ROUTE C (AI Support)
   if (trimmedText.startsWith("#")) {
     const textToProcess = trimmedText.substring(1).trim();
-    addSimLog("system", `SMS SUPPORT-FRÅGA från ${sender}: "${textToProcess}"`);
-    try {
-      const reply = await runSupportAgent(textToProcess);
-      addSimLog("system", `Svar från support-AI: "${reply}"`);
-      return res.json({
-        success: true,
-        replyMessage: reply
-      });
-    } catch (err: any) {
-      console.error("SMS support agent call failed:", err);
-      return res.status(500).json({ error: "Internt serverfel vid support-fråga." });
+    
+    // Check if this looks like an announcement draft rather than a support question.
+    const lower = textToProcess.toLowerCase();
+    const hasQuestionIndicator = lower.includes("?") || 
+      lower.includes("hur") || 
+      lower.includes("vad") || 
+      lower.includes("varför") || 
+      lower.includes("när") || 
+      lower.includes("vem") || 
+      lower.includes("vilka") || 
+      lower.includes("kan") || 
+      lower.includes("gör") || 
+      lower.includes("support") || 
+      lower.includes("hjälp") || 
+      lower.includes("help") || 
+      lower.includes("info") || 
+      lower.includes("instruktion");
+
+    const looksLikeAnnouncement = lower.includes("hemafton") ||
+      lower.includes("fika") ||
+      lower.includes("middag") ||
+      lower.includes("mat") ||
+      lower.includes("bjud") ||
+      lower.includes("träff") ||
+      lower.includes("möte") ||
+      lower.includes("lektion") ||
+      lower.includes("flytt") ||
+      lower.includes("städ") ||
+      lower.includes("kl ") ||
+      lower.includes("kl.");
+
+    if (!hasQuestionIndicator || (looksLikeAnnouncement && !lower.includes("?"))) {
+      // Re-route to Route A by updating trimmedText and letting the flow fall through
+      trimmedText = textToProcess;
+    } else {
+      addSimLog("system", `SMS SUPPORT-FRÅGA från ${sender}: "${textToProcess}"`);
+      try {
+        const reply = await runSupportAgent(textToProcess);
+        addSimLog("system", `Svar från support-AI: "${reply}"`);
+        return res.json({
+          success: true,
+          replyMessage: reply
+        });
+      } catch (err: any) {
+        console.error("SMS support agent call failed:", err);
+        return res.status(500).json({ error: "Internt serverfel vid support-fråga." });
+      }
     }
   }
 
@@ -633,9 +669,26 @@ app.post("/api/incoming-sms", async (req, res) => {
 
     smsDrafts.set(sender, newDraft);
 
+    const meta = washed.extractedMetadata;
+    const previewMessage = `Utkast sparat i 30 min (nummer visas ej)!
+
+--- FÖRHANDSGRANSKNING ---
+Avsändare: ${meta.organization}
+Område: ${meta.area || "Ej angivet (ange område för att publicera!)"}
+Kategori: ${meta.category}
+Tid: ${meta.time || "Ospecificerad"}
+Målgrupp: ${meta.audience}
+Plats: ${meta.locationName || "Kapellet"}
+Språk: ${meta.language || "Svenska"}
+Inbjudan: ${trimmedText}
+-------------------------
+
+För att ändra avsändare skriv: #AVSÄNDARE [Namn]
+För att godkänna och lägga upp, svara med: #PUBLICERA`;
+
     return res.json({
       success: true,
-      replyMessage: `Föreslagen avsändare: ${washed.extractedMetadata.organization}. Svara #PUBLICERA för att godkänna, eller justera (t.ex. #AVSÄNDARE Enskild/Familj).`
+      replyMessage: previewMessage
     });
 
   } catch (err: any) {

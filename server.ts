@@ -85,7 +85,7 @@ const API_SECRET = process.env.SMS_WEBHOOK_SEC || process.env.SMS_WEBHOOK_SECRET
 
 // Dynamic Administrator List backing data/admins.json
 const ADMINS_FILE = path.join(process.cwd(), "data", "admins.json");
-let adminNumbers: string[] = ["0700000000", "0701112222", "0733334444", "+46701234567"];
+let adminNumbers: string[] = ["0736108997","076632228"];
 
 function loadAdmins() {
   if (fs.existsSync(ADMINS_FILE)) {
@@ -353,7 +353,7 @@ app.post("/api/incoming-sms", async (req, res) => {
       addSimLog("system", `SMS-HJÄLP BEGÄRD av ${sender}.`);
       return res.json({
         success: true,
-        replyMessage: "Hjälpmeny:\n1. Skapa inlägg: Skriv din inbjudan. AI:n svarar med förslag som du godkänner.\n2. Godkänn webbinlägg: Svara #GODKÄNN [ID].\n3. Radera inlägg: Svara DEL [ID].\n4. Markera fullbokad: Svara FULL [ID].\n5. Expandera larm: Svara #EXPANDERA [ID].\n6. Ändra avsändare i utkast: #AVSÄNDARE [Namn]."
+        replyMessage: "Hjälpmeny:\n1. Skapa inlägg: Skriv din inbjudan. AI:n svarar med förslag som du godkänner.\n2. Godkänn webbinlägg: Svara #GODKÄNN ID.\n3. Radera inlägg: Svara DEL ID.\n4. Markera fullbokad: Svara FULL ID.\n5. Expandera larm: Svara #EXPANDERA ID.\n6. Ändra avsändare i utkast: #AVSÄNDARE Namn"
       });
     }
 

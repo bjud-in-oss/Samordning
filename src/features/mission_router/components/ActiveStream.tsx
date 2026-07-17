@@ -338,8 +338,16 @@ export default function ActiveStream({
                   </label>
                   <select
                     value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                    onChange={(e) => {
+                      setSelectedCategory(e.target.value);
+                      if (washResult) {
+                        setWashResult({
+                          ...washResult,
+                          extractedMetadata: { ...washResult.extractedMetadata, category: e.target.value }
+                        });
+                      }
+                    }}
+                    className="w-full p-2 bg-white/50 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors"
                   >
                     <option value="Måltid & Gemenskap">{uiLanguage === "sv" ? "Måltid & Gemenskap" : "Meal & Fellowship"}</option>
                     <option value="Lektion & Samtal">{uiLanguage === "sv" ? "Lektion & Samtal" : "Lesson & Discussion"}</option>
@@ -353,8 +361,16 @@ export default function ActiveStream({
                   </label>
                   <select
                     value={selectedArea}
-                    onChange={(e) => setSelectedArea(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                    onChange={(e) => {
+                      setSelectedArea(e.target.value);
+                      if (washResult) {
+                        setWashResult({
+                          ...washResult,
+                          extractedMetadata: { ...washResult.extractedMetadata, area: e.target.value }
+                        });
+                      }
+                    }}
+                    className="w-full p-2 bg-white/50 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors"
                   >
                     <option value="">{uiLanguage === "sv" ? "Välj område..." : "Select area..."}</option>
                     {GOTEBORG_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
@@ -369,8 +385,16 @@ export default function ActiveStream({
                     type="text"
                     placeholder="HH:MM"
                     value={selectedTime}
-                    onChange={(e) => setSelectedTime(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                    onChange={(e) => {
+                      setSelectedTime(e.target.value);
+                      if (washResult) {
+                        setWashResult({
+                          ...washResult,
+                          extractedMetadata: { ...washResult.extractedMetadata, time: e.target.value }
+                        });
+                      }
+                    }}
+                    className="w-full p-2 bg-white/50 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -380,8 +404,16 @@ export default function ActiveStream({
                   </label>
                   <select
                     value={selectedOrganization}
-                    onChange={(e) => setSelectedOrganization(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                    onChange={(e) => {
+                      setSelectedOrganization(e.target.value);
+                      if (washResult) {
+                        setWashResult({
+                          ...washResult,
+                          extractedMetadata: { ...washResult.extractedMetadata, organization: e.target.value }
+                        });
+                      }
+                    }}
+                    className="w-full p-2 bg-white/50 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors"
                   >
                     {ORGANIZATIONS.map(org => <option key={org} value={org}>{org}</option>)}
                   </select>
@@ -394,8 +426,16 @@ export default function ActiveStream({
                   <input
                     type="text"
                     value={selectedLocationName}
-                    onChange={(e) => setSelectedLocationName(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                    onChange={(e) => {
+                      setSelectedLocationName(e.target.value);
+                      if (washResult) {
+                        setWashResult({
+                          ...washResult,
+                          extractedMetadata: { ...washResult.extractedMetadata, locationName: e.target.value }
+                        });
+                      }
+                    }}
+                    className="w-full p-2 bg-white/50 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -406,8 +446,16 @@ export default function ActiveStream({
                   <input
                     type="text"
                     value={selectedLanguage}
-                    onChange={(e) => setSelectedLanguage(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                    onChange={(e) => {
+                      setSelectedLanguage(e.target.value);
+                      if (washResult) {
+                        setWashResult({
+                          ...washResult,
+                          extractedMetadata: { ...washResult.extractedMetadata, language: e.target.value }
+                        });
+                      }
+                    }}
+                    className="w-full p-2 bg-white/50 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -417,8 +465,16 @@ export default function ActiveStream({
                   </label>
                   <select
                     value={selectedAudience}
-                    onChange={(e) => setSelectedAudience(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-lg text-xs focus:outline-none transition-all"
+                    onChange={(e) => {
+                      setSelectedAudience(e.target.value);
+                      if (washResult) {
+                        setWashResult({
+                          ...washResult,
+                          extractedMetadata: { ...washResult.extractedMetadata, audience: e.target.value }
+                        });
+                      }
+                    }}
+                    className="w-full p-2 bg-white/50 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors"
                   >
                     <option value="Alla">{uiLanguage === "sv" ? "Alla medlemmar & vänner" : "All members & friends"}</option>
                     <option value="Enbart missionärerna">{uiLanguage === "sv" ? "Enbart heltidsmissionärerna" : "Full-time missionaries only"}</option>
@@ -428,9 +484,14 @@ export default function ActiveStream({
 
               <div className="space-y-1 bg-brand-paper p-3 rounded-lg border border-brand-ink/5">
                 <div className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
-                  {uiLanguage === "sv" ? "Originaltext" : "Original text"}
+                  {uiLanguage === "sv" ? "Inbjudningstext (Redigerbar)" : "Invitation Text (Editable)"}
                 </div>
-                <p className="text-xs text-brand-ink/80 italic">”{announcementText}”</p>
+                <textarea
+                  rows={3}
+                  value={announcementText}
+                  onChange={(e) => setAnnouncementText(e.target.value)}
+                  className="w-full p-2 bg-white/50 border border-brand-ink/10 rounded-xl text-xs focus:border-brand-accent focus:outline-none transition-colors resize-none font-light leading-relaxed text-brand-ink"
+                />
               </div>
 
               <div className="pt-2">

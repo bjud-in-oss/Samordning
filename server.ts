@@ -88,7 +88,11 @@ const ADMINS_FILE = path.join(process.cwd(), "data", "admins.json");
 let adminNumbers: string[] = ["0736108997","076632228"];
 
 function loadAdmins() {
-  if (fs.existsSync(ADMINS_FILE)) {
+  const envAdmins = process.env.ADMIN_NUMBERS ? process.env.ADMIN_NUMBERS.split(',').map(n => n.trim()) : [];
+  if (envAdmins.length > 0) {
+    adminNumbers = envAdmins;
+    console.log(`Loaded ${adminNumbers.length} administrator numbers from ENV.`);
+  } else if (fs.existsSync(ADMINS_FILE)) {
     try {
       const data = JSON.parse(fs.readFileSync(ADMINS_FILE, "utf-8"));
       if (Array.isArray(data)) {
@@ -115,8 +119,18 @@ function saveAdmins() {
   }
 }
 
-// Initialize Web Push Keys
-initWebPush();
+function normalizePhone(num: string): string {
+  let cleaned = num.replace(/\s+/g, '');
+  if (cleaned.startsWith("+46")) return "0" + cleaned.substring(3);
+  if (cleaned.startsWith("0046")) return "0" + cleaned.substring(4);
+  return cleaned;
+}
+
+async function sendOutboundSms(toNumbers: string[], message: string) {
+  for (const num of toNumbers) {
+     console.log("[OUTBOUND SMS SIMULATION] Till:", num, "Meddelande:", message);
+  }
+}
 
 // Load alerts & admins at startup
 loadActiveAlerts();
@@ -330,14 +344,14 @@ app.post("/api/incoming-sms", async (req, res) => {
   let trimmedText = text.trim();
   addSimLog("incoming", `Inkommande SMS från ${sender}: "${trimmedText}"`);
 
-  const isAdmin = adminNumbers.includes(sender);
+  const isAdmin = adminNumbers.some(num => normalizePhone(num) === normalizePhone(sender));
 
   // Command & Regex Matching for Route B (Strikta kommandon)
   const isHelp = trimmedText === "#" || trimmedText.toUpperCase() === "#HJÄLP" || trimmedText.toUpperCase() === "#HELP";
   const godkannMatch = trimmedText.match(/^#GODKÄNN\s+(\d+)$/i);
   const avvisaMatch = trimmedText.match(/^#AVVISA\s+(\d+)$/i);
-  const delMatch = trimmedText.match(/^DEL\s+(\d+)$/i);
-  const fullMatch = trimmedText.match(/^FULL\s+(\d+)$/i);
+  const delMatch = trimmedText.match(/^#DEL\s+(\d+)$/i);
+  const fullMatch = trimmedText.match(/^#FULL\s+(\d+)$/i);
   const expanderaMatch = trimmedText.match(/^#EXPANDERA\s+(\d+)$/i);
   const isPublicera = trimmedText.toUpperCase() === "#PUBLICERA";
   const avsandareMatch = trimmedText.match(/^#AVSÄNDARE\s+(.+)$/i);
@@ -416,7 +430,7 @@ app.post("/api/incoming-sms", async (req, res) => {
         return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
       }
 
-      const isAuthorized = isAdmin || sender === alert.contactValue;
+      const isAuthorized = isAdmin || normalizePhone(sender) === normalizePhone(alert.contactValue);
       if (!isAuthorized) {
         addSimLog("system", `AVVISAD DEL: ${sender} har inte behörighet att radera inbjudan ${id}.`);
         return res.status(403).json({ error: "Obehörig avsändare." });
@@ -438,7 +452,7 @@ app.post("/api/incoming-sms", async (req, res) => {
         return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
       }
 
-      const isAuthorized = isAdmin || sender === alert.contactValue;
+      const isAuthorized = isAdmin || normalizePhone(sender) === normalizePhone(alert.contactValue);
       if (!isAuthorized) {
         addSimLog("system", `AVVISAD FULL: ${sender} har inte behörighet att markera ${id} som fullbokat.`);
         return res.status(403).json({ error: "Obehörig avsändare." });
@@ -459,7 +473,7 @@ app.post("/api/incoming-sms", async (req, res) => {
         return res.status(404).json({ error: `Inbjudan med ID ${id} hittades inte.` });
       }
 
-      const isAuthorized = isAdmin || sender === alert.contactValue;
+      const isAuthorized = isAdmin || normalizePhone(sender) === normalizePhone(alert.contactValue);
       if (!isAuthorized) {
         addSimLog("system", `AVVISAD EXPANDERA: ${sender} har inte behörighet att expandera inbjudan ${id}.`);
         return res.status(403).json({ error: "Obehörig avsändare." });
@@ -535,10 +549,10 @@ app.post("/api/incoming-sms", async (req, res) => {
       smsDrafts.delete(sender);
 
       if (status === "pending") {
-        const adminListStr = adminNumbers.filter(num => num !== "+46701234567").join(", ");
-        const modMsg = `MODERERINGS-NOTIFIERING till samordningsgruppen [${adminListStr}]: "Nytt inlägg för granskning (ID: ${id}). Svara #GODKÄNN ${id} eller #AVVISA ${id}."`;
+        const adminListStr = adminNumbers.join(", ");
+        const modMsg = `MODERERINGS-NOTIFIERING: "Nytt inlägg för granskning (ID: ${id}). Svara #GODKÄNN ${id} eller #AVVISA ${id}."`;
         addSimLog("system", modMsg);
-        console.log(`[MODERATION] ${modMsg}`);
+        await sendOutboundSms(adminNumbers, modMsg);
 
         return res.json({
           success: true,
@@ -599,6 +613,21 @@ app.post("/api/incoming-sms", async (req, res) => {
   if (trimmedText.startsWith("#")) {
     const textToProcess = trimmedText.substring(1).trim();
     
+    const fieldMatch = trimmedText.match(/^#([A-Za-zÅÄÖåäö]+)\s+(.+)$/i);
+    if (fieldMatch) {
+       const field = fieldMatch[1].toLowerCase();
+       const value = fieldMatch[2].trim();
+       const draft = smsDrafts.get(sender);
+       if (draft) {
+         if (field === "område") draft.extractedMetadata.area = value;
+         else if (field === "tid") draft.extractedMetadata.time = value;
+         else if (field === "kategori") draft.extractedMetadata.category = value as any;
+         else if (field === "plats") draft.extractedMetadata.locationName = value;
+         draft.timestamp = Date.now();
+         return res.json({ success: true, replyMessage: `Uppdaterat ${field} till ${value}. Svara #PUBLICERA för att godkänna.` });
+       }
+    }
+
     // Check if this looks like an announcement draft rather than a support question.
     const lower = textToProcess.toLowerCase();
     const hasQuestionIndicator = lower.includes("?") || 

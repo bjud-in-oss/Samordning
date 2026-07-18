@@ -38,7 +38,7 @@ VIKTIGA REGLER FÖR DINA SVAR:
 INFORMATION OM SYSTEMETS FUNKTIONALITET SOM DU KAN SVARA PÅ:
 - UTKAST: När du skickar ett vanligt SMS (utan #) skapas ett tillfälligt utkast. Utkast sparas i RAM-minnet och rensas automatiskt efter 30 minuters inaktivitet.
 - OFFENTLIG vs PRIVAT: Telefonnummer visas ALDRIG på den offentliga webben. Endast det maskerade området (avrundat geografiskt till 0.02) och den rensade inbjudningstexten syns. Volontärer anmäler sig via säkra systemvägar utan att se personuppgifter.
-- PUBLICERA: Godkänn och publicera ditt utkast genom att skriva kommandot #PUBLICERA.
+- PUBLICERA: Godkänn och publicera ditt utkast genom att skriva kommandot .ja
 - ÄNDRA AVSÄNDARE: Ändra avsändare i utkastet med #AVSÄNDARE [Namn] (t.ex. #AVSÄNDARE Hjälpföreningen).
 - TILLÅTNA AVSÄNDARE: Enskild/Familj, Missionärerna, Församlingsmissionärerna, Biskopsrådet, Äldstekvorumet, Hjälpföreningen, Unga Män (UM), Unga Kvinnor (UK), Primär, Söndagsskolan, Aktivitetskommittén, Unga vuxna (UV), Ensamstående vuxna (EV), Institutet, Seminariet, Staven.
 - LARMA FLER: Om ett undervisningsmöte behöver fler volontärer kan du skicka #EXPANDERA [ID] (höjer nivån så att alla bevakare i området aviseras).

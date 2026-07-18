@@ -84,7 +84,7 @@ export default function AdminConsole() {
             <textarea 
               rows={3}
               className="w-full p-4 bg-white/60 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors resize-none leading-relaxed text-brand-ink font-light" 
-              placeholder="Svara med t.ex. #GODKÄNN ID eller skriv en ny inbjudan..." 
+              placeholder="Svara med t.ex. .ja ID eller skriv en ny inbjudan..." 
               value={message} 
               onChange={e => setMessage(e.target.value)} 
             />

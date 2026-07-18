@@ -58,7 +58,8 @@ export default function App() {
 
   // Unified Tab Management
   const [activeTab, setActiveTab] = useState<"stream" | "create">("stream");
-  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
+  // Inline settings routing strategy to avoid clunky blocking modals
+  const [currentView, setCurrentView] = useState<'stream' | 'settings'>('stream');
 
   // Real-time visual feedback syncing state
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -340,24 +341,24 @@ export default function App() {
       <main className="flex-1 p-4 max-w-xl w-full mx-auto flex flex-col">
         
         {/* 3-Part Settings / Notifications Toggle */}
-        <div className="flex bg-brand-paper/50 rounded-full p-1 border border-brand-ink/10 mb-6 shadow-sm mx-auto max-w-sm w-full">
+        <div className="flex bg-brand-paper/50 rounded-full p-1 border border-brand-ink/10 mb-6 shadow-sm mx-auto max-w-[400px] w-full">
           <button 
-            onClick={handleDisablePush}
-            className={`flex-1 flex items-center justify-center py-2 text-xs font-mono uppercase tracking-wider rounded-full transition-all ${!pushEnabled ? 'bg-white shadow-xs text-brand-ink font-medium' : 'text-brand-ink/50 hover:bg-white/50'}`}
+            onClick={() => { handleDisablePush(); setCurrentView('stream'); }}
+            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all ${(!pushEnabled && currentView !== 'settings') ? 'bg-brand-ink text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
           >
-            🔕 Av
+            Notiser av
           </button>
           <button 
-            onClick={() => setShowSettingsModal(true)}
-            className={`flex-1 flex items-center justify-center py-2 text-xs font-mono uppercase tracking-wider rounded-full transition-all text-brand-ink/50 hover:bg-white/50`}
+            onClick={() => setCurrentView('settings')}
+            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all ${(currentView === 'settings') ? 'bg-brand-ink text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
           >
-            ⚙️ Anpassa
+            Anpassa
           </button>
           <button 
-            onClick={handleEnablePush}
-            className={`flex-1 flex items-center justify-center py-2 text-xs font-mono uppercase tracking-wider rounded-full transition-all ${pushEnabled ? 'bg-brand-accent shadow-xs text-white font-medium' : 'text-brand-ink/50 hover:bg-white/50'}`}
+            onClick={() => { handleEnablePush(); setCurrentView('stream'); }}
+            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all ${(pushEnabled && currentView !== 'settings') ? 'bg-brand-accent text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
           >
-            🔔 På
+            Notiser på
           </button>
         </div>
 
@@ -402,33 +403,23 @@ export default function App() {
 
             {/* Dynamic Content */}
             <div className="w-full">
-              {showSettingsModal && (
-                <div className="fixed inset-0 bg-brand-ink/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-                  <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto relative shadow-xl">
-                    <button 
-                      onClick={() => setShowSettingsModal(false)}
-                      className="absolute top-4 right-4 text-brand-ink/50 hover:text-brand-ink p-2 rounded-full hover:bg-brand-paper transition-colors"
-                    >
-                      <X size={20} />
-                    </button>
-                    <div className="p-6">
-                      <OnboardingWizard
-                        onSave={(tags) => {
-                          handleSaveTags(tags);
-                          setShowSettingsModal(false);
-                        }}
-                        savedTags={savedTags}
-                        pushEnabled={pushEnabled}
-                        onEnablePush={handleEnablePush}
-                        onDisablePush={handleDisablePush}
-                        uiLanguage={uiLanguage || "sv"}
-                      />
-                    </div>
-                  </div>
+              {currentView === 'settings' && (
+                <div className="bg-white rounded-3xl w-full p-6 shadow-sm border border-brand-ink/5">
+                  <OnboardingWizard
+                    onSave={(tags) => {
+                      handleSaveTags(tags);
+                      setCurrentView('stream');
+                    }}
+                    savedTags={savedTags}
+                    pushEnabled={pushEnabled}
+                    onEnablePush={handleEnablePush}
+                    onDisablePush={handleDisablePush}
+                    uiLanguage={uiLanguage || "sv"}
+                  />
                 </div>
               )}
 
-              {activeTab === "stream" && (
+              {currentView === 'stream' && activeTab === "stream" && (
                 <ActiveStream
                   onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
                   uiLanguage={uiLanguage || "sv"}
@@ -438,7 +429,7 @@ export default function App() {
                 />
               )}
 
-              {activeTab === "create" && (
+              {currentView === 'stream' && activeTab === "create" && (
                 <ActiveStream
                   onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
                   uiLanguage={uiLanguage || "sv"}

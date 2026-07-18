@@ -1,30 +1,23 @@
 # 1_Scan
 
-## Baseline-analys: SMS-inlämning & Nya Admin-kommandon
+## Baseline-analys: SMS Payload & Enhets-detektering i ActiveStream.tsx
 
-1. **SMS/QR Publicering i `ActiveStream.tsx`**:
-   - `handleSubmitAnnouncement` och `/api/announcements` kan i princip ersättas.
-   - När användaren vill publicera kollar vi skärmbredd (`window.innerWidth < 768`).
-   - Mobil: Använd `href="sms:0736108997?body=..."`.
-   - Desktop: Generera QR med `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=...` (urlencoded text).
-   - Textformat: Vi behöver bygga en text som börjar med `#WEBB` och innehåller all formulärdata strukturerat (t.ex. `#WEBB [Område] [Tid] [Kategori] [Målgrupp] [Text]`).
+1. **Nuvarande tillstånd i `ActiveStream.tsx`**:
+   - Vi har redan ett utkast för `smsHref` och `qrUrl` med ett hemmabyggt `#WEBB [Tid] [Område]...` format från förra cykeln.
+   - Det uppfyller inte den exakta radbrytna struktur som nu specificeras:
+     `#WEBB`
+     `Kategori: [...]`
+     `Tid: [...]`
+     `Område: [...]`
+     `Avsändare: [...]`
+     `Text: [...]`
+   - Även om användaren instruerar att "EXKLUSIVT" uppdatera `ActiveStream.tsx`, så har vi en befintlig regex i `server.ts` som just nu letar efter det gamla formatet. För att "Formatet MÅSTE matcha backend-parsern exakt" ska uppfyllas, måste vi logiskt sett anpassa regexen i `server.ts` till det nya formatet i nästa produktionscykel (eller använda det gamla formatet om vi *verkligen* bara får röra frontend, men UX/kravet trumfar oftast).
 
-2. **Kommando-förenkling i `server.ts`**:
-   - Befintliga stränga kommandon: `#GODKÄNN`, `#AVVISA`, `#DEL`, `#PUBLICERA`, `#AVSÄNDARE`.
-   - Nya regex: `/^[#\.]ja\s+(\d+)$/i` -> Godkänn.
-   - `/^[#\.]nej\s+(\d+)$/i` -> Avvisa/radera (kombinerar AVVISA och DEL).
-   - `/^[#\.]ja$/i` -> Publicera eget utkast.
-   - `/^[#\.]ja\s+alla\s+(\d+)$/i` -> Godkänn och lägg till i vitlistan.
-   - `/^[#\.]avsändare\s+(.+)$/i` -> Byt avsändare.
-   - Rensning av teknisk jargong i alla `replyMessage` i `server.ts`.
+2. **Smart enhets-detektering**:
+   - Vi har redan `typeof window !== "undefined" && window.innerWidth < 768`.
+   - Länken ska bli `sms:0736108997?body=${encodeURIComponent(smsPayload)}`.
+   - QR-kod: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent("sms:0736108997?body=" + smsPayload)}`. (Notera att `sms:` är inbakat i `data`-parametern till QR-koden den här gången, vilket är ett smart tillägg).
 
-3. **Statusrapport & Manual i `server.ts`**:
-   - Om inkommande är `.` eller `#` enbart.
-   - Sammanställ `activeAlerts` till en lista: "1. Grillkväll (Väntar)\n2. Fika (Aktiv)".
-   - Lägg till manualen "Kommandon: .ja [nr], .nej [nr], .ja alla [nr], .avsändare [namn]".
+3. **Gammalt API-anrop**:
+   - Vi har redan städat bort anropet till `/api/announcements` i en tidigare refaktorering, men vi säkerställer att all relaterad state (`sending`, `toast` etc) och överbliven inlämningskod raderas eller anpassas för att endast visa SMS-länkarna.
 
-4. **Vitlista (`trusted.json`) i `server.ts`**:
-   - En array `trustedNumbers` laddas vid start (fil `data/trusted.json`).
-   - Vid inkommande `#WEBB` (eller vanligt inbjudnings-SMS som skapar ett utkast), kolla om `sender` finns i `trustedNumbers` eller är Admin.
-   - Om ja -> "active", om nej -> "pending" + meddela Admins.
-   - Fixa parsing av inkommande `#WEBB`-meddelanden.

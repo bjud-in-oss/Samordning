@@ -197,10 +197,17 @@ export default function ActiveStream({
     }
   };
 
+  // Enhetsdetektering för att styra SMS vs QR-kod
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  const webbString = washResult ? `#WEBB [${selectedTime}] [${selectedArea}] [${selectedCategory}] [${selectedAudience}] [${selectedOrganization || "Arrangör"}] [${selectedLanguage}] ${announcementText}` : "";
-  const smsHref = `sms:0736108997?body=${encodeURIComponent(webbString)}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(webbString)}`;
+  const smsPayload = washResult ? `#WEBB
+Kategori: ${selectedCategory}
+Tid: ${selectedTime}
+Område: ${selectedArea}
+Avsändare: ${selectedOrganization || "Arrangör"}
+Text: ${announcementText}` : "";
+  
+  const smsHref = `sms:0736108997?body=${encodeURIComponent(smsPayload)}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(smsHref)}`;
 
   if (loading) {
     return (
@@ -494,16 +501,16 @@ export default function ActiveStream({
                   ) : isMobile ? (
                     <a
                       href={smsHref}
-                      className="px-5 py-2.5 text-[10px] font-mono uppercase tracking-wider text-white bg-brand-accent hover:opacity-90 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                      className="px-6 py-3 text-sm font-semibold uppercase tracking-wider text-white bg-green-600 hover:bg-green-500 rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
                     >
-                      <span>{uiLanguage === "sv" ? "Publicera via SMS" : "Publish via SMS"}</span>
-                      <Send size={10} />
+                      <span>{uiLanguage === "sv" ? "Publicera direkt via SMS" : "Publish directly via SMS"}</span>
+                      <Send size={14} />
                     </a>
                   ) : (
                     <div className="flex flex-col items-center p-3 bg-brand-paper/50 rounded-xl border border-brand-ink/10">
                       <img src={qrUrl} alt="QR Code to SMS" className="w-24 h-24 mb-2 rounded shadow-sm" />
-                      <span className="text-[9px] font-mono uppercase tracking-wider text-brand-ink/70">
-                        {uiLanguage === "sv" ? "Skanna för att publicera via SMS" : "Scan to publish via SMS"}
+                      <span className="text-[9px] font-mono uppercase tracking-wider text-brand-ink/70 text-center max-w-[120px]">
+                        {uiLanguage === "sv" ? "Skanna med din mobilkamera för att publicera direkt via SMS" : "Scan with mobile camera to publish directly via SMS"}
                       </span>
                     </div>
                   )}

@@ -435,13 +435,21 @@ app.post("/api/incoming-sms", async (req, res) => {
   }
 
   if (isWebb) {
-    // Expected Format: #WEBB [Tid] [Område] [Kategori] [Målgrupp] [Organisatör] [Språk] Text
-    const regex = /^#WEBBs+\[(.*?)\]s+\[(.*?)\]s+\[(.*?)\]s+\[(.*?)\]s+\[(.*?)\]s+\[(.*?)\]s+(.*)$/s;
+    // Expected Format (Måste matcha exakt vad webbklienten skickar in): 
+    // #WEBB
+    // Kategori: [category]
+    // Tid: [time]
+    // Område: [area]
+    // Avsändare: [organization]
+    // Text: [rawText]
+    const regex = /^#WEBB\s*Kategori:\s*(.+?)\s*Tid:\s*(.+?)\s*Område:\s*(.+?)\s*Avsändare:\s*(.+?)\s*Text:\s*(.*)$/si;
     const match = trimmedText.match(regex);
     if (!match) {
       return res.json({ success: false, replyMessage: "Felaktigt #WEBB format." });
     }
-    const [, time, area, category, audience, organization, language, rawText] = match;
+    const [, category, time, area, organization, rawText] = match;
+    const audience = "Alla";
+    const language = "Svenska";
     const id = getNextFreeId();
     const { coords, cloakedCoords } = getCoordsForArea(area);
     const offsetSeconds = calculateSecondsUntilTime(time);

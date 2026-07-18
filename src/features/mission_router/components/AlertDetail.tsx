@@ -109,7 +109,7 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
         </button>
         <div className="flex items-center gap-2">
           <span className="bg-brand-paper text-brand-ink text-[9px] font-mono uppercase tracking-wider px-3 py-1.5 rounded border border-brand-ink/5">
-            {alert.category || "Måltid & Gemenskap"}
+            {alert.category || "Vara en vän"}
           </span>
         </div>
       </div>

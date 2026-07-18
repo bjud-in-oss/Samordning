@@ -55,7 +55,7 @@ export default function ActiveStream({
   const [washResult, setWashResult] = useState<any>(null);
 
   // Editable metadata fields for Step 2
-  const [selectedCategory, setSelectedCategory] = useState<string>("Måltid & Gemenskap");
+  const [selectedCategory, setSelectedCategory] = useState<string>("Vara en vän");
   const [selectedArea, setSelectedArea] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedAudience, setSelectedAudience] = useState<string>("Alla");
@@ -180,7 +180,7 @@ export default function ActiveStream({
       const data = await res.json();
       setWashResult(data);
 
-      setSelectedCategory(data.extractedMetadata.category || "Måltid & Gemenskap");
+      setSelectedCategory(data.extractedMetadata.category || "Vara en vän");
       setSelectedArea(data.extractedMetadata.area || "");
       setSelectedTime(data.extractedMetadata.time || "");
       setSelectedAudience(data.extractedMetadata.audience || "Alla");
@@ -349,9 +349,9 @@ export default function ActiveStream({
                     }}
                     className="w-full p-2 bg-white/50 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors"
                   >
-                    <option value="Måltid & Gemenskap">{uiLanguage === "sv" ? "Måltid & Gemenskap" : "Meal & Fellowship"}</option>
-                    <option value="Lektion & Samtal">{uiLanguage === "sv" ? "Lektion & Samtal" : "Lesson & Discussion"}</option>
-                    <option value="Tjänande">{uiLanguage === "sv" ? "Tjänande" : "Service"}</option>
+                    <option value="Vara en vän">{uiLanguage === "sv" ? "Vara en vän" : "Be a friend"}</option>
+                    <option value="Få näring av Guds ord">{uiLanguage === "sv" ? "Få näring av Guds ord" : "Nourished by the word"}</option>
+                    <option value="Hjälpa andra">{uiLanguage === "sv" ? "Hjälpa andra" : "Help others"}</option>
                   </select>
                 </div>
 

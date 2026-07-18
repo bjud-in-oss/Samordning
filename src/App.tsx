@@ -56,8 +56,9 @@ export default function App() {
     });
   }, []);
 
-  // Unified Tab Management (Mobile has "stream" | "create" | "settings"; Desktop has "stream" | "create")
-  const [activeTab, setActiveTab] = useState<"stream" | "create" | "settings">("stream");
+  // Unified Tab Management
+  const [activeTab, setActiveTab] = useState<"stream" | "create">("stream");
+  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
 
   // Real-time visual feedback syncing state
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -121,7 +122,7 @@ export default function App() {
     setPushError(null);
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && (navigator as any).standalone === true);
     if (isIOS && !isStandalone) {
       setShowIosModal(true);
       return;
@@ -279,8 +280,7 @@ export default function App() {
 
   const tabs = [
     { id: "stream", label: TRANSLATIONS[uiLanguage].tabInvitations },
-    { id: "create", label: TRANSLATIONS[uiLanguage].tabCreateInvitation },
-    { id: "settings", label: TRANSLATIONS[uiLanguage].tabCustomize }
+    { id: "create", label: TRANSLATIONS[uiLanguage].tabCreateInvitation }
   ] as const;
 
   return (
@@ -338,6 +338,29 @@ export default function App() {
 
       {/* Main Responsive Grid Layout */}
       <main className="flex-1 p-4 max-w-xl w-full mx-auto flex flex-col">
+        
+        {/* 3-Part Settings / Notifications Toggle */}
+        <div className="flex bg-brand-paper/50 rounded-full p-1 border border-brand-ink/10 mb-6 shadow-sm mx-auto max-w-sm w-full">
+          <button 
+            onClick={handleDisablePush}
+            className={`flex-1 flex items-center justify-center py-2 text-xs font-mono uppercase tracking-wider rounded-full transition-all ${!pushEnabled ? 'bg-white shadow-xs text-brand-ink font-medium' : 'text-brand-ink/50 hover:bg-white/50'}`}
+          >
+            🔕 Av
+          </button>
+          <button 
+            onClick={() => setShowSettingsModal(true)}
+            className={`flex-1 flex items-center justify-center py-2 text-xs font-mono uppercase tracking-wider rounded-full transition-all text-brand-ink/50 hover:bg-white/50`}
+          >
+            ⚙️ Anpassa
+          </button>
+          <button 
+            onClick={handleEnablePush}
+            className={`flex-1 flex items-center justify-center py-2 text-xs font-mono uppercase tracking-wider rounded-full transition-all ${pushEnabled ? 'bg-brand-accent shadow-xs text-white font-medium' : 'text-brand-ink/50 hover:bg-white/50'}`}
+          >
+            🔔 På
+          </button>
+        </div>
+
         {pushError && (
           <div className="mb-6 bg-brand-error/10 border border-brand-error/20 rounded-2xl p-4 flex items-center gap-3 text-xs text-brand-error animate-in fade-in duration-200">
             <ShieldAlert size={16} className="shrink-0 text-brand-error" />
@@ -379,16 +402,29 @@ export default function App() {
 
             {/* Dynamic Content */}
             <div className="w-full">
-              {activeTab === "settings" && (
-                <div className="bg-white/40 p-5 rounded-3xl border border-brand-ink/5">
-                  <OnboardingWizard
-                    onSave={handleSaveTags}
-                    savedTags={savedTags}
-                    pushEnabled={pushEnabled}
-                    onEnablePush={handleEnablePush}
-                    onDisablePush={handleDisablePush}
-                    uiLanguage={uiLanguage || "sv"}
-                  />
+              {showSettingsModal && (
+                <div className="fixed inset-0 bg-brand-ink/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+                  <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto relative shadow-xl">
+                    <button 
+                      onClick={() => setShowSettingsModal(false)}
+                      className="absolute top-4 right-4 text-brand-ink/50 hover:text-brand-ink p-2 rounded-full hover:bg-brand-paper transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                    <div className="p-6">
+                      <OnboardingWizard
+                        onSave={(tags) => {
+                          handleSaveTags(tags);
+                          setShowSettingsModal(false);
+                        }}
+                        savedTags={savedTags}
+                        pushEnabled={pushEnabled}
+                        onEnablePush={handleEnablePush}
+                        onDisablePush={handleDisablePush}
+                        uiLanguage={uiLanguage || "sv"}
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
 

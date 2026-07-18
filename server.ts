@@ -20,7 +20,7 @@ import { ActiveAlert } from "./src/features/mission_router/types";
 interface SmsDraft {
   rawText: string;
   extractedMetadata: {
-    category: "Måltid & Gemenskap" | "Lektion & Samtal" | "Tjänande";
+    category: "Vara en vän" | "Få näring av Guds ord" | "Hjälpa andra";
     area: string | null;
     time: string | null;
     audience: "Alla" | "Enbart missionärerna";
@@ -202,7 +202,7 @@ app.post("/api/announcements", async (req, res) => {
     const offsetSeconds = calculateSecondsUntilTime(time || "18:00");
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
 
-    const isLektionAndSamtal = (category || "Måltid & Gemenskap") === "Lektion & Samtal" && (organization || "Enskild/Familj") === "Missionärerna";
+    const isLektionAndSamtal = (category || "Vara en vän") === "Få näring av Guds ord" && (organization || "Enskild/Familj") === "Missionärerna";
     const escalationLevel = isLektionAndSamtal ? 1 : undefined;
 
     const newAnnouncement: ActiveAlert = {
@@ -222,7 +222,7 @@ app.post("/api/announcements", async (req, res) => {
       contactType: "web",
       contactValue: "Webbklient",
       expiryTimestamp,
-      category: category || "Måltid & Gemenskap",
+      category: category || "Vara en vän",
       isFull: false,
       status: "pending",
       escalationLevel
@@ -516,9 +516,9 @@ app.post("/api/incoming-sms", async (req, res) => {
       const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
       const status = isAdmin ? "active" : "pending";
 
-      const draftCategory = draft.extractedMetadata.category || "Måltid & Gemenskap";
+      const draftCategory = draft.extractedMetadata.category || "Vara en vän";
       const draftOrg = draft.extractedMetadata.organization || (isAdmin ? "Arrangör" : "Medlem");
-      const isLektionAndSamtal = draftCategory === "Lektion & Samtal" && draftOrg === "Missionärerna";
+      const isLektionAndSamtal = draftCategory === "Få näring av Guds ord" && draftOrg === "Missionärerna";
       const escalationLevel = isLektionAndSamtal ? 1 : undefined;
 
       const newAnnouncement: ActiveAlert = {
@@ -753,7 +753,7 @@ app.post("/api/incoming-email", async (req, res) => {
     const offsetSeconds = calculateSecondsUntilTime(washed.time);
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
 
-    const isLektionAndSamtal = (washed.category || "Måltid & Gemenskap") === "Lektion & Samtal" && (washed.responsibleParty || "Församlingsledare") === "Missionärerna";
+    const isLektionAndSamtal = (washed.category || "Vara en vän") === "Få näring av Guds ord" && (washed.responsibleParty || "Församlingsledare") === "Missionärerna";
     const escalationLevel = isLektionAndSamtal ? 1 : undefined;
 
     const newAnnouncement: ActiveAlert = {
@@ -773,7 +773,7 @@ app.post("/api/incoming-email", async (req, res) => {
       contactType: "sms",
       contactValue: washed.contactValue || from,
       expiryTimestamp,
-      category: washed.category || "Måltid & Gemenskap",
+      category: washed.category || "Vara en vän",
       isFull: false,
       status: "active",
       escalationLevel
@@ -798,7 +798,7 @@ app.post("/api/incoming-email", async (req, res) => {
 app.post("/api/sim/whatsapp", async (req, res) => {
   const { from, body } = req.body;
   const dummyFrom = from || "0709998877";
-  const dummyBody = body || "[Kortedala] [18:00] [Måltid & Gemenskap] [Middag hos familjen Andersson. Välkomna!] [Hjälpföreningen] [0701234567]";
+  const dummyBody = body || "[Kortedala] [18:00] [Vara en vän] [Middag hos familjen Andersson. Välkomna!] [Hjälpföreningen] [0701234567]";
 
   addSimLog("incoming", `[Simulator] Skickar låtsas-SMS: "${dummyBody}"`);
 

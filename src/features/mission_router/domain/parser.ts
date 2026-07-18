@@ -236,7 +236,7 @@ function getAi(): GoogleGenAI | null {
 export interface GeminiWashResult {
   originalText: string;
   extractedMetadata: {
-    category: "Måltid & Gemenskap" | "Lektion & Samtal" | "Tjänande";
+    category: "Vara en vän" | "Få näring av Guds ord" | "Hjälpa andra";
     area: string | null;
     time: string | null;
     audience: "Alla" | "Enbart missionärerna";
@@ -264,9 +264,9 @@ VIKTIGT: Du får ALDRIG ändra eller skriva om användarens personliga text.
 
 Här är reglerna för extrahering:
 1. Kategori (category): Bestäm om inbjudan handlar om:
-   - "Måltid & Gemenskap" (t.ex. middag, fika, lunch, umgänge, bjuda hem)
-   - "Lektion & Samtal" (t.ex. undervisning, lektioner, samtalsstöd, träffa personer som missionärerna undervisar)
-   - "Tjänande" (t.ex. flytthjälp, städning, trädgårdsarbete)
+   - "Vara en vän" (t.ex. middag, fika, lunch, umgänge, bjuda hem)
+   - "Få näring av Guds ord" (t.ex. undervisning, lektioner, samtalsstöd, träffa personer som missionärerna undervisar)
+   - "Hjälpa andra" (t.ex. flytthjälp, städning, trädgårdsarbete)
 
 2. Område (area): Matcha mot följande 15 tillåtna stöddistrikt i Göteborg:
    "Angered", "Kortedala", "Gamlestaden", "Hisingen", "Biskopsgården", "Lundby", "Partille", "Örgryte", "Johanneberg", "Majorna", "Mölndal", "Frölunda", "Torslanda", "Askim", "Härryda".
@@ -310,7 +310,7 @@ Returnera ett JSON-objekt som matchar följande TypeScript-gränssnitt:
 {
   "originalText": string,
   "extractedMetadata": {
-    "category": "Måltid & Gemenskap" | "Lektion & Samtal" | "Tjänande",
+    "category": "Vara en vän" | "Få näring av Guds ord" | "Hjälpa andra",
     "area": string | null,
     "time": string | null,
     "audience": "Alla" | "Enbart missionärerna",
@@ -353,11 +353,11 @@ export function runFallbackWash(text: string): GeminiWashResult {
   const lowerText = text.toLowerCase();
 
   // 1. Category
-  let category: "Måltid & Gemenskap" | "Lektion & Samtal" | "Tjänande" = "Måltid & Gemenskap";
+  let category: "Vara en vän" | "Få näring av Guds ord" | "Hjälpa andra" = "Vara en vän";
   if (lowerText.includes("lektion") || lowerText.includes("undervisa") || lowerText.includes("samtal") || lowerText.includes("intresserad") || lowerText.includes("undersökare") || lowerText.includes("träffa")) {
-    category = "Lektion & Samtal";
+    category = "Få näring av Guds ord";
   } else if (lowerText.includes("städa") || lowerText.includes("flytta") || lowerText.includes("bära") || lowerText.includes("hjälpa") || lowerText.includes("tjänande")) {
-    category = "Tjänande";
+    category = "Hjälpa andra";
   }
 
   // 2. Area

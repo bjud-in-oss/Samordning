@@ -185,14 +185,21 @@ export default function App() {
   const handleDisablePush = async () => {
     try {
       if ("serviceWorker" in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        if (subscription) {
-          await subscription.unsubscribe();
-        }
         const registrations = await navigator.serviceWorker.getRegistrations();
         for (const reg of registrations) {
-          await reg.unregister();
+          try {
+            const subscription = await reg.pushManager.getSubscription();
+            if (subscription) {
+              await subscription.unsubscribe();
+            }
+          } catch (subErr) {
+            console.error("Failed to unsubscribe subscription", subErr);
+          }
+          try {
+            await reg.unregister();
+          } catch (unregErr) {
+            console.error("Failed to unregister sw", unregErr);
+          }
         }
       }
       localStorage.removeItem("mission_router_sub_id");
@@ -209,18 +216,27 @@ export default function App() {
 
     if (pushEnabled) {
       try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        if (subscription) {
-          await fetch("/api/subscription", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              id: subscriptionId,
-              subscription,
-              tags
-            })
-          });
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const reg of registrations) {
+            try {
+              const subscription = await reg.pushManager.getSubscription();
+              if (subscription) {
+                await fetch("/api/subscription", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    id: subscriptionId,
+                    subscription,
+                    tags
+                  })
+                });
+                break;
+              }
+            } catch (syncErr) {
+              console.error("Failed to check subscription on registration", syncErr);
+            }
+          }
         }
       } catch (err) {
         console.error("Failed to sync tags with backend", err);

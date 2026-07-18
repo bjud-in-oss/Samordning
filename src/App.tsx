@@ -60,6 +60,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<"stream" | "create">("stream");
   // Inline settings routing strategy to avoid clunky blocking modals
   const [currentView, setCurrentView] = useState<'stream' | 'settings'>('stream');
+  const [isToggling, setIsToggling] = useState<boolean>(false);
 
   // Real-time visual feedback syncing state
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -343,20 +344,46 @@ export default function App() {
         {/* 3-Part Settings / Notifications Toggle */}
         <div className="flex bg-brand-paper/50 rounded-full p-1 border border-brand-ink/10 mb-6 shadow-sm mx-auto max-w-[400px] w-full">
           <button 
-            onClick={() => { handleDisablePush(); setCurrentView('stream'); }}
-            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all ${(!pushEnabled && currentView !== 'settings') ? 'bg-brand-ink text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
+            type="button"
+            disabled={isToggling}
+            onClick={async () => {
+              setIsToggling(true);
+              try {
+                await handleDisablePush();
+              } catch (e) {
+                console.error(e);
+              } finally {
+                setCurrentView('stream');
+                setIsToggling(false);
+              }
+            }}
+            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all disabled:opacity-50 disabled:cursor-wait ${(!pushEnabled && currentView !== 'settings') ? 'bg-brand-ink text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
           >
             Notiser av
           </button>
           <button 
+            type="button"
+            disabled={isToggling}
             onClick={() => setCurrentView('settings')}
-            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all ${(currentView === 'settings') ? 'bg-brand-ink text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
+            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all disabled:opacity-50 disabled:cursor-wait ${(currentView === 'settings') ? 'bg-brand-ink text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
           >
             Anpassa
           </button>
           <button 
-            onClick={() => { handleEnablePush(); setCurrentView('stream'); }}
-            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all ${(pushEnabled && currentView !== 'settings') ? 'bg-brand-accent text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
+            type="button"
+            disabled={isToggling}
+            onClick={async () => {
+              setIsToggling(true);
+              try {
+                await handleEnablePush();
+              } catch (e) {
+                console.error(e);
+              } finally {
+                setCurrentView('stream');
+                setIsToggling(false);
+              }
+            }}
+            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all disabled:opacity-50 disabled:cursor-wait ${(pushEnabled && currentView !== 'settings') ? 'bg-brand-accent text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
           >
             Notiser på
           </button>

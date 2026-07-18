@@ -194,11 +194,12 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
           </div>
         </div>
 
-        {/* Compliance disclaimer */}
-        <div className="bg-brand-paper/30 rounded-xl p-5 border border-brand-ink/5 text-[11px] text-brand-ink/70 leading-relaxed space-y-1 font-light">
-          <p className="font-serif italic font-medium text-brand-ink">Allmänna handboken § 33.8 (Integritetsskydd):</p>
+        {/* Simple, inviting helper text */}
+        <div className="bg-brand-paper/30 rounded-xl p-5 border border-brand-ink/5 text-xs text-brand-ink/75 leading-relaxed text-center font-serif italic font-medium">
           <p>
-            För att skydda medlemmars och volontärers integritet visas aldrig fullständiga efternamn eller exakta hemadresser offentligt. Positioner är avsiktligt maskerade på kartan till närområdet. Denna anslagstavla är helt stateless och sparar ingen personlig information på servern.
+            {uiLanguage === "sv" 
+              ? "Klicka på knappen nedan för att öppna din SMS-app och meddela arrangören att du deltar." 
+              : "Click the button below to open your SMS app and notify the organizer that you are participating."}
           </p>
         </div>
       </div>

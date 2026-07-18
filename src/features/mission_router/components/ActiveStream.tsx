@@ -45,7 +45,7 @@ export default function ActiveStream({
   const [error, setError] = useState<string | null>(null);
 
   // Form states for creating an invitation (Väntrummet)
-  const [announcementText, setAnnouncementText] = useState<string>("");
+  const [announcementText, setAnnouncementText] = useState<string>("Tid: \nPlats: \nVad vi ska göra: ");
   const [sending, setSending] = useState<boolean>(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -227,7 +227,7 @@ export default function ActiveStream({
 
       const data = await res.json();
       setToast(data.message || (uiLanguage === "sv" ? "Tack! Din inbjudan har placerats i väntrummet." : "Thank you! Your invitation has been placed in the waiting room."));
-      setAnnouncementText("");
+      setAnnouncementText("Tid: \nPlats: \nVad vi ska göra: ");
       setCurrentStep(1);
       setWashResult(null);
       setGdprChecked(false);

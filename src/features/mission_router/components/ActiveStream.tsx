@@ -197,48 +197,10 @@ export default function ActiveStream({
     }
   };
 
-  const handleSubmitAnnouncement = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!announcementText.trim()) return;
-    if (!gdprChecked) {
-      const msg = uiLanguage === "sv" ? "Du måste samtycka till villkoren och GDPR-rutan." : "You must consent to the terms and the GDPR checkbox.";
-      alert(msg);
-      return;
-    }
-
-    setSending(true);
-    try {
-      const res = await fetch("/api/announcements", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: announcementText,
-          category: selectedCategory,
-          area: selectedArea,
-          time: selectedTime,
-          audience: selectedAudience,
-          organization: selectedOrganization,
-          locationName: selectedLocationName,
-          language: selectedLanguage
-        })
-      });
-
-      if (!res.ok) throw new Error("Gick inte att skicka inlägget.");
-
-      const data = await res.json();
-      setToast(data.message || (uiLanguage === "sv" ? "Tack! Din inbjudan har placerats i väntrummet." : "Thank you! Your invitation has been placed in the waiting room."));
-      setAnnouncementText("Tid: \nPlats: \nVad vi ska göra: ");
-      setCurrentStep(1);
-      setWashResult(null);
-      setGdprChecked(false);
-      fetchStream();
-    } catch (err: any) {
-      const msg = uiLanguage === "sv" ? "Fel vid inskickning: " : "Error submitting: ";
-      alert(msg + err.message);
-    } finally {
-      setSending(false);
-    }
-  };
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const webbString = washResult ? `#WEBB [${selectedTime}] [${selectedArea}] [${selectedCategory}] [${selectedAudience}] [${selectedOrganization || "Arrangör"}] [${selectedLanguage}] ${announcementText}` : "";
+  const smsHref = `sms:0736108997?body=${encodeURIComponent(webbString)}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(webbString)}`;
 
   if (loading) {
     return (
@@ -307,7 +269,7 @@ export default function ActiveStream({
               </div>
             </form>
           ) : (
-            <form onSubmit={handleSubmitAnnouncement} className="space-y-4">
+            <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
               <div className="p-4 bg-brand-accent/5 rounded-xl border border-brand-accent/15 flex gap-3">
                 <Sparkles size={16} className="text-brand-accent shrink-0 mt-0.5" />
                 <div className="space-y-1">
@@ -521,20 +483,30 @@ export default function ActiveStream({
                   {uiLanguage === "sv" ? "Föregående steg" : "Previous step"}
                 </button>
                 <div className="flex items-center gap-4">
-                  <button
-                    type="submit"
-                    disabled={sending || (washResult?.warnings?.missingAreaForTeaching && !selectedArea) || !gdprChecked}
-                    className="px-5 py-2.5 text-[10px] font-mono uppercase tracking-wider text-white bg-brand-accent hover:opacity-90 disabled:opacity-40 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    {sending ? (
-                      <span>{uiLanguage === "sv" ? "Skickar..." : "Sending..."}</span>
-                    ) : (
-                      <>
-                        <span>{uiLanguage === "sv" ? "Godkänn & Spara" : "Approve & Save"}</span>
-                        <Send size={10} />
-                      </>
-                    )}
-                  </button>
+                  {(washResult?.warnings?.missingAreaForTeaching && !selectedArea) ? (
+                    <button disabled className="px-5 py-2.5 text-[10px] font-mono uppercase tracking-wider text-white bg-brand-accent/50 rounded-lg cursor-not-allowed">
+                      {uiLanguage === "sv" ? "Välj Område Först" : "Select Area First"}
+                    </button>
+                  ) : !gdprChecked ? (
+                    <button disabled className="px-5 py-2.5 text-[10px] font-mono uppercase tracking-wider text-white bg-brand-accent/50 rounded-lg cursor-not-allowed">
+                      {uiLanguage === "sv" ? "Acceptera villkoren" : "Accept Terms"}
+                    </button>
+                  ) : isMobile ? (
+                    <a
+                      href={smsHref}
+                      className="px-5 py-2.5 text-[10px] font-mono uppercase tracking-wider text-white bg-brand-accent hover:opacity-90 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>{uiLanguage === "sv" ? "Publicera via SMS" : "Publish via SMS"}</span>
+                      <Send size={10} />
+                    </a>
+                  ) : (
+                    <div className="flex flex-col items-center p-3 bg-brand-paper/50 rounded-xl border border-brand-ink/10">
+                      <img src={qrUrl} alt="QR Code to SMS" className="w-24 h-24 mb-2 rounded shadow-sm" />
+                      <span className="text-[9px] font-mono uppercase tracking-wider text-brand-ink/70">
+                        {uiLanguage === "sv" ? "Skanna för att publicera via SMS" : "Scan to publish via SMS"}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </form>

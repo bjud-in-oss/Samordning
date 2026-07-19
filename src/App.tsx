@@ -138,6 +138,12 @@ export default function App() {
     try {
       const keyRes = await fetch("/api/vapid-public-key");
       if (!keyRes.ok) throw new Error(uiLanguage === "sv" ? "Misslyckades att hämta anslutningsnyckel från servern." : "Failed to fetch public key from the server.");
+      
+      const contentType = keyRes.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+          throw new Error(uiLanguage === "sv" ? "Kritiskt fel: Servern saknar API. Körs den som Static Site på Render?" : "Critical error: Server lacks API.");
+      }
+
       const { publicKey } = await keyRes.json();
 
       if (!publicKey) {
@@ -399,7 +405,11 @@ export default function App() {
           <button
             type="button"
             disabled={isToggling}
-            onClick={() => setCurrentView('settings')}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setCurrentView('settings');
+            }}
             className={`flex items-center justify-center gap-2 px-5 py-4 sm:py-0 bg-white border border-brand-ink/10 rounded-2xl text-[10px] sm:text-xs font-mono uppercase tracking-wider text-brand-ink hover:bg-brand-paper transition-all shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-wait ${currentView === 'settings' ? 'ring-1 ring-brand-ink' : ''} ${!pushEnabled ? 'opacity-50 grayscale' : ''}`}
           >
             <Settings size={14} />

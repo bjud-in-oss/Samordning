@@ -172,6 +172,7 @@ async function sendOutboundSms(toNumbers: string[], message: string) {
 loadActiveAlerts();
 loadAdmins();
 loadTrusted();
+initWebPush(); // Initialize Web Push
 
 // Automatic Expiry Cleanup Loop for invitations (Permanent suppression after 2 hours past scheduled time)
 setInterval(() => {
@@ -205,6 +206,11 @@ setInterval(() => {
 // ==========================================
 
 // Administrator list is maintained strictly server-side/file-side.
+
+// VAPID Public Key for Web Push subscription
+app.get("/api/vapid-public-key", (req, res) => {
+  res.json({ publicKey: getVapidPublicKey() });
+});
 
 // Analyze raw text invitation with Gemini
 app.post("/api/wash", async (req, res) => {

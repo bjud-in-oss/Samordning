@@ -34,10 +34,7 @@ interface SmsDraft {
 
 const smsDrafts = new Map<string, SmsDraft>();
 
-const app = express();
 const PORT = 3000;
-
-app.use(express.json());
 
 // In-Memory Flat Active Alerts & Announcements Registry
 // Backed by data/alerts.json for persistence on server restarts (Render compatibility)
@@ -204,6 +201,8 @@ setInterval(() => {
 // ==========================================
 // Express API Endpoints
 // ==========================================
+
+function setupRoutes(app: express.Express) {
 
 // Administrator list is maintained strictly server-side/file-side.
 
@@ -650,8 +649,15 @@ app.get("/api/whatsapp/status", (req, res) => {
   });
 });
 
+} // End of setupRoutes
+
 // Serve Vite frontend
 async function startServer() {
+  const app = express();
+  app.use(express.json());
+  
+  setupRoutes(app);
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

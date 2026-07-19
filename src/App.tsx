@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/sms_assistant/4_Produce]
 
 import React, { useState, useEffect, useCallback } from "react";
-import { ShieldAlert, Languages, X, Smartphone } from "lucide-react";
+import { ShieldAlert, Languages, X, Smartphone, Settings } from "lucide-react";
 import OnboardingWizard from "./features/mission_router/components/onboarding/OnboardingWizard";
 import AlertDetail from "./features/mission_router/components/AlertDetail";
 import ActiveStream from "./features/mission_router/components/ActiveStream";
@@ -357,51 +357,53 @@ export default function App() {
       {/* Main Responsive Grid Layout */}
       <main className="flex-1 p-4 max-w-xl w-full mx-auto flex flex-col">
         
-        {/* 3-Part Settings / Notifications Toggle */}
-        <div className="flex bg-brand-paper/50 rounded-full p-1 border border-brand-ink/10 mb-6 shadow-sm mx-auto max-w-[400px] w-full">
-          <button 
-            type="button"
-            disabled={isToggling}
-            onClick={async () => {
-              setIsToggling(true);
-              try {
-                await handleDisablePush();
-              } catch (e) {
-                console.error(e);
-              } finally {
-                setCurrentView('stream');
-                setIsToggling(false);
-              }
-            }}
-            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all disabled:opacity-50 disabled:cursor-wait ${(!pushEnabled && currentView !== 'settings') ? 'bg-brand-ink text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
-          >
-            Notiser av
-          </button>
-          <button 
+        {/* Kontroller för Notiser & Anpassning */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6 mx-auto max-w-[400px] w-full">
+          {/* iOS Style Switch Container */}
+          <div className="flex-1 bg-white border border-brand-ink/10 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+            <span className="text-xs sm:text-sm font-medium text-brand-ink">
+              Få inbjudningar som notiser
+            </span>
+            <button
+              type="button"
+              disabled={isToggling}
+              onClick={async () => {
+                setIsToggling(true);
+                try {
+                  if (pushEnabled) {
+                    await handleDisablePush();
+                  } else {
+                    await handleEnablePush();
+                  }
+                } catch (e) {
+                  console.error(e);
+                } finally {
+                  setIsToggling(false);
+                }
+              }}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-wait ${
+                pushEnabled ? 'bg-brand-accent' : 'bg-brand-ink/20'
+              }`}
+            >
+              <span className="sr-only">Toggle notifications</span>
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  pushEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Settings / Anpassa knappen */}
+          <button
             type="button"
             disabled={isToggling}
             onClick={() => setCurrentView('settings')}
-            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all disabled:opacity-50 disabled:cursor-wait ${(currentView === 'settings') ? 'bg-brand-ink text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
+            className={`flex items-center justify-center gap-2 px-5 py-4 sm:py-0 bg-white border border-brand-ink/10 rounded-2xl text-[10px] sm:text-xs font-mono uppercase tracking-wider text-brand-ink hover:bg-brand-paper transition-all shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-wait ${currentView === 'settings' ? 'ring-1 ring-brand-ink' : ''} ${!pushEnabled ? 'opacity-50 grayscale' : ''}`}
           >
-            Anpassa
-          </button>
-          <button 
-            type="button"
-            disabled={isToggling}
-            onClick={async () => {
-              setIsToggling(true);
-              try {
-                await handleEnablePush();
-              } catch (e) {
-                console.error(e);
-              } finally {
-                setCurrentView('stream');
-                setIsToggling(false);
-              }
-            }}
-            className={`flex-1 flex items-center justify-center py-2.5 text-[10px] sm:text-xs font-mono uppercase tracking-wider rounded-full transition-all disabled:opacity-50 disabled:cursor-wait ${(pushEnabled && currentView !== 'settings') ? 'bg-brand-accent text-white shadow-md font-semibold' : 'text-brand-ink/60 hover:bg-white/60'}`}
-          >
-            Notiser på
+            <Settings size={14} />
+            <span>Anpassa</span>
           </button>
         </div>
 

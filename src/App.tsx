@@ -30,6 +30,9 @@ export default function App() {
   const [uiLanguage, setUiLanguage] = useState<UiLanguage | null>(() => {
     return localStorage.getItem("mission_router_ui_language") as UiLanguage | null;
   });
+  const [hasAcceptedIntro, setHasAcceptedIntro] = useState<boolean>(() => {
+    return localStorage.getItem("mission_router_has_accepted_intro") === "true";
+  });
   
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
 
@@ -297,6 +300,27 @@ export default function App() {
               </button>
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasAcceptedIntro) {
+    return (
+      <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 text-brand-ink font-sans">
+        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-brand-ink/5 space-y-8">
+          <p className="font-serif italic text-brand-ink text-lg leading-relaxed">
+            {TRANSLATIONS[uiLanguage].introScreenText}
+          </p>
+          <button
+            onClick={() => {
+              localStorage.setItem("mission_router_has_accepted_intro", "true");
+              setHasAcceptedIntro(true);
+            }}
+            className="w-full py-4 px-6 bg-brand-accent text-white font-medium text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] hover:bg-brand-accent/90"
+          >
+            {TRANSLATIONS[uiLanguage].introScreenBtn}
+          </button>
         </div>
       </div>
     );

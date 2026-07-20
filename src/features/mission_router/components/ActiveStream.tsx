@@ -303,7 +303,7 @@ Text: ${announcementText}` : "";
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
-                    {uiLanguage === "sv" ? "Kategori" : "Category"}
+                    {uiLanguage === "sv" ? "Huvudtema" : "Category"}
                   </label>
                   <select
                     value={selectedCategory}
@@ -473,9 +473,9 @@ Text: ${announcementText}` : "";
                   />
                   <span>
                     {uiLanguage === "sv" ? (
-                      <>Jag bekräftar att detta inlägg <strong>inte innehåller några personuppgifter</strong> (t.ex. efternamn eller telefonnummer till intresserade/sökande) för utomstående, samt godkänner GDPR-efterlevnad.</>
+                      <>Jag förstår att min inbjudan granskas innan publicering. Jag bekräftar att jag inte delar andras personuppgifter (som efternamn eller nummer) i texten utan deras uttryckliga godkännande.</>
                     ) : (
-                      <>I confirm that this post <strong>does not contain any personal data</strong> (e.g., last name or phone number of investigators/seekers) for third parties, and I agree to GDPR compliance.</>
+                      <>I understand that my invitation is reviewed before publication. I confirm that I am not sharing others' personal data (like last names or numbers) in the text without their explicit consent.</>
                     )}
                   </span>
                 </label>
@@ -510,7 +510,7 @@ Text: ${announcementText}` : "";
                     <div className="flex flex-col items-center p-3 bg-brand-paper/50 rounded-xl border border-brand-ink/10">
                       <img src={qrUrl} alt="QR Code to SMS" className="w-24 h-24 mb-2 rounded shadow-sm" />
                       <span className="text-[9px] font-mono uppercase tracking-wider text-brand-ink/70 text-center max-w-[120px]">
-                        {uiLanguage === "sv" ? "Skanna med din mobilkamera för att publicera direkt via SMS" : "Scan with mobile camera to publish directly via SMS"}
+                        {uiLanguage === "sv" ? "Skanna med din mobilkamera för att skicka texten med SMS till publicering" : "Scan with mobile camera to send text via SMS for publication"}
                       </span>
                     </div>
                   )}

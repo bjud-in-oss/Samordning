@@ -317,6 +317,7 @@ app.post("/api/incoming-sms", async (req, res) => {
   const isTrustedOrAdmin = isAdmin || isTrusted;
 
   const isStatusReport = /^[\.#]$/.test(trimmedText);
+  const mallMatch = trimmedText.match(/^[\.#]mall$/i);
   const jaDraftMatch = trimmedText.match(/^[\.#]ja$/i);
   const jaMatch = trimmedText.match(/^[\.#]ja\s+(\d+)$/i);
   const nejMatch = trimmedText.match(/^[\.#]nej\s+(\d+)$/i);
@@ -338,6 +339,12 @@ app.post("/api/incoming-sms", async (req, res) => {
     if (count === 0) report = "Inga inbjudningar.\n";
     report += "\nKommandon: .ja [nr], .nej [nr], .ja alla [nr], .avsändare [namn]";
     return res.json({ success: true, replyMessage: report });
+  }
+
+  if (mallMatch) {
+    if (!isAdmin) return res.status(403).json({ error: "Obehörig." });
+    const mallText = "#NY\nTema: Vara en vän\nTid: \nPrimärt område: \nMötesplats: \nText: ";
+    return res.json({ success: true, replyMessage: mallText });
   }
 
   if (jaDraftMatch) {

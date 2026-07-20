@@ -5,6 +5,7 @@ import { ExternalLink, Send, CheckCircle, Sparkles, ShieldAlert } from "lucide-r
 import { ActiveAlert } from "../types";
 import { TRANSLATIONS, UiLanguage } from "../translations";
 import { GOTEBORG_AREAS } from "../domain/mapData";
+import Step1Geography from "./onboarding/Step1Geography";
 
 interface ActiveStreamProps {
   onSelectAlert: (id: string) => void;
@@ -56,13 +57,14 @@ export default function ActiveStream({
 
   // Editable metadata fields for Step 2
   const [selectedCategory, setSelectedCategory] = useState<string>("Vara en vän");
-  const [selectedArea, setSelectedArea] = useState<string>("");
+  const [selectedArea, setSelectedArea] = useState<string>(savedTags?.primaryArea || "");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedAudience, setSelectedAudience] = useState<string>("Alla");
   const [selectedOrganization, setSelectedOrganization] = useState<string>("Enskild/Familj");
   const [selectedLocationName, setSelectedLocationName] = useState<string>("Kapellet");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("Svenska");
   const [gdprChecked, setGdprChecked] = useState<boolean>(false);
+  const [showAreaSelector, setShowAreaSelector] = useState<boolean>(false);
 
   // Auto-dismiss toast
   useEffect(() => {
@@ -326,24 +328,47 @@ Text: ${announcementText}` : "";
 
                 <div className="space-y-1">
                   <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
-                    {uiLanguage === "sv" ? "Stöddistrikt / Område" : "Support District / Area"}
+                    {uiLanguage === "sv" ? "Primärt område" : "Primary Area"}
                   </label>
-                  <select
-                    value={selectedArea}
-                    onChange={(e) => {
-                      setSelectedArea(e.target.value);
-                      if (washResult) {
-                        setWashResult({
-                          ...washResult,
-                          extractedMetadata: { ...washResult.extractedMetadata, area: e.target.value }
-                        });
-                      }
-                    }}
-                    className="w-full p-2 bg-white/50 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors"
-                  >
-                    <option value="">{uiLanguage === "sv" ? "Välj område..." : "Select area..."}</option>
-                    {GOTEBORG_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-                  </select>
+                  {!showAreaSelector ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowAreaSelector(true)}
+                      className="w-full p-2 bg-white/50 border border-brand-ink/10 rounded-xl text-sm text-left focus:border-brand-accent focus:outline-none transition-colors text-brand-ink flex justify-between items-center"
+                    >
+                      <span>{selectedArea || (uiLanguage === "sv" ? "Välj område..." : "Select area...")}</span>
+                      <span className="text-[10px] uppercase font-mono tracking-widest text-brand-accent">Ändra</span>
+                    </button>
+                  ) : (
+                    <div className="border border-brand-ink/10 rounded-2xl bg-brand-bg/50 overflow-hidden">
+                      <Step1Geography
+                        primaryArea={selectedArea}
+                        setPrimaryArea={(area) => {
+                          setSelectedArea(area || "");
+                          if (washResult) {
+                            setWashResult({
+                              ...washResult,
+                              extractedMetadata: { ...washResult.extractedMetadata, area: area || "" }
+                            });
+                          }
+                          setShowAreaSelector(false); // Auto-close on selection
+                        }}
+                        limitAreas={false}
+                        setLimitAreas={() => {}}
+                        limitedAreas={[]}
+                        setLimitedAreas={() => {}}
+                        uiLanguage={uiLanguage}
+                        isInline={true}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAreaSelector(false)}
+                        className="w-full p-3 text-center text-[10px] uppercase font-mono tracking-widest text-brand-ink/50 hover:bg-brand-ink/5 hover:text-brand-ink transition-colors border-t border-brand-ink/5"
+                      >
+                        {uiLanguage === "sv" ? "Dölj kartväljaren" : "Hide map selector"}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-1">
@@ -473,9 +498,9 @@ Text: ${announcementText}` : "";
                   />
                   <span>
                     {uiLanguage === "sv" ? (
-                      <>Jag förstår att min inbjudan granskas innan publicering. Jag bekräftar att jag inte delar andras personuppgifter (som efternamn eller nummer) i texten utan deras uttryckliga godkännande.</>
+                      <>Jag förstår att min inbjudan granskas innan publicering. Jag bekräftar att jag inte delar andras personuppgifter (exempelvis namn eller kontaktuppgifter) i texten utan deras uttryckliga godkännande.</>
                     ) : (
-                      <>I understand that my invitation is reviewed before publication. I confirm that I am not sharing others' personal data (like last names or numbers) in the text without their explicit consent.</>
+                      <>I understand that my invitation is reviewed before publication. I confirm that I am not sharing others' personal data (like names or contact details) in the text without their explicit consent.</>
                     )}
                   </span>
                 </label>

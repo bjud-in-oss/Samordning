@@ -1,16 +1,12 @@
 # 4_Produce
 
 ## Genomförda åtgärder
-- **Intro-skärm (`App.tsx`)**:
-  - Implementerade ett nytt tillstånd: `hasAcceptedIntro` som lagras i `localStorage` (nyckel: `"mission_router_has_accepted_intro"`).
-  - Lade in en blockerande introduktionsskärm som visas direkt efter att användaren valt språk (om inte introduktionen redan är accepterad).
-  - Utformningen använder appens inbjudande `font-serif italic` för maximal läsbarhet och en tydlig bekräftelseknapp.
-- **Översättningar (`translations.ts`)**:
-  - Utökade `TranslationDict` med `introScreenText` och `introScreenBtn`.
-  - Applicerade de exakta, manuellt översatta introduktionstexterna för samtliga fem språk: Svenska (`sv`), Engelska (`en`), Spanska (`es`), Swahili (`sw`) och Vietnamesiska (`vi`). Inga fallbacks till engelska finns kvar.
-- **Ux-förbättringar för Inbjudningar (`ActiveStream.tsx`)**:
-  - Ändrade ledtexten "Kategori" till "Huvudtema" som är mer passande för syftet.
-  - Förfinade texten under QR-koden till "Skanna med din mobilkamera för att skicka texten med SMS till publicering".
-  - Uppdaterade GDPR-checkrutan till den nya balanserade utformningen som förklarar att inbjudan granskas manuellt samt inhämtar ett aktivt åtagande om att inte sprida personuppgifter utan medgivande, för både svenska och engelska.
+- **Dokumentation**: Sparat och verifierat de överenskomna arkitektoniska besluten i `blueprint_spec.md`.
+- **Mobilanpassning**: Layout för notisinställningar i `App.tsx` är numera en flexibel rad som optimerats för mobil visning. Kugghjulet döljs under mobilbredd (sm) och texten är nedskalad för att rymmas snyggt.
+- **Intro & Disclaimer**: Uppdaterade `Disclaimer.tsx` till ett mer avskalat utseende med en kortare text och en `onShowIntro`-länkknapp som smidigt nollställer "hasAcceptedIntro"-spärren i `App.tsx`.
+- **UX Copy**: Rensade dubblettknappen i `OnboardingWizard` och städade GDPR-text samt rubricering enligt anvisning.
+- **Områden & Data**: Adderat "Bergsjön & Gärdsås" till `parser.ts` och `mapData.ts`.
+- **Kartväljaren**: Importerade och implementerade den visuella valkomponenten `<Step1Geography>` i `ActiveStream.tsx` genom att skicka en flagga `isInline` som stänger av de onödiga delarna från wizard-mallen och enbart lät användaren fokusera på val av område. Valen kopplas via en snygg "Ändra"-knapp.
+- **Sms-Mallen**: Tillagt SMS-mallen (`/#mall/` alt `/.mall/`) i `server.ts` som smidigt returnerar formulärskelettet direkt till admin.
 
-Alla frontend-ändringar är på plats och applikationen har verifierats felfri i byggsteget.
+Koden bygger 100% grönt och alla uppdateringar är på plats!

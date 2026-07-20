@@ -131,11 +131,11 @@ export default function OnboardingWizard({
   ]);
 
   const notificationsLabel = {
-    sv: "Mina notifieringar",
-    en: "My notifications",
-    es: "Mis notificaciones",
-    sw: "Arifa zangu",
-    vi: "Thông báo của tôi"
+    sv: "Välj inbjudningar som notiser",
+    en: "Choose invitations as notifications",
+    es: "Elige invitaciones como notificaciones",
+    sw: "Chagua mialiko kama arifa",
+    vi: "Chọn lời mời làm thông báo"
   }[uiLanguage] || "Mina notifieringar";
 
   return (
@@ -150,39 +150,13 @@ export default function OnboardingWizard({
         </button>
       )}
       
-      {/* Header med integrerad switch */}
+      {/* Header */}
       <div className="flex flex-col space-y-3 bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-ink/10 pb-4">
-          <h2 className="font-sans text-xl text-brand-ink font-semibold tracking-tight">
+          <h2 className="font-sans text-xl text-brand-ink font-semibold tracking-tight flex items-center gap-2">
+            <Bell size={18} className="text-brand-accent shrink-0" />
             {notificationsLabel}
           </h2>
-          <div className="flex items-center gap-3">
-            <span className="font-sans text-xs font-medium text-brand-ink/80 flex items-center gap-1.5 select-none">
-              <Bell size={14} className="text-brand-accent shrink-0" />
-              {t.onboardingHeader}
-            </span>
-            <button
-              id="push-toggle-button"
-              type="button"
-              onClick={() => {
-                if (pushEnabled) {
-                  onDisablePush();
-                } else {
-                  onEnablePush();
-                }
-              }}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                pushEnabled ? "bg-emerald-600" : "bg-brand-ink/20"
-              }`}
-              aria-label="Toggle push notifications"
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
-                  pushEnabled ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </div>
         </div>
         
         <p className="text-brand-ink/75 text-xs sm:text-sm leading-relaxed font-light">

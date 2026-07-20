@@ -1,9 +1,10 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 import { GoogleGenAI } from "@google/genai";
 
-// 15 Fasta Stöddistrikt i Göteborg (Geografiskt sorterat Norr -> Söder)
+// 16 Fasta Stöddistrikt i Göteborg (Geografiskt sorterat Norr -> Söder)
 export const STODDISTRIKT = [
   { name: "Angered", lat: 57.7958, lng: 12.0432 },
+  { name: "Bergsjön", lat: 57.7479, lng: 12.0592 },
   { name: "Kortedala", lat: 57.7506, lng: 12.0335 },
   { name: "Gamlestaden", lat: 57.7332, lng: 12.0084 },
   { name: "Hisingen", lat: 57.7311, lng: 11.9332 },
@@ -24,6 +25,8 @@ export const STODDISTRIKT = [
 export const GEOMAP: Record<string, { lat: number; lng: number }> = {
   "angered": { lat: 57.7958, lng: 12.0432 },
   "angereds torg": { lat: 57.7951, lng: 12.0428 },
+  "bergsjön": { lat: 57.7479, lng: 12.0592 },
+  "gärdsås": { lat: 57.7562, lng: 12.0487 },
   "kortedala": { lat: 57.7506, lng: 12.0335 },
   "kortedala torg": { lat: 57.7512, lng: 12.0322 },
   "gamlestaden": { lat: 57.7332, lng: 12.0084 },

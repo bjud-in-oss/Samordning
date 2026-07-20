@@ -14,6 +14,7 @@ interface Step1GeographyProps {
   limitedAreas: string[];
   setLimitedAreas: React.Dispatch<React.SetStateAction<string[]>>;
   uiLanguage: UiLanguage;
+  isInline?: boolean;
 }
 
 interface MapModalProps {
@@ -34,6 +35,7 @@ function MapModal({ area, onClose }: MapModalProps) {
   const modalMapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const district = getKmlDistrictForArea(area);
+
 
   useEffect(() => {
     if (!modalMapRef.current) return;
@@ -135,22 +137,26 @@ export default function Step1Geography({
   };
 
   return (
-    <div id="step-1-container" className="bg-white rounded-2xl p-6 md:p-8 border border-brand-ink/5 space-y-6 shadow-xs animate-in fade-in duration-200">
+    <div id="step-1-container" className={`bg-white rounded-2xl ${isInline ? "p-0 space-y-4" : "p-6 md:p-8 space-y-6"} border border-brand-ink/5 shadow-xs animate-in fade-in duration-200`}>
       
       {/* Rent och avskalat steg-rubrik-avsnitt */}
-      <div className="space-y-1.5 pb-2">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-brand-accent font-semibold">
-          Steg 1 av 4
-        </span>
-        <h3 className="font-serif italic text-xl font-medium text-brand-ink">Din insats som lokalt stöd</h3>
-        <p className="text-brand-ink/70 text-xs leading-relaxed font-light">
-          Välj den plats där du i första hand kan ge lokalt stöd (t.ex. vid lektioner, samtal eller praktisk hjälp). Denna plats blir ditt primära bevakningsområde.
-        </p>
-      </div>
+      {!isInline && (
+        <div className="space-y-1.5 pb-2">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-brand-accent font-semibold">
+            Steg 1 av 4
+          </span>
+          <h3 className="font-serif italic text-xl font-medium text-brand-ink">Din insats som lokalt stöd</h3>
+          <p className="text-brand-ink/70 text-xs leading-relaxed font-light">
+            Välj den plats där du i första hand kan ge lokalt stöd (t.ex. vid lektioner, samtal eller praktisk hjälp). Denna plats blir ditt primära bevakningsområde.
+          </p>
+        </div>
+      )}
 
       {/* Area Grid selector (Single select for Primary area) */}
       <div className="space-y-3">
-        <h4 className="font-serif italic text-sm text-brand-ink font-medium">Primärt bevakningsområde:</h4>
+        {!isInline && (
+          <h4 className="font-serif italic text-sm text-brand-ink font-medium">Primärt bevakningsområde:</h4>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {GOTEBORG_AREAS.map(area => {
             const isSelected = primaryArea === area;
@@ -238,35 +244,36 @@ export default function Step1Geography({
       </div>
 
       {/* Additional areas expander (Always visible so they can customize list) */}
-      <div className="pt-4 border-t border-brand-ink/5 space-y-4">
-        <label className="flex items-start p-4 rounded-xl bg-brand-bg hover:bg-brand-paper/50 transition-colors cursor-pointer select-none border border-brand-ink/5">
-          <input
-            id="limit-areas-checkbox"
-            type="checkbox"
-            checked={limitAreas}
-            onChange={e => {
-              const checked = e.target.checked;
-              setLimitAreas(checked);
-              if (checked) {
-                // All areas pre-selected by default
-                setLimitedAreas(GOTEBORG_AREAS);
-              } else {
-                setLimitedAreas([]);
-              }
-            }}
-            className="w-4 h-4 rounded border-brand-ink/20 text-brand-accent mr-4 mt-1 cursor-pointer accent-brand-accent shrink-0"
-          />
-          <div>
-            <div className="font-serif italic text-sm text-brand-ink font-medium">
-              Begränsa övriga notiser från dessa områden.
+      {!isInline && (
+        <div className="pt-4 border-t border-brand-ink/5 space-y-4">
+          <label className="flex items-start p-4 rounded-xl bg-brand-bg hover:bg-brand-paper/50 transition-colors cursor-pointer select-none border border-brand-ink/5">
+            <input
+              id="limit-areas-checkbox"
+              type="checkbox"
+              checked={limitAreas}
+              onChange={e => {
+                const checked = e.target.checked;
+                setLimitAreas(checked);
+                if (checked) {
+                  // All areas pre-selected by default
+                  setLimitedAreas(GOTEBORG_AREAS);
+                } else {
+                  setLimitedAreas([]);
+                }
+              }}
+              className="w-4 h-4 rounded border-brand-ink/20 text-brand-accent mr-4 mt-1 cursor-pointer accent-brand-accent shrink-0"
+            />
+            <div>
+              <div className="font-serif italic text-sm text-brand-ink font-medium">
+                Begränsa övriga notiser från dessa områden.
+              </div>
+              <div className="text-[11px] text-brand-ink/70 mt-1 leading-normal font-light">
+                Få endast aviseringar för specifika områden du bockar för nedan. Om omarkerad bevakar du automatiskt ALLA områden i hela församlingen.
+              </div>
             </div>
-            <div className="text-[11px] text-brand-ink/70 mt-1 leading-normal font-light">
-              Få endast aviseringar för specifika områden du bockar för nedan. Om omarkerad bevakar du automatiskt ALLA områden i hela församlingen.
-            </div>
-          </div>
-        </label>
+          </label>
 
-        {limitAreas && (
+          {limitAreas && (
           <div className="pt-2 pl-2 animate-in fade-in duration-200">
             <h5 className="font-serif italic text-xs text-brand-ink mb-3 font-medium">Välj områden att bevaka:</h5>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -300,8 +307,9 @@ export default function Step1Geography({
               })}
             </div>
           </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Full-screen Leaflet Modal */}
       {modalArea && (

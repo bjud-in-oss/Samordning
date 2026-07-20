@@ -388,10 +388,10 @@ export default function App() {
       <main className="flex-1 p-4 max-w-xl w-full mx-auto flex flex-col">
         
         {/* Kontroller för Notiser & Anpassning */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6 mx-auto max-w-[400px] w-full">
+        <div className="flex flex-row gap-2 sm:gap-3 mb-6 mx-auto max-w-[400px] w-full items-stretch">
           {/* iOS Style Switch Container */}
-          <div className="flex-1 bg-white border border-brand-ink/10 rounded-2xl p-4 flex items-center justify-between shadow-sm">
-            <span className="font-serif italic text-[15px] sm:text-base text-brand-ink tracking-tight">
+          <div className="flex-1 bg-white border border-brand-ink/10 rounded-2xl p-2 sm:p-4 flex items-center justify-between shadow-sm">
+            <span className="font-serif italic text-[10px] sm:text-xs text-brand-ink tracking-tight">
               Få inbjudningar som notiser
             </span>
             <button
@@ -434,9 +434,9 @@ export default function App() {
               e.stopPropagation();
               setCurrentView('settings');
             }}
-            className={`flex items-center justify-center gap-2 px-5 py-4 sm:py-0 bg-white border border-brand-ink/10 rounded-2xl font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper transition-all shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-wait ${currentView === 'settings' ? 'ring-1 ring-brand-ink text-brand-ink' : ''} ${!pushEnabled ? 'opacity-50 grayscale' : ''}`}
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-0 bg-white border border-brand-ink/10 rounded-2xl font-mono text-[9px] sm:text-[11px] uppercase tracking-widest text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper transition-all shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-wait ${currentView === 'settings' ? 'ring-1 ring-brand-ink text-brand-ink' : ''} ${!pushEnabled ? 'opacity-50 grayscale' : ''}`}
           >
-            <Settings size={14} />
+            <Settings size={14} className="hidden sm:inline" />
             <span>Anpassa</span>
           </button>
         </div>
@@ -526,7 +526,10 @@ export default function App() {
       </main>
 
       {/* Centered Foot Disclaimer */}
-      <Disclaimer uiLanguage={uiLanguage || "sv"} />
+      <Disclaimer 
+        uiLanguage={uiLanguage || "sv"} 
+        onShowIntro={() => setHasAcceptedIntro(false)}
+      />
 
       {/* IOS Web Push Instructions modal */}
       {showIosModal && (

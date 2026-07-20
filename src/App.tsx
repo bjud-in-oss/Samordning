@@ -367,7 +367,7 @@ export default function App() {
         <div className="flex flex-col sm:flex-row gap-3 mb-6 mx-auto max-w-[400px] w-full">
           {/* iOS Style Switch Container */}
           <div className="flex-1 bg-white border border-brand-ink/10 rounded-2xl p-4 flex items-center justify-between shadow-sm">
-            <span className="text-xs sm:text-sm font-medium text-brand-ink">
+            <span className="font-serif italic text-[15px] sm:text-base text-brand-ink tracking-tight">
               Få inbjudningar som notiser
             </span>
             <button
@@ -410,7 +410,7 @@ export default function App() {
               e.stopPropagation();
               setCurrentView('settings');
             }}
-            className={`flex items-center justify-center gap-2 px-5 py-4 sm:py-0 bg-white border border-brand-ink/10 rounded-2xl text-[10px] sm:text-xs font-mono uppercase tracking-wider text-brand-ink hover:bg-brand-paper transition-all shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-wait ${currentView === 'settings' ? 'ring-1 ring-brand-ink' : ''} ${!pushEnabled ? 'opacity-50 grayscale' : ''}`}
+            className={`flex items-center justify-center gap-2 px-5 py-4 sm:py-0 bg-white border border-brand-ink/10 rounded-2xl font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper transition-all shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-wait ${currentView === 'settings' ? 'ring-1 ring-brand-ink text-brand-ink' : ''} ${!pushEnabled ? 'opacity-50 grayscale' : ''}`}
           >
             <Settings size={14} />
             <span>Anpassa</span>
@@ -463,6 +463,8 @@ export default function App() {
                   <OnboardingWizard
                     onSave={(tags) => {
                       handleSaveTags(tags);
+                    }}
+                    onClose={() => {
                       setCurrentView('stream');
                     }}
                     savedTags={savedTags}

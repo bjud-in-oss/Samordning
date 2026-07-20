@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
 import React, { useState, useEffect, useRef } from "react";
-import { Bell, ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
+import { Bell, ArrowLeft, ArrowRight, ShieldCheck, X } from "lucide-react";
 import { GOTEBORG_AREAS } from "../../domain/mapData";
 import { TRANSLATIONS, UiLanguage } from "../../translations";
 import Step1Geography from "./Step1Geography";
@@ -139,7 +139,16 @@ export default function OnboardingWizard({
   }[uiLanguage] || "Mina notifieringar";
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto pb-32">
+    <div className="space-y-6 max-w-2xl mx-auto pb-32 relative">
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute -top-12 right-0 p-2 text-brand-ink/50 hover:text-brand-ink hover:bg-brand-ink/5 rounded-full transition-all"
+          aria-label="Stäng inställningar"
+        >
+          <X size={20} />
+        </button>
+      )}
       
       {/* Header med integrerad switch */}
       <div className="flex flex-col space-y-3 bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs">

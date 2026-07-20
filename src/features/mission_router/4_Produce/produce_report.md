@@ -1,9 +1,9 @@
 # 4_Produce
 
 ## Genomförda åtgärder
-- **server.ts**: 
-  - Restrukturerade den underliggande Express-applikationen. All initiering av `app` (`express()`) och samtliga API-rutter är nu säkert instängda i en dedikerad `setupRoutes`-funktion.
-  - Denna funktion anropas sedan inuti `startServer()` exakt före registreringen av Vite-middlewaren/den statiska filservern. Detta garanterar en 100 % deterministisk köordning där alla `/api/*`-rutter prioriteras först i request-pipelinen, oavsett om systemet körs i utvecklings- eller produktionsläge.
-  - Blixtsnabb, grön build efter genomförda tester.
+- **Minnesdokumentation**: Skapade `blueprint_spec.md` under `2_Blueprint` och skrev in den nya arkitektoniska regeln: "UI-state får aldrig bindas till auto-save-events...".
+- **App.tsx (Data vs Vy)**: I `<OnboardingWizard>`-instansieringen, lät `onSave` endast ansvara för data (bakgrundssparning) medan `onClose` nu exklusivt sköter `setCurrentView('stream')`.
+- **OnboardingWizard.tsx**: Stöd för `onClose` fanns delvis, men var odokumenterat (ej i interface). Lade in `onClose` ordentligt och satte in en stängningsknapp (X) längst upp till höger för inställningarna.
+- **Typografi (App.tsx)**: Ändrade switch-etiketten till appens signatur (font-serif italic text-brand-ink) och "Anpassa"-knappen till dess kontrasterande form (font-mono uppercase text-xs tracking-widest text-brand-ink/70) för perfekt harmoni.
 
-All arkitektonisk routing är nu säkerställd!
+Bygget är grönt! Auto-save blinkar inte längre bort vyn och allt är enhetligt och vackert!

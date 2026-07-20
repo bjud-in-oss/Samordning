@@ -1,25 +1,26 @@
 [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/3_Council_Impact]
 
 # 1_Scan
-- Kontrollerade `src/features/mission_router/components/Disclaimer.tsx`. Den innehåller en lång `DISCLAIMERS`-dictionary.
-- Kontrollerade `src/App.tsx`. Där skickas enbart prop `uiLanguage={uiLanguage || "sv"}` till `<Disclaimer />`.
+- **Vit skärm (React-krasch)**: Linter-utdata visar `error TS2304: Cannot find name 'isInline'` i `src/features/mission_router/components/onboarding/Step1Geography.tsx`. Felet beror på att prop:en `isInline` deklarerades i interfacet men glömdes bort i destruktureringen av funktionens argument, vilket orsakade ett ReferenceError vid rendering. Detta ledde i sin tur till vit skärm då hela komponentträdet kraschar.
+- **Notis-switch (`App.tsx`)**: Texten förminskades till `text-[10px] sm:text-xs` i tidigare cykel. `Anpassa`-knappens kugghjul har redan `hidden sm:inline`. Vi kommer att återställa textstorleken till `text-[15px] sm:text-base` och justera layouten för att passa mobilen.
+- **Global Admin-ikon (`App.tsx`)**: Sidhuvudet har en sektion för "HÖGER SIDA" där språkväljaren finns. Det är en perfekt plats för en diskret admin-sköld (`Shield`).
 
 # 2_Blueprint
-- Komponent `Disclaimer` utökas med ny prop `onShowIntro: () => void`.
-- Texterna i `DISCLAIMERS` kortas ner till den korta frasen "Detta är en fristående, inofficiell tjänst...".
-- Ny dictionary `READ_MORE` läggs till för knappen "Läs mer om integritet" / "Read more about privacy".
-- Rendera knappen direkt under p-taggen i `Disclaimer.tsx` med `<button onClick={onShowIntro} className="underline opacity-70 hover:opacity-100 transition-opacity">...`.
-- I `App.tsx` (rad 529), skicka in `onShowIntro={() => setHasAcceptedIntro(false)}` till `<Disclaimer />`. Denna state-förändring kommer trigga att introskärmen visas istället för huvudvyn (tack vare uppdateringen i den föregående cykeln).
+- **`Step1Geography.tsx`**: Lägg till `isInline` i komponentens destrukturering: `function Step1Geography({ ..., isInline }: Step1GeographyProps)`.
+- **`App.tsx`**:
+  - `const [isAdmin, setIsAdmin] = useState<boolean>(() => localStorage.getItem('isAdmin') === 'true');`
+  - I sidhuvudet, bredvid språkväljaren, placera en `<button>` med en `<Shield size={18} />`. Vid klick visas `prompt("Ange admin-lösenord:")`. Om inmatningen är "utby2026", sätts state och localStorage till `true`.
+  - Återställ storleken på texten för notis-switchen till `text-[15px] sm:text-base` och minska paddingen på mobila enheter. Vi döljer istället anpassa-kugghjulet/knappen helt på de minsta mobilskärmarna om platsen blir för trång (vi ser till att det löses enbart genom spacing och dölja ikoner).
+  - Skicka med `isAdmin={isAdmin}` till `<ActiveStream />`.
+- **`ActiveStream.tsx`**:
+  - Lägg till `isAdmin?: boolean;` i `ActiveStreamProps`.
 
 # 3_Council_Impact
-- **Innovator (Att förändra)**: Att återanvända introskärmen är ett fantastiskt UX-mönster. Det minskar visuell skräp i sidfoten och maximerar det centrala gränssnittet. Knappen ska vara extremt diskret, gärna `font-serif` eller `font-mono` med låg opacitet, så att vi inte skapar brus.
-- **Reflector (Att vända)**: Se till att vi inte krossar andra vyer, men i detta fall är `hasAcceptedIntro` en global spärr för hela DOM-visningen (rad 304). Om vi sätter `false` döljs App.tsx huvudflöde, vilket är exakt det vi vill. Se till att vi har översättningarna för de 5 språken på plats!
-- **Mediator (Att förlika)**: Vi är helt synkade. 
-  Filer att redigera: 
-  - `src/features/mission_router/components/Disclaimer.tsx`: Lägg till prop, korta ned text, lägg till knapp.
-  - `src/App.tsx`: Lägg till `onShowIntro` på komponenten.
+- **Innovator**: Admin-ikonen är ett klassiskt "Power User"-mönster som håller gränssnittet rent för vanliga användare. Att fixa kraschen är såklart prioritet 1, men att smidigt skicka `isAdmin` ner i trädet möjliggör framtida adminverktyg per inbjudan.
+- **Reflector**: Glömd destrukturering var exakt felet. Vi måste vara rigorösa med Typescript-kompilering. Att ändra tillbaka fontstorleken på switchen är helt rätt; på mobil måste tryckytor och text vara lättlästa. 
+- **Mediator**: Vi har en exakt och avgränsad plan. Kraschen är isolerad och enkel att åtgärda. Admin-knappen integreras smidigt.
 
-Blueprint är därmed fastställd och granskad.
+Blueprint fastställd och granskad.
 
 VÄLJ EN PROCESSÅTGÄRD:
 - Godkänn och fortsätt till 4_Produce.

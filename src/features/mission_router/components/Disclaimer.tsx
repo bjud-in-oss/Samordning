@@ -6,9 +6,10 @@ import { UiLanguage } from "../translations";
 interface DisclaimerProps {
   uiLanguage: UiLanguage;
   onShowIntro?: () => void;
+  onAdminTrigger?: () => void;
 }
 
-export default function Disclaimer({ uiLanguage, onShowIntro }: DisclaimerProps) {
+export default function Disclaimer({ uiLanguage, onShowIntro, onAdminTrigger }: DisclaimerProps) {
   return (
     <div className="w-full max-w-2xl mx-auto px-6 py-8 text-center text-brand-ink/40 flex flex-col items-center gap-2">
       <p className="text-[10px] leading-relaxed font-mono uppercase tracking-wider">
@@ -20,6 +21,14 @@ export default function Disclaimer({ uiLanguage, onShowIntro }: DisclaimerProps)
           className="text-[10px] font-mono uppercase tracking-wider underline opacity-70 hover:opacity-100 transition-opacity"
         >
           {uiLanguage === "sv" ? "Läs mer om integritet" : "Read more about privacy"}
+        </button>
+      )}
+      {onAdminTrigger && (
+        <button
+          onClick={onAdminTrigger}
+          className="font-mono text-[10px] uppercase tracking-wider opacity-30 hover:opacity-100 transition-opacity underline cursor-pointer mt-4"
+        >
+          Admin
         </button>
       )}
     </div>

@@ -13,6 +13,7 @@ interface ActiveStreamProps {
   savedTags: any;
   onStreamCountChange?: (filteredCount: number, totalCount: number) => void;
   inlineCreate?: boolean;
+  isAdmin?: boolean;
 }
 
 const ORGANIZATIONS = [
@@ -39,7 +40,8 @@ export default function ActiveStream({
   uiLanguage,
   savedTags,
   onStreamCountChange,
-  inlineCreate = false
+  inlineCreate = false,
+  isAdmin = false
 }: ActiveStreamProps) {
   const [stream, setStream] = useState<ActiveAlert[]>([]);
   const [loading, setLoading] = useState<boolean>(true);

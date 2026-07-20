@@ -126,7 +126,8 @@ export default function Step1Geography({
   setLimitAreas,
   limitedAreas,
   setLimitedAreas,
-  uiLanguage
+  uiLanguage,
+  isInline
 }: Step1GeographyProps) {
   const [modalArea, setModalArea] = useState<string | null>(null);
 

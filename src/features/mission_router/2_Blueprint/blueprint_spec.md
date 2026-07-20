@@ -1,18 +1,20 @@
-# BLUEPRINT: UX-optimering, Områdesväljare och Admin-mall
+# 1_Scan
+- **Vit skärm (React-krasch)**: Felet (`TS2304: Cannot find name 'isInline'`) uppstod för att prop:en `isInline` deklarerats i `Step1GeographyProps` men glömts i komponentens destructuring. Det kraschar bygget.
+- **Notis-switch (`App.tsx`)**: Texten förminskades för mycket på mobiler. Anpassa-knappens marginaler behövde slimmas (enbart kugghjulet bör döljas via CSS).
+- **Global Admin-ikon**: Enligt de nya instruktionerna utelämnas ikonen i sidhuvudet. Istället flyttas admin-åtkomsten till sidfoten, inbäddad som en extremt diskret länk i `<Disclaimer />`.
 
-## Arkitektoniska och UX-beslut
-1. **Mobilanpassning (Enrads-layout för notiskort):**
-   - Huvudkortet för notisinställningar i `App.tsx` ska rymmas på en enda rad på mobil för att spara vertikalt utrymme.
-   - Kugghjulsikonen döljs (`hidden sm:inline`), padding och textstorlek skalas ner (`text-[10px] sm:text-xs`).
+# 2_Blueprint
+- **`Step1Geography.tsx`**: La till `isInline` i funktionens destructuring.
+- **`App.tsx`**:
+  - Införde ett nytt React-state: `const [isAdmin, setIsAdmin] = useState<boolean>(() => localStorage.getItem('isAdmin') === 'true');`.
+  - Införde metoden `handleAdminAuth` med webbläsarens inbyggda `prompt()`. Om koden är `utby2026` loggas användaren in.
+  - Skickar prop:en `isAdmin={isAdmin}` ned till båda instanserna av `<ActiveStream />`.
+  - Återställde notis-switchens textstorlek till `text-[15px] sm:text-base` och tightade upp layoutens padding.
+- **`Disclaimer.tsx`**:
+  - Mottar en ny prop: `onAdminTrigger?: () => void`.
+  - Renderar textlänken "Admin" längst ner med extremt diskreta klasser (`opacity-30`, `hover:opacity-100`, `text-[10px]`, `uppercase`, `tracking-wider`).
+- **`ActiveStream.tsx`**:
+  - Accepterar en ny prop: `isAdmin?: boolean` för framtida bruk och admin-hantering per inbjudan.
 
-2. **Dubbletter av State-kontroller:**
-   - Ikoner/Toggles som styr globalt state (`pushEnabled`) får inte existera på flera ställen samtidigt om de skapar otydlighet. Togglen i `OnboardingWizard.tsx` tas bort eftersom kortet i `App.tsx` redan uppfyller denna funktion.
-
-3. **Visuell Validering (Kartväljare vs Select):**
-   - För att välja "Primärt område" i `ActiveStream.tsx` är en traditionell `<select>` klumpig för många geografiska områden. Vi planerar att byta ut `<select>` mot en knapp som expanderar den befintliga visuella kartkomponenten (`Step1Geography`) inline, men som default fylls fältet automatiskt med `savedTags?.primaryArea`.
-
-4. **Snabba Admin-kommandon (.mall):**
-   - För att underlätta inmatning via SMS implementeras kommandot `.mall` som returnerar ett tomt, formaterat skelett för inbjudningar direkt till administratörens SMS-klient.
-
-## Nya Domändata (Göteborgsområden)
-- "Bergsjön & Gärdsås" adderas till den fasta domänstrukturen i `parser.ts` (STODDISTRIKT och GEOMAP) för fullt stöd.
+# 3_Council_Impact
+Ändringarna uppfyller Typescript-kontraktet och de korrigerade layoutkraven för mobiler. Admin-flödet är nu mycket mer osynligt för den vanliga användaren och håller gränssnittet rent.

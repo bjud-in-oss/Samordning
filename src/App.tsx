@@ -34,6 +34,21 @@ export default function App() {
     return localStorage.getItem("mission_router_has_accepted_intro") === "true";
   });
   
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    return localStorage.getItem("isAdmin") === "true";
+  });
+
+  const handleAdminAuth = () => {
+    const password = prompt("Ange administratörskod:");
+    if (password === "utby2026") {
+      localStorage.setItem("isAdmin", "true");
+      setIsAdmin(true);
+      alert("Du är nu inloggad som administratör.");
+    } else if (password !== null) {
+      alert("Felaktig kod.");
+    }
+  };
+
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
 
   const [subscriptionId, setSubscriptionId] = useState<string | null>(() => {
@@ -390,8 +405,8 @@ export default function App() {
         {/* Kontroller för Notiser & Anpassning */}
         <div className="flex flex-row gap-2 sm:gap-3 mb-6 mx-auto max-w-[400px] w-full items-stretch">
           {/* iOS Style Switch Container */}
-          <div className="flex-1 bg-white border border-brand-ink/10 rounded-2xl p-2 sm:p-4 flex items-center justify-between shadow-sm">
-            <span className="font-serif italic text-[10px] sm:text-xs text-brand-ink tracking-tight">
+          <div className="flex-1 bg-white border border-brand-ink/10 rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm">
+            <span className="font-serif italic text-[15px] sm:text-base text-brand-ink tracking-tight">
               Få inbjudningar som notiser
             </span>
             <button
@@ -507,6 +522,7 @@ export default function App() {
                   savedTags={savedTags}
                   onStreamCountChange={handleStreamCountChange}
                   inlineCreate={false}
+                  isAdmin={isAdmin}
                 />
               )}
 
@@ -517,6 +533,7 @@ export default function App() {
                   savedTags={savedTags}
                   onStreamCountChange={handleStreamCountChange}
                   inlineCreate={true}
+                  isAdmin={isAdmin}
                 />
               )}
             </div>
@@ -529,6 +546,7 @@ export default function App() {
       <Disclaimer 
         uiLanguage={uiLanguage || "sv"} 
         onShowIntro={() => setHasAcceptedIntro(false)}
+        onAdminTrigger={handleAdminAuth}
       />
 
       {/* IOS Web Push Instructions modal */}

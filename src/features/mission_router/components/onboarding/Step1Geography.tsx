@@ -131,55 +131,58 @@ export default function Step1Geography({
 }: Step1GeographyProps) {
   const [modalArea, setModalArea] = useState<string | null>(null);
 
-  const toggleLimitedArea = (area: string) => {
-    setLimitedAreas(prev =>
-      prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area]
-    );
+  const toggleArea = (area: string) => {
+    setLimitedAreas(prev => {
+      const isSelected = prev.includes(area);
+      const next = isSelected ? prev.filter(a => a !== area) : [...prev, area];
+      // Keep primaryArea synced to the first item or undefined
+      if (next.length > 0) {
+        setPrimaryArea(next[0]);
+      } else {
+        setPrimaryArea(undefined);
+      }
+      return next;
+    });
+  };
+
+  const isAreaSelected = (area: string) => {
+    return limitedAreas.includes(area) || primaryArea === area;
   };
 
   return (
     <div id="step-1-container" className={`bg-white rounded-2xl ${isInline ? "p-0 space-y-4" : "p-6 md:p-8 space-y-6"} border border-brand-ink/5 shadow-xs animate-in fade-in duration-200`}>
       
-      {/* Rent och avskalat steg-rubrik-avsnitt */}
       {!isInline && (
         <div className="space-y-1.5 pb-2">
           <span className="font-mono text-[10px] uppercase tracking-widest text-brand-accent font-semibold">
             Steg 1 av 4
           </span>
-          <h3 className="font-serif italic text-xl font-medium text-brand-ink">Din insats som lokalt stöd</h3>
+          <h3 className="font-serif italic text-xl font-medium text-brand-ink">Dina områden</h3>
           <p className="text-brand-ink/70 text-xs leading-relaxed font-light">
             {uiLanguage === "sv" 
-              ? "I primärt detta område är du en informell resurs att stödja andra. Detta kompletterar de formella stödresurser kyrkan redan har organiserat, så att var och en som blir medlem i kyrkan eller besöker kyrkan kan ges tillfällen att vara ett informellt stöd för andra från första början och i sin egen takt."
-              : "In primarily this area, you are an informal resource to support others. This complements the formal support resources the church has already organized, so that anyone who joins or visits the church can be given opportunities to be an informal support for others from the very beginning and at their own pace."}
+              ? "Vilka områden brukar du träffa andra i?"
+              : "Which areas do you usually meet others in?"}
           </p>
         </div>
       )}
 
-      {/* Area Grid selector (Single select for Primary area) */}
+      {/* Area Grid selector (Multi-select) */}
       <div className="space-y-3">
-        {!isInline && (
-          <h4 className="font-serif italic text-sm text-brand-ink font-medium">Primärt bevakningsområde:</h4>
-        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {GOTEBORG_AREAS.map(area => {
-            const isSelected = primaryArea === area;
+            const selected = isAreaSelected(area);
             return (
               <div
                 key={area}
-                id={`primary-area-item-${area.replace(/\s+/g, "-")}`}
+                id={`area-item-${area.replace(/\s+/g, "-")}`}
                 className={`flex items-center justify-between p-4 rounded-xl border text-left transition-all min-h-[58px] duration-200 ${
-                  isSelected
+                  selected
                     ? "border-brand-accent bg-brand-paper/40 text-brand-ink font-semibold"
-                    : "border-brand-ink/5 bg-brand-bg text-brand-ink/80"
+                    : "border-brand-ink/5 bg-brand-bg text-brand-ink/80 hover:border-brand-accent/20"
                 }`}
               >
                 <div 
-                  onClick={() => {
-                    setPrimaryArea(area);
-                    if (limitAreas && limitedAreas.length === 0) {
-                      setLimitedAreas([area]);
-                    }
-                  }}
+                  onClick={() => toggleArea(area)}
                   className="flex-1 cursor-pointer flex flex-col justify-center"
                 >
                   <span className="font-serif italic text-sm sm:text-base font-medium text-brand-ink leading-tight">{area}</span>
@@ -196,19 +199,14 @@ export default function Step1Geography({
                 </div>
                 
                 <div
-                  onClick={() => {
-                    setPrimaryArea(area);
-                    if (limitAreas && limitedAreas.length === 0) {
-                      setLimitedAreas([area]);
-                    }
-                  }}
+                  onClick={() => toggleArea(area)}
                   className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border cursor-pointer transition-colors ${
-                    isSelected
+                    selected
                       ? "bg-brand-accent border-brand-accent text-white"
                       : "border-brand-ink/10 bg-white"
                   }`}
                 >
-                  {isSelected && <Check size={12} strokeWidth={2.5} />}
+                  {selected && <Check size={12} strokeWidth={2.5} />}
                 </div>
               </div>
             );
@@ -220,99 +218,30 @@ export default function Step1Geography({
             id="no-area-btn"
             onClick={() => {
               setPrimaryArea(undefined);
-              // When "Inget område" is selected, don't auto-limit or restrict unless custom areas are clicked
               setLimitedAreas([]);
             }}
             className={`flex items-center justify-between p-4 rounded-xl border text-left transition-all min-h-[58px] duration-200 ${
-              primaryArea === undefined
+              limitedAreas.length === 0 && primaryArea === undefined
                 ? "border-brand-accent bg-brand-paper/40 text-brand-ink font-semibold"
-                : "border-brand-ink/5 bg-brand-bg text-brand-ink/80"
+                : "border-brand-ink/5 bg-brand-bg text-brand-ink/80 hover:border-brand-accent/20"
             }`}
           >
             <div className="flex-1 flex flex-col justify-center">
               <span className="font-serif italic text-sm sm:text-base font-medium text-brand-ink leading-tight">Inget område</span>
-              <span className="text-[10px] text-brand-ink/65 font-light mt-1">Inget förvalt område från start</span>
+              <span className="text-[10px] text-brand-ink/65 font-light mt-1">Inget särskilt område valt</span>
             </div>
             <div
               className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
-                primaryArea === undefined
+                limitedAreas.length === 0 && primaryArea === undefined
                   ? "bg-brand-accent border-brand-accent text-white"
                   : "border-brand-ink/10 bg-white"
               }`}
             >
-              {primaryArea === undefined && <Check size={12} strokeWidth={2.5} />}
+              {limitedAreas.length === 0 && primaryArea === undefined && <Check size={12} strokeWidth={2.5} />}
             </div>
           </button>
         </div>
       </div>
-
-      {/* Additional areas expander (Always visible so they can customize list) */}
-      {!isInline && (
-        <div className="pt-4 border-t border-brand-ink/5 space-y-4">
-          <label className="flex items-start p-4 rounded-xl bg-brand-bg hover:bg-brand-paper/50 transition-colors cursor-pointer select-none border border-brand-ink/5">
-            <input
-              id="limit-areas-checkbox"
-              type="checkbox"
-              checked={limitAreas}
-              onChange={e => {
-                const checked = e.target.checked;
-                setLimitAreas(checked);
-                if (checked) {
-                  // All areas pre-selected by default
-                  setLimitedAreas(GOTEBORG_AREAS);
-                } else {
-                  setLimitedAreas([]);
-                }
-              }}
-              className="w-4 h-4 rounded border-brand-ink/20 text-brand-accent mr-4 mt-1 cursor-pointer accent-brand-accent shrink-0"
-            />
-            <div>
-              <div className="font-serif italic text-sm text-brand-ink font-medium">
-                Begränsa övriga notiser från dessa områden.
-              </div>
-              <div className="text-[11px] text-brand-ink/70 mt-1 leading-normal font-light">
-                Få endast aviseringar för specifika områden du bockar för nedan. Om omarkerad bevakar du automatiskt ALLA områden i hela församlingen.
-              </div>
-            </div>
-          </label>
-
-          {limitAreas && (
-          <div className="pt-2 pl-2 animate-in fade-in duration-200">
-            <h5 className="font-serif italic text-xs text-brand-ink mb-3 font-medium">Välj områden att bevaka:</h5>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {GOTEBORG_AREAS.map(area => {
-                const isChecked = limitedAreas.includes(area) || (primaryArea === area);
-                const isPrimary = primaryArea === area;
-                return (
-                  <button
-                    key={area}
-                    id={`limited-area-btn-${area.replace(/\s+/g, "-")}`}
-                    type="button"
-                    disabled={isPrimary}
-                    onClick={() => toggleLimitedArea(area)}
-                    className={`flex items-center justify-between p-3 rounded-lg border text-left transition-all text-xs ${
-                      isChecked
-                        ? "border-brand-accent bg-brand-paper/20 text-brand-ink font-medium"
-                        : "border-brand-ink/5 bg-brand-bg hover:border-brand-accent/10 text-brand-ink/70"
-                    } ${isPrimary ? "opacity-75 cursor-not-allowed" : ""}`}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      {area}
-                      {isPrimary && <span className="text-[9px] font-mono text-brand-accent uppercase">(Primärt)</span>}
-                    </span>
-                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
-                      isChecked ? "bg-brand-accent border-brand-accent text-white" : "border-brand-ink/15 bg-white"
-                    }`}>
-                      {isChecked && <Check size={10} strokeWidth={3} />}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          )}
-        </div>
-      )}
 
       {/* Full-screen Leaflet Modal */}
       {modalArea && (

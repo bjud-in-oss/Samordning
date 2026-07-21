@@ -203,7 +203,9 @@ export default function OnboardingWizard({
           </h3>
         </div>
         <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
-          Ställ in ditt primära bevakningsområde samt vilka begränsade områden du är tillgänglig för.
+          {uiLanguage === "sv" 
+            ? "Vilka områden brukar du träffa andra i?" 
+            : "Which areas do you usually meet others in?"}
         </p>
         <Step1Geography
           primaryArea={primaryArea}

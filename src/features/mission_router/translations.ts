@@ -108,8 +108,8 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     onboardingIntro: "Välkommen! Genom att ställa in fyra olika personliga preferenser nedan kan du välja exakt var och hur du vill delta och hjälpa till. Så fort ett behov uppstår som matchar din profil får du en diskret mobilavisering i realtid samtidigt som din integritet skyddas. Ingen annan än du kan se vilka notiser du följer eller tar emot. Endast den som du SMS:ar ett svar kan se när du svarar.",
     customizeChoicesBtn: "ANPASSA MINA VAL",
     
-    step1Title: "Steg 1 av 4: Din insats som lokalt stöd",
-    step1Subtitle: "Välj den plats där du i första hand kan ge lokalt stöd (t.ex. vid lektioner, samtal eller praktisk hjälp). Denna plats blir ditt primära bevakningsområde.",
+    step1Title: "Steg 1 av 4: Dina områden",
+    step1Subtitle: "Vilka områden brukar du träffa andra i?",
     
     step2Title: "Steg 2 av 4: Språkstöd",
     step2Subtitle: "Klicka på de språk du kan hjälpa till med under gemensamma träffar eller lektioner (inget är förvalt, man måste inte välja).",
@@ -191,8 +191,8 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     onboardingIntro: "Welcome! By setting four different personal preferences below, you can choose exactly where and how you want to participate and help. As soon as a need arises that matches your profile, you will receive a discrete mobile notification in real-time while your privacy is protected. No one but you can see which notifications you follow or receive. Only the person you SMS a reply to can see when you answer.",
     customizeChoicesBtn: "CUSTOMIZE MY CHOICES",
     
-    step1Title: "Step 1 of 4: Your effort as local support",
-    step1Subtitle: "Select the location where you can primarily provide local support (e.g., during lessons, conversations, or practical help). This location will be your primary monitoring area.",
+    step1Title: "Step 1 of 4: Your areas",
+    step1Subtitle: "Which areas do you usually meet others in?",
     
     step2Title: "Step 2 of 4: Language support",
     step2Subtitle: "Click on the languages you can help with during common gatherings or lessons (none is selected by default, you do not have to choose).",

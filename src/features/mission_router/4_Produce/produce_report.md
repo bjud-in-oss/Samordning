@@ -1,20 +1,20 @@
-# 4_Produce: Runda 2 ("Bjud in andra")
+# 4_Produce: Synkronisering & Backend-texttvätt
 
 ## Genomförda åtgärder
-1. **Universell 5-raders mall**:
-   - Implementerade den strukturerade 5-raders mallen för skapandet av inbjudningar i `ActiveStream.tsx`:
-     1. Tid
-     2. Mötesplats (Hybrid: stöder både fysisk plats och digital länk/telefon)
-     3. Aktivitet
-     4. Bjud in från områden (Hämtar automatiskt förvalda områden från användarens inställningar i `localStorage`)
-     5. Målgrupp (Förvalt till "Alla")
+1. **Central Backend-texttvätt (`washAnnouncementText`)**:
+   - Skapades och exporterades från `src/features/mission_router/domain/parser.ts`.
+   - Tvättar bort alla parentes-instruktioner `(...)` och hjälptaggar `[.?]`.
+   - Tillämpas automatiskt i `server.ts` för alla inkommande meddelanden (#WEBB, SMS, WhatsApp, API).
 
-2. **Adaptiv hjälptext (`usage_count`) & `.?` toggle**:
-   - Nya användare (`usage_count < 3`) samt användare som aktiverar `.?` ser förklarande instruktionstexter inom parentes `(...)`.
-   - Knappen `Visa hjälp ( .? )` / `Dölj hjälp ( .? )` tillåter manuell växling.
-   - `usage_count` hålls uppdaterat och sparas i `localStorage` vid skapande av inbjudningar.
+2. **Symmetrisk 5-raders SMS- & QR-Payload**:
+   - `ActiveStream.tsx` genererar nu `#WEBB`-SMS och QR-payload med de 5 nycklarna (`Tid`, `Mötesplats`, `Aktivitet`, `Bjud in från områden`, `Målgrupp`).
+   - `#WEBB`-hanteraren i `server.ts` parsar rad för rad för att extrahera dessa nycklar och tillämpar backend-texttvätten.
 
-3. **Texttvätt vid utskick (`washAnnouncementText`)**:
-   - Skapade helper-funktionen `washAnnouncementText` som automatiskt rensar ut alla parentes-instruktioner `(...)` och hjälptaggar före analys/publicering.
+3. **Uppräkning av `usage_count`**:
+   - `usage_count` stegras reaktivt med +1 i `localStorage` vid varje skapad inbjudan.
 
-4. **Koden kompilera helt grönt utan byggfel.**
+4. **Svar på `.?` & `.mall`**:
+   - `.?` returnerar 5-raders mallen med hjälptext och lista över gällande kommandon.
+   - `.mall` returnerar den rena 5-raders mallen för snabb redigering.
+
+5. **Koden kompilera 100% grönt utan varningar eller byggfel.**

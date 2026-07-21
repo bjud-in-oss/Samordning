@@ -3,7 +3,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
-import { runAiWash, runGeminiWash, getCoordsForArea, isApprovedSender, STODDISTRIKT, calculateSecondsUntilTime } from "./src/features/mission_router/domain/parser";
+import { runAiWash, runGeminiWash, getCoordsForArea, isApprovedSender, STODDISTRIKT, calculateSecondsUntilTime, washAnnouncementText } from "./src/features/mission_router/domain/parser";
 import { runSupportAgent } from "./src/features/sms_assistant/domain/supportAgent";
 import { 
   subscriptions, 
@@ -330,7 +330,7 @@ app.post("/api/incoming-sms", async (req, res) => {
   const isWebb = trimmedText.toUpperCase().startsWith("#WEBB");
 
   if (helpMatch) {
-    const helpText = "Kommandon: .ja [id], .nej [id], .ta bort [id], .status (lista), .mall (nytt sms)";
+    const helpText = "5-raders mall för inbjudan:\nTid: (t.ex. Idag kl 18:00)\nMötesplats: (Plats/Länk/Tfn)\nAktivitet: (Vad ska ni göra?)\nBjud in från områden: (Område)\nMålgrupp: Alla\n\nKommandon: .ja [id], .nej [id], .ta bort [id], .status, .mall";
     return res.json({ success: true, replyMessage: helpText });
   }
 
@@ -361,7 +361,7 @@ app.post("/api/incoming-sms", async (req, res) => {
 
   if (mallMatch) {
     if (!isAdmin) return res.status(403).json({ error: "Obehörig." });
-    const mallText = "#NY\nTema: Vara en vän\nTid: \nPrimärt område: \nMötesplats: \nText: ";
+    const mallText = "Tid: \nMötesplats: \nAktivitet: \nBjud in från områden: \nMålgrupp: Alla";
     return res.json({ success: true, replyMessage: mallText });
   }
 
@@ -465,21 +465,30 @@ app.post("/api/incoming-sms", async (req, res) => {
   }
 
   if (isWebb) {
-    // Expected Format (Måste matcha exakt vad webbklienten skickar in): 
-    // #WEBB
-    // Kategori: [category]
-    // Tid: [time]
-    // Område: [area]
-    // Avsändare: [organization]
-    // Text: [rawText]
-    const regex = /^#WEBB\s*Kategori:\s*(.+?)\s*Tid:\s*(.+?)\s*Område:\s*(.+?)\s*Avsändare:\s*(.+?)\s*Text:\s*(.*)$/si;
-    const match = trimmedText.match(regex);
-    if (!match) {
-      return res.json({ success: false, replyMessage: "Felaktigt #WEBB format." });
+    // Parse key-value lines from #WEBB
+    const lines = trimmedText.split("\n");
+    let category = "Vara en vän";
+    let time = "18:00";
+    let area = "Kortedala";
+    let organization = "Arrangör";
+    let audience = "Alla";
+    let rawText = "";
+
+    for (const line of lines) {
+      const lower = line.toLowerCase().trim();
+      if (lower.startsWith("kategori:")) category = line.substring(line.indexOf(":") + 1).trim() || category;
+      else if (lower.startsWith("tid:")) time = line.substring(line.indexOf(":") + 1).trim() || time;
+      else if (lower.startsWith("område:") || lower.startsWith("bjud in från områden:")) area = line.substring(line.indexOf(":") + 1).trim() || area;
+      else if (lower.startsWith("avsändare:")) organization = line.substring(line.indexOf(":") + 1).trim() || organization;
+      else if (lower.startsWith("målgrupp:")) audience = line.substring(line.indexOf(":") + 1).trim() || audience;
+      else if (lower.startsWith("text:") || lower.startsWith("aktivitet:")) rawText = line.substring(line.indexOf(":") + 1).trim();
     }
-    const [, category, time, area, organization, rawText] = match;
-    const audience = "Alla";
-    const language = "Svenska";
+
+    if (!rawText) {
+      rawText = trimmedText.replace(/^#WEBB/i, "").trim();
+    }
+
+    const cleanedText = washAnnouncementText(rawText);
     const id = getNextFreeId();
     const { coords, cloakedCoords } = getCoordsForArea(area);
     const offsetSeconds = calculateSecondsUntilTime(time);
@@ -488,8 +497,8 @@ app.post("/api/incoming-sms", async (req, res) => {
     const status = isTrustedOrAdmin ? "active" : "pending";
 
     const newAnnouncement: ActiveAlert = {
-      id, type: "leader_invitation", rawText, scrubbedText: rawText,
-      area, time, gender: audience, language, locationName: area, coords, cloakedCoords,
+      id, type: "leader_invitation", rawText: cleanedText, scrubbedText: cleanedText,
+      area, time, gender: audience, language: "Svenska", locationName: area, coords, cloakedCoords,
       timestamp: Date.now(), responsibleParty: organization, contactType: "sms", contactValue: sender,
       expiryTimestamp, category, isFull: false, status, escalationLevel: isLektionAndSamtal ? 1 : undefined
     };

@@ -254,10 +254,22 @@ export interface GeminiWashResult {
   };
 }
 
+export function washAnnouncementText(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\[\.\?\]/g, "")
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .join("\n");
+}
+
 export async function runGeminiWash(text: string): Promise<GeminiWashResult> {
+  const cleanText = washAnnouncementText(text);
   const ai = getAi();
   if (!ai) {
-    return runFallbackWash(text);
+    return runFallbackWash(cleanText);
   }
 
   const prompt = `Du är en intelligent AI-rådgivare och extraherare för en digital anslagstavla (Ge stöd till missionärerna).

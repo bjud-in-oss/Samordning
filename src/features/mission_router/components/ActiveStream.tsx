@@ -253,10 +253,12 @@ export default function ActiveStream({
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const smsPayload = washResult ? `#WEBB
 Kategori: ${selectedCategory}
-Tid: ${selectedTime}
-Område: ${selectedArea}
+Tid: ${selectedTime || "18:00"}
+Mötesplats: ${washResult.extractedMetadata.locationName || selectedArea}
+Bjud in från områden: ${selectedArea}
+Målgrupp: ${selectedAudience}
 Avsändare: ${selectedOrganization || "Arrangör"}
-Text: ${announcementText}` : "";
+Aktivitet: ${washAnnouncementText(announcementText)}` : "";
   
   const smsHref = `sms:0736108997?body=${encodeURIComponent(smsPayload)}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(smsHref)}`;

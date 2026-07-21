@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Send, ShieldCheck } from "lucide-react";
+import { Send, ShieldCheck, ArrowLeft } from "lucide-react";
 
 export default function AdminConsole() {
   const [apiSecret, setApiSecret] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [message, setMessage] = useState("");
-  const [logs, setLogs] = useState<string[]>([]);
+  const [logs, setLogs] = useState<{isUser: boolean, text: string}[]>([]);
 
   useEffect(() => {
     setApiSecret(localStorage.getItem("admin_api_secret") || "");
@@ -14,120 +14,117 @@ export default function AdminConsole() {
 
   const sendSms = async () => {
     if (!apiSecret || !phoneNumber || !message.trim()) return;
+    
     localStorage.setItem("admin_api_secret", apiSecret);
     localStorage.setItem("admin_phone_number", phoneNumber);
 
-    const res = await fetch("/api/incoming-sms", {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "x-api-secret": apiSecret 
-      },
-      body: JSON.stringify({ sender: phoneNumber, text: message })
-    });
-    
-    const data = await res.json();
-    setLogs(prev => [`${phoneNumber}: ${message}`, `Gemma: ${data.replyMessage || JSON.stringify(data)}`, ...prev]);
+    const userMessage = message.trim();
+    setLogs(prev => [{ isUser: true, text: userMessage }, ...prev]);
     setMessage("");
+
+    try {
+      const res = await fetch("/api/incoming-sms", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "x-api-secret": apiSecret 
+        },
+        body: JSON.stringify({ sender: phoneNumber, text: userMessage })
+      });
+      
+      const data = await res.json();
+      setLogs(prev => [{ isUser: false, text: data.replyMessage || JSON.stringify(data) }, ...prev]);
+    } catch (e: any) {
+      setLogs(prev => [{ isUser: false, text: "Nätverksfel eller ogiltigt svar." }, ...prev]);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg px-6 py-12 font-sans text-brand-ink selection:bg-brand-accent/20">
-      <div className="max-w-2xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-serif italic text-brand-ink font-medium tracking-tight flex items-center gap-2.5">
-            <ShieldCheck className="text-brand-accent shrink-0" size={28} />
-            Admin SMS Konsol
-          </h1>
-          <p className="text-brand-ink/60 text-xs font-mono uppercase tracking-wider mt-1.5">
-            Simulerat administratörsgränssnitt för testning av SMS-flöden
-          </p>
-        </div>
-        
-        <div className="bg-white rounded-2xl p-6 md:p-8 border border-brand-ink/5 shadow-xs space-y-5">
-          <div className="font-mono text-[9px] uppercase tracking-wider text-brand-accent font-semibold">
-            Inställningar (Sparas lokalt)
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
-                API Secret
-              </label>
-              <input 
-                type="password"
-                className="w-full p-3 bg-white/60 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors font-light text-brand-ink" 
-                placeholder="Ange x-api-secret..." 
-                value={apiSecret} 
-                onChange={e => setApiSecret(e.target.value)} 
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
-                Telefonnummer
-              </label>
-              <input 
-                type="text"
-                className="w-full p-3 bg-white/60 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors font-light text-brand-ink" 
-                placeholder="t.ex. 0736108997" 
-                value={phoneNumber} 
-                onChange={e => setPhoneNumber(e.target.value)} 
-              />
+    <div className="h-[100dvh] flex flex-col bg-[#F0F2F5] font-sans text-brand-ink">
+      {/* Header */}
+      <div className="bg-white px-4 py-3 border-b border-brand-ink/10 flex items-center justify-between shadow-sm shrink-0 z-10 relative">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => window.location.href = "/"}
+            className="p-2 -ml-2 text-brand-ink/60 hover:text-brand-ink transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <ArrowLeft size={20} />
+            <span className="text-xs font-mono uppercase tracking-wider hidden sm:inline">Webbapp</span>
+          </button>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="text-brand-accent shrink-0" size={24} />
+            <div>
+              <h1 className="text-lg font-serif italic text-brand-ink font-medium tracking-tight leading-none">
+                SMS Konsol
+              </h1>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="bg-white rounded-2xl p-6 md:p-8 border border-brand-ink/5 shadow-xs space-y-4">
-          <div className="space-y-1.5">
-            <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
-              Skriv simulerat SMS-meddelande
-            </label>
-            <textarea 
-              rows={3}
-              className="w-full p-4 bg-white/60 border border-brand-ink/10 rounded-xl text-sm focus:border-brand-accent focus:outline-none transition-colors resize-none leading-relaxed text-brand-ink font-light" 
-              placeholder="Svara med t.ex. .ja ID eller skriv en ny inbjudan..." 
-              value={message} 
-              onChange={e => setMessage(e.target.value)} 
-            />
-          </div>
-          <div className="flex justify-end">
-            <button 
-              onClick={sendSms} 
-              disabled={!apiSecret || !phoneNumber || !message.trim()}
-              className="px-5 py-2.5 text-[10px] font-mono uppercase tracking-wider text-white bg-brand-accent hover:opacity-90 disabled:opacity-40 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>Skicka SMS</span>
-              <Send size={10} />
-            </button>
-          </div>
-        </div>
+      {/* Settings (Collapsible or compact) */}
+      <div className="bg-white px-4 py-3 border-b border-brand-ink/5 shrink-0 z-10 shadow-sm flex gap-3 text-xs">
+         <input 
+            type="password"
+            className="w-1/2 p-2 bg-brand-bg rounded-lg border border-brand-ink/10 focus:border-brand-accent focus:outline-none transition-colors" 
+            placeholder="API Secret" 
+            value={apiSecret} 
+            onChange={e => setApiSecret(e.target.value)} 
+          />
+          <input 
+            type="text"
+            className="w-1/2 p-2 bg-brand-bg rounded-lg border border-brand-ink/10 focus:border-brand-accent focus:outline-none transition-colors" 
+            placeholder="Ditt nummer" 
+            value={phoneNumber} 
+            onChange={e => setPhoneNumber(e.target.value)} 
+          />
+      </div>
 
-        {logs.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-xs font-mono uppercase tracking-wider text-brand-accent">
-              SMS-historik & Svar
-            </h2>
-            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-              {logs.map((log, i) => {
-                const isUser = !log.startsWith("Gemma:");
-                const content = isUser ? log : log.substring(6).trim();
-                return (
-                  <div key={i} className={`flex ${isUser ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-200`}>
-                    <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs md:text-sm font-light leading-relaxed border ${
-                      isUser 
-                        ? "bg-brand-accent text-white border-brand-accent/20 rounded-tr-none" 
-                        : "bg-brand-paper text-brand-ink border-brand-ink/5 rounded-tl-none font-serif italic font-medium"
-                    }`}>
-                      <div className="font-mono text-[8px] uppercase tracking-wider opacity-65 mb-1.5">
-                        {isUser ? `Du (${phoneNumber})` : "System / AI"}
-                      </div>
-                      <p className="whitespace-pre-wrap">{content}</p>
-                    </div>
-                  </div>
-                );
-              })}
+      {/* Chat Area */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 flex flex-col-reverse gap-4">
+        {logs.map((log, i) => (
+          <div key={i} className={`flex ${log.isUser ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-200`}>
+            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm font-light leading-relaxed shadow-sm ${
+              log.isUser 
+                ? "bg-[#D9FDD3] text-brand-ink rounded-tr-none" 
+                : "bg-white text-brand-ink rounded-tl-none border border-brand-ink/5"
+            }`}>
+              <div className="font-mono text-[8px] uppercase tracking-wider opacity-50 mb-1">
+                {log.isUser ? `Du (${phoneNumber})` : "System / AI"}
+              </div>
+              <p className="whitespace-pre-wrap">{log.text}</p>
             </div>
+          </div>
+        ))}
+        {logs.length === 0 && (
+          <div className="text-center text-brand-ink/40 text-xs font-mono uppercase tracking-widest my-auto pb-12">
+            Skicka ett meddelande för att starta
           </div>
         )}
+      </div>
+
+      {/* Input Area */}
+      <div className="bg-[#F0F2F5] p-3 shrink-0 flex gap-2">
+        <textarea 
+          rows={1}
+          className="flex-1 p-3 bg-white rounded-2xl border-none focus:ring-0 shadow-sm resize-none text-sm leading-relaxed" 
+          placeholder="Skriv simulerat SMS..." 
+          value={message} 
+          onChange={e => setMessage(e.target.value)} 
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              sendSms();
+            }
+          }}
+        />
+        <button 
+          onClick={sendSms} 
+          disabled={!apiSecret || !phoneNumber || !message.trim()}
+          className="w-11 h-11 bg-brand-accent text-white rounded-full flex items-center justify-center shrink-0 shadow-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed self-end cursor-pointer"
+        >
+          <Send size={18} className="ml-1" />
+        </button>
       </div>
     </div>
   );

@@ -1,20 +1,28 @@
 # 1_Scan
-- **Vit skärm (React-krasch)**: Felet (`TS2304: Cannot find name 'isInline'`) uppstod för att prop:en `isInline` deklarerats i `Step1GeographyProps` men glömts i komponentens destructuring. Det kraschar bygget.
-- **Notis-switch (`App.tsx`)**: Texten förminskades för mycket på mobiler. Anpassa-knappens marginaler behövde slimmas (enbart kugghjulet bör döljas via CSS).
-- **Global Admin-ikon**: Enligt de nya instruktionerna utelämnas ikonen i sidhuvudet. Istället flyttas admin-åtkomsten till sidfoten, inbäddad som en extremt diskret länk i `<Disclaimer />`.
+- `AdminConsole.tsx`: Behöver WhatsApp-liknande layout. Fixerad botten för input, meddelanden i en flex-1 container som scrollar. Ny exit-knapp.
+- `server.ts`:
+  - `isTrustedOrAdmin` auto-publicering måste bort i slutet av inkommande-sms. Alla ska sparas som utkast och få previewMessage (även admins).
+  - Skapa hanterare för `^[\.#]ta\s*bort\s+(\d+)$/i`.
+  - Skapa hanterare för `.?` (Hjälp).
+  - Uppdatera texten i `.mall`.
+- `Step1Geography.tsx`: Uppdatera `<p>`-taggens copy.
 
 # 2_Blueprint
-- **`Step1Geography.tsx`**: La till `isInline` i funktionens destructuring.
-- **`App.tsx`**:
-  - Införde ett nytt React-state: `const [isAdmin, setIsAdmin] = useState<boolean>(() => localStorage.getItem('isAdmin') === 'true');`.
-  - Införde metoden `handleAdminAuth` med webbläsarens inbyggda `prompt()`. Om koden är `utby2026` loggas användaren in.
-  - Skickar prop:en `isAdmin={isAdmin}` ned till båda instanserna av `<ActiveStream />`.
-  - Återställde notis-switchens textstorlek till `text-[15px] sm:text-base` och tightade upp layoutens padding.
-- **`Disclaimer.tsx`**:
-  - Mottar en ny prop: `onAdminTrigger?: () => void`.
-  - Renderar textlänken "Admin" längst ner med extremt diskreta klasser (`opacity-30`, `hover:opacity-100`, `text-[10px]`, `uppercase`, `tracking-wider`).
-- **`ActiveStream.tsx`**:
-  - Accepterar en ny prop: `isAdmin?: boolean` för framtida bruk och admin-hantering per inbjudan.
+**AdminConsole.tsx**
+- Ändra layouten till en flex-container med `h-screen` (eller liknande) så den fyller fönstret men inte scrollar hela sidan, utan bara chatt-arean.
+- Lägg in `<button onClick={() => window.location.href = "/"}>Tillbaka till webbappen</button>`.
+- Inmatningsfältet `fixed bottom-0` eller `sticky bottom-0`. Meddelandelistan: `flex-1 overflow-y-auto flex flex-col-reverse` (med `[...prev]` -> `[nytt, ...prev]`) så senaste ligger nederst, ELLER `flex-col` men då måste vi auto-scrolla ner. Vi väljer `flex-col-reverse` för det är enklast.
+
+**server.ts**
+- Radera: `if (isTrustedOrAdmin) { ... }` (rad 500-525).
+- Lägg till: `const taBortMatch = trimmedText.match(/^[\.#]ta\s*bort\s+(\d+)$/i);`
+- Om `taBortMatch`: Hitta id, delete `activeAlerts[id]`, anropa `await broadcastCancelPush(id)`, anropa `saveActiveAlerts()`, returnera `success: true`.
+- Om `trimmedText.startsWith('.?')`: Returnera enkel guide: `"Kommandon: .ja [id] (publicera), .nej [id] (avvisa), .ta bort [id] (radera aktiv), .status (lista), .mall (mall för sms)."`
+
+**Step1Geography.tsx**
+- Byt ut brödtexten för den svenska och engelska varianten.
 
 # 3_Council_Impact
-Ändringarna uppfyller Typescript-kontraktet och de korrigerade layoutkraven för mobiler. Admin-flödet är nu mycket mer osynligt för den vanliga användaren och håller gränssnittet rent.
+- **Innovator**: Att bygga ut SMS-protokollet med radering `.ta bort` och hjälpguider gör systemet komplett för administratörer. WhatsApp-layouten är mycket mer användarvänlig på mobila enheter, vilket admins använder ute på fältet.
+- **Reflector**: Att vi tar bort `isTrustedOrAdmin`-bypassen säkerställer att ingen oavsiktligt publicerar utan att ha sett utkastet. Det förhindrar formateringsfel.
+- **Mediator**: Vi exekverar detta direkt eftersom direktivet kräver det. Blueprint fastställd.

@@ -148,7 +148,9 @@ export default function Step1Geography({
           </span>
           <h3 className="font-serif italic text-xl font-medium text-brand-ink">Din insats som lokalt stöd</h3>
           <p className="text-brand-ink/70 text-xs leading-relaxed font-light">
-            Välj den plats där du i första hand kan ge lokalt stöd (t.ex. vid lektioner, samtal eller praktisk hjälp). Denna plats blir ditt primära bevakningsområde.
+            {uiLanguage === "sv" 
+              ? "I primärt detta område är du en informell resurs att stödja andra. Detta kompletterar de formella stödresurser kyrkan redan har organiserat, så att var och en som blir medlem i kyrkan eller besöker kyrkan kan ges tillfällen att vara ett informellt stöd för andra från första början och i sin egen takt."
+              : "In primarily this area, you are an informal resource to support others. This complements the formal support resources the church has already organized, so that anyone who joins or visits the church can be given opportunities to be an informal support for others from the very beginning and at their own pace."}
           </p>
         </div>
       )}

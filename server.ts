@@ -317,7 +317,9 @@ app.post("/api/incoming-sms", async (req, res) => {
   const isTrustedOrAdmin = isAdmin || isTrusted;
 
   const isStatusReport = /^[\.#]$/.test(trimmedText);
+  const helpMatch = trimmedText.match(/^[\.#]\?$/i);
   const mallMatch = trimmedText.match(/^[\.#]mall$/i);
+  const taBortMatch = trimmedText.match(/^[\.#]ta\s*bort\s+(\d+)$/i);
   const jaDraftMatch = trimmedText.match(/^[\.#]ja$/i);
   const jaMatch = trimmedText.match(/^[\.#]ja\s+(\d+)$/i);
   const nejMatch = trimmedText.match(/^[\.#]nej\s+(\d+)$/i);
@@ -326,6 +328,22 @@ app.post("/api/incoming-sms", async (req, res) => {
   const expanderaMatch = trimmedText.match(/^[\.#]expandera\s+(\d+)$/i);
   const fullMatch = trimmedText.match(/^[\.#]full\s+(\d+)$/i);
   const isWebb = trimmedText.toUpperCase().startsWith("#WEBB");
+
+  if (helpMatch) {
+    const helpText = "Kommandon: .ja [id], .nej [id], .ta bort [id], .status (lista), .mall (nytt sms)";
+    return res.json({ success: true, replyMessage: helpText });
+  }
+
+  if (taBortMatch) {
+    if (!isAdmin) return res.status(403).json({ error: "Obehörig." });
+    const id = taBortMatch[1];
+    if (!activeAlerts[id]) return res.json({ success: false, replyMessage: `Inbjudan ${id} finns ej.` });
+    
+    delete activeAlerts[id];
+    saveActiveAlerts();
+    await broadcastCancelPush(id);
+    return res.json({ success: true, replyMessage: `Inbjudan ${id} raderad och avbeställd.` });
+  }
 
   if (isStatusReport) {
     if (!isAdmin) return res.status(403).json({ error: "Obehörig." });
@@ -497,33 +515,6 @@ app.post("/api/incoming-sms", async (req, res) => {
       missingAreaForTeaching: washed.warnings.missingAreaForTeaching, timestamp: Date.now()
     };
     
-    if (isTrustedOrAdmin) {
-      // Auto-publish
-      const meta = washed.extractedMetadata;
-      if (washed.warnings.missingAreaForTeaching) {
-        return res.json({ success: false, replyMessage: "Område saknas för lektion. Avvisades." });
-      }
-      const id = getNextFreeId();
-      const area = meta.area || "Kortedala";
-      const { coords, cloakedCoords } = getCoordsForArea(area);
-      const offsetSeconds = calculateSecondsUntilTime(meta.time || "18:00");
-      const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
-      const isLektionAndSamtal = meta.category === "Få näring av Guds ord" && meta.organization === "Missionärerna";
-
-      const newAnnouncement: ActiveAlert = {
-        id, type: "leader_invitation", rawText: trimmedText, scrubbedText: trimmedText,
-        area, time: meta.time || "Ospecificerad tid", gender: meta.audience || "Alla", language: meta.language || "Svenska",
-        locationName: meta.locationName || area, coords, cloakedCoords, timestamp: Date.now(),
-        responsibleParty: meta.organization || "Arrangör", contactType: "sms", contactValue: sender,
-        expiryTimestamp, category: meta.category || "Vara en vän", isFull: false, status: "active", 
-        escalationLevel: isLektionAndSamtal ? 1 : undefined
-      };
-      activeAlerts[id] = newAnnouncement;
-      saveActiveAlerts();
-      await triggerPushAlert(newAnnouncement);
-      return res.json({ success: true, replyMessage: `Din inbjudan (nr ${id}) publicerades direkt!` });
-    }
-
     smsDrafts.set(sender, newDraft);
     const previewMessage = `Utkast sparat i 30 min (ditt nummer döljs). Svara med .ja för att publicera, eller ändra med .avsändare [namn].`;
     return res.json({ success: true, replyMessage: previewMessage });

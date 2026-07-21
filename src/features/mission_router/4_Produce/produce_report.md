@@ -1,12 +1,12 @@
 # 4_Produce
 
 ## Genomförda åtgärder
-- **Dokumentation**: Sparat och verifierat de överenskomna arkitektoniska besluten i `blueprint_spec.md`.
-- **Mobilanpassning**: Layout för notisinställningar i `App.tsx` är numera en flexibel rad som optimerats för mobil visning. Kugghjulet döljs under mobilbredd (sm) och texten är nedskalad för att rymmas snyggt.
-- **Intro & Disclaimer**: Uppdaterade `Disclaimer.tsx` till ett mer avskalat utseende med en kortare text och en `onShowIntro`-länkknapp som smidigt nollställer "hasAcceptedIntro"-spärren i `App.tsx`.
-- **UX Copy**: Rensade dubblettknappen i `OnboardingWizard` och städade GDPR-text samt rubricering enligt anvisning.
-- **Områden & Data**: Adderat "Bergsjön & Gärdsås" till `parser.ts` och `mapData.ts`.
-- **Kartväljaren**: Importerade och implementerade den visuella valkomponenten `<Step1Geography>` i `ActiveStream.tsx` genom att skicka en flagga `isInline` som stänger av de onödiga delarna från wizard-mallen och enbart lät användaren fokusera på val av område. Valen kopplas via en snygg "Ändra"-knapp.
-- **Sms-Mallen**: Tillagt SMS-mallen (`/#mall/` alt `/.mall/`) i `server.ts` som smidigt returnerar formulärskelettet direkt till admin.
+- **Modernisering av Chatt-UI (`AdminConsole.tsx`)**: Refaktorerade konsolen till en WhatsApp-liknande layout (`h-[100dvh]`). Input-fältet ligger klistrat i botten tillsammans med skicka-knappen. Meddelandelistan (`flex-1 overflow-y-auto`) använder `flex-col-reverse` för att automatiskt bygga nerifrån och upp. Lade in en diskret `Tillbaka till webbappen`-länk uppe till vänster.
+- **Korrigering av SMS-logik (`server.ts`)**: 
+  - Raderade `if (isTrustedOrAdmin)`-blocket som tidigare auto-publicerade inkommande sms från administratörer. Nu går *alla* inbjudningar direkt in i `smsDrafts` och kvitteras med utkast-meddelandet.
+  - Implementerade `^[\.#]ta\s*bort\s+(\d+)$/i` kommandot som raderar larmet ur `activeAlerts`, anropar `saveActiveAlerts()` och `await broadcastCancelPush(id)` och skickar tillbaka bekräftelse till admin.
+  - La till `.?` hjälp-kommandot som listar de viktigaste interaktionerna.
+  - Justerade `.mall` svarssträngen till att använda rubriken "Primärt område:".
+- **UX Copy Justering (`Step1Geography.tsx`)**: Ersatte `<p>`-taggens inledande copy för område 1, inklusive engelsk översättning, enligt angivna krav.
 
-Koden bygger 100% grönt och alla uppdateringar är på plats!
+Koden bygger 100% grönt och alla förändringar är exekverade enligt TypeScript-kontrakten.

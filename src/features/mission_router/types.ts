@@ -29,6 +29,9 @@ export interface SubscriptionRecord {
     alwaysNotify: boolean;
     spiritualTips: boolean;
     requireInteraction?: boolean;
+    areasOfInterest?: string[];
+    targetGroups?: string[];
+    allowDigital?: boolean;
   };
 }
 

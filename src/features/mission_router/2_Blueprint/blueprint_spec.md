@@ -1,28 +1,21 @@
-# 1_Scan
-- `AdminConsole.tsx`: Behöver WhatsApp-liknande layout. Fixerad botten för input, meddelanden i en flex-1 container som scrollar. Ny exit-knapp.
-- `server.ts`:
-  - `isTrustedOrAdmin` auto-publicering måste bort i slutet av inkommande-sms. Alla ska sparas som utkast och få previewMessage (även admins).
-  - Skapa hanterare för `^[\.#]ta\s*bort\s+(\d+)$/i`.
-  - Skapa hanterare för `.?` (Hjälp).
-  - Uppdatera texten i `.mall`.
-- `Step1Geography.tsx`: Uppdatera `<p>`-taggens copy.
+[CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/2_Blueprint]
 
-# 2_Blueprint
-**AdminConsole.tsx**
-- Ändra layouten till en flex-container med `h-screen` (eller liknande) så den fyller fönstret men inte scrollar hela sidan, utan bara chatt-arean.
-- Lägg in `<button onClick={() => window.location.href = "/"}>Tillbaka till webbappen</button>`.
-- Inmatningsfältet `fixed bottom-0` eller `sticky bottom-0`. Meddelandelistan: `flex-1 overflow-y-auto flex flex-col-reverse` (med `[...prev]` -> `[nytt, ...prev]`) så senaste ligger nederst, ELLER `flex-col` men då måste vi auto-scrolla ner. Vi väljer `flex-col-reverse` för det är enklast.
+# Arkitekturspecifikation: Runda 1 ("Anpassa")
 
-**server.ts**
-- Radera: `if (isTrustedOrAdmin) { ... }` (rad 500-525).
-- Lägg till: `const taBortMatch = trimmedText.match(/^[\.#]ta\s*bort\s+(\d+)$/i);`
-- Om `taBortMatch`: Hitta id, delete `activeAlerts[id]`, anropa `await broadcastCancelPush(id)`, anropa `saveActiveAlerts()`, returnera `success: true`.
-- Om `trimmedText.startsWith('.?')`: Returnera enkel guide: `"Kommandon: .ja [id] (publicera), .nej [id] (avvisa), .ta bort [id] (radera aktiv), .status (lista), .mall (mall för sms)."`
+## Permanenta beslut
+1. **Skrotning av 4-stegs-steppern**: 
+   - Stepper-navigationen (Steg 1-4 med framåt/bakåt-knappar och numrerade cirklar/steg) och all kyrklig terminologi i användargränssnittet tas bort helt.
+   - OnboardingWizard ersätts med en samlad, enkelsidig "Anpassa"-vy.
 
-**Step1Geography.tsx**
-- Byt ut brödtexten för den svenska och engelska varianten.
+2. **Enkelsidig "Anpassa"-vy med 4 symmetriska sektioner**:
+   - **Sektion 1: Dina områden**: Geografiskt val och begränsning av bevakningsområde via den befintliga kart- och områdeskomponenten.
+   - **Sektion 2: Inbjudningar du vill se**: Filtrering på målgrupper (Alla, Barn & Familj, Ungdom 12–17, Unga Vuxna 18–35, Kvinnor, Män).
+   - **Sektion 3: Deltagandesätt**: Tillgänglighets-switches och format (Fysiskt på plats, Via telefon/digitalt/distans för Kaskadnotiser Nivå 3, samt Andliga tankar).
+   - **Sektion 4: Språk**: Lokaliseringsval för aviseringar (Svenska, Engelska, Spanska, Swahili, Vietnamesiska).
 
-# 3_Council_Impact
-- **Innovator**: Att bygga ut SMS-protokollet med radering `.ta bort` och hjälpguider gör systemet komplett för administratörer. WhatsApp-layouten är mycket mer användarvänlig på mobila enheter, vilket admins använder ute på fältet.
-- **Reflector**: Att vi tar bort `isTrustedOrAdmin`-bypassen säkerställer att ingen oavsiktligt publicerar utan att ha sett utkastet. Det förhindrar formateringsfel.
-- **Mediator**: Vi exekverar detta direkt eftersom direktivet kräver det. Blueprint fastställd.
+3. **Reaktiv sparning (SSOT)**:
+   - Alla ändringar sparas reaktivt direkt i `localStorage` och triggar `onSave` via `useEffect` utan behov av extra "Spara"- eller "Nästa"-knappar.
+
+4. **Typdefinitioner och Översättningar**:
+   - `src/features/mission_router/types.ts` uppdateras för att inkludera profilfälten `areasOfInterest`, `targetGroups`, `allowDigital`, och `languages`.
+   - `src/features/mission_router/translations.ts` utökas med de nya nycklarna för målgrupper och anpassningsvyer.

@@ -1,13 +1,27 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
 import React, { useState, useEffect, useRef } from "react";
-import { Bell, ArrowLeft, ArrowRight, ShieldCheck, X } from "lucide-react";
+import { MapPin, Users, PhoneCall, Globe, Check, X, Smartphone, Sparkles, Shield } from "lucide-react";
 import { GOTEBORG_AREAS } from "../../domain/mapData";
 import { TRANSLATIONS, UiLanguage } from "../../translations";
 import Step1Geography from "./Step1Geography";
-import Step2Language from "./Step2Language";
-import Step3Organizations, { getHiddenOrgsForGroup, ORGANIZATIONS } from "./Step3Organizations";
-import Step4Formats from "./Step4Formats";
+
+const TARGET_GROUPS = [
+  { id: "all", label: "Alla målgrupper" },
+  { id: "family", label: "Barn & Familj" },
+  { id: "youth", label: "Ungdom (12–17 år)" },
+  { id: "young_adults", label: "Unga Vuxna (18–35 år)" },
+  { id: "women", label: "Kvinnor" },
+  { id: "men", label: "Män" }
+];
+
+const LANGUAGE_OPTIONS = [
+  { code: "Svenska", label: "Svenska" },
+  { code: "English", label: "English" },
+  { code: "Español", label: "Español" },
+  { code: "Kiswahili", label: "Kiswahili" },
+  { code: "Tiếng Việt", label: "Tiếng Việt" }
+];
 
 interface OnboardingWizardProps {
   onSave: (tags: {
@@ -22,6 +36,8 @@ interface OnboardingWizardProps {
     formats: ("physical" | "telephone")[];
     alwaysNotify: boolean;
     spiritualTips: boolean;
+    targetGroups?: string[];
+    allowDigital?: boolean;
   }) => void;
   savedTags?: {
     areas: string[];
@@ -35,6 +51,8 @@ interface OnboardingWizardProps {
     formats: ("physical" | "telephone")[];
     alwaysNotify: boolean;
     spiritualTips: boolean;
+    targetGroups?: string[];
+    allowDigital?: boolean;
   };
   pushEnabled: boolean;
   onEnablePush: () => void;
@@ -52,69 +70,63 @@ export default function OnboardingWizard({
   uiLanguage,
   onClose
 }: OnboardingWizardProps) {
-  // Wizard active step (1 to 4)
-  const [currentStep, setCurrentStep] = useState<number>(1);
+  // Preference States
+  const [primaryArea, setPrimaryArea] = useState<string | undefined>(savedTags?.primaryArea);
+  const [limitAreas, setLimitAreas] = useState<boolean>(savedTags?.limitAreas ?? false);
+  const [limitedAreas, setLimitedAreas] = useState<string[]>(savedTags?.limitedAreas || []);
+  
+  const [targetGroups, setTargetGroups] = useState<string[]>(
+    savedTags?.targetGroups || ["all"]
+  );
 
-  // Core preferences states (SSOT) - Defaulting to empty/undefined from start
-  const [primaryArea, setPrimaryArea] = useState<string | undefined>(
-    savedTags?.primaryArea
-  );
-  const [limitAreas, setLimitAreas] = useState<boolean>(
-    savedTags?.limitAreas ?? false
-  );
-  const [limitedAreas, setLimitedAreas] = useState<string[]>(
-    savedTags?.limitedAreas || []
-  );
-  const [limitOrganizations, setLimitOrganizations] = useState<boolean>(
-    savedTags?.limitOrganizations ?? true
-  );
-  const [limitedOrganizations, setLimitedOrganizations] = useState<string[]>(
-    savedTags?.limitedOrganizations || ORGANIZATIONS
-  );
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
-    savedTags?.languages || []
-  );
-  const [organization, setOrganization] = useState<string>(
-    savedTags?.organization || ""
-  );
   const [formats, setFormats] = useState<("physical" | "telephone")[]>(
     savedTags?.formats || ["physical", "telephone"]
   );
-  const [alwaysNotify, setAlwaysNotify] = useState<boolean>(
-    savedTags?.alwaysNotify ?? true
+  const [allowDigital, setAllowDigital] = useState<boolean>(
+    savedTags?.allowDigital ?? true
   );
   const [spiritualTips, setSpiritualTips] = useState<boolean>(
     savedTags?.spiritualTips ?? true
   );
-  const [gdprAccepted, setGdprAccepted] = useState<boolean>(true);
 
-  const t = TRANSLATIONS[uiLanguage];
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
+    savedTags?.languages || ["Svenska"]
+  );
+
+  const [organization, setOrganization] = useState<string>(
+    savedTags?.organization || ""
+  );
+  const [limitOrganizations, setLimitOrganizations] = useState<boolean>(
+    savedTags?.limitOrganizations ?? false
+  );
+  const [limitedOrganizations, setLimitedOrganizations] = useState<string[]>(
+    savedTags?.limitedOrganizations || []
+  );
+  const [alwaysNotify, setAlwaysNotify] = useState<boolean>(
+    savedTags?.alwaysNotify ?? true
+  );
 
   const onSaveRef = useRef(onSave);
   useEffect(() => {
     onSaveRef.current = onSave;
   }, [onSave]);
 
-  // Auto-save on any change to preference state (only if GDPR is accepted)
+  // Reactive auto-save
   useEffect(() => {
-    if (!gdprAccepted) return;
-
-    // Filter out hidden organizations from saving if we limit organizations
-    const hiddenOrgs = getHiddenOrgsForGroup(organization);
-    const filteredLimitedOrgs = limitedOrganizations.filter(org => !hiddenOrgs.includes(org));
-
     onSaveRef.current({
       areas: limitAreas ? (primaryArea ? [primaryArea, ...limitedAreas.filter(a => a !== primaryArea)] : limitedAreas) : GOTEBORG_AREAS,
       primaryArea,
       limitAreas,
       limitedAreas,
       limitOrganizations,
-      limitedOrganizations: filteredLimitedOrgs,
+      limitedOrganizations,
       languages: selectedLanguages,
       organization,
       formats,
       alwaysNotify,
-      spiritualTips
+      spiritualTips,
+      targetGroups,
+      allowDigital
     });
   }, [
     primaryArea,
@@ -127,144 +139,215 @@ export default function OnboardingWizard({
     formats,
     alwaysNotify,
     spiritualTips,
-    gdprAccepted
+    targetGroups,
+    allowDigital
   ]);
 
-  const notificationsLabel = {
-    sv: "Välj inbjudningar som notiser",
-    en: "Choose invitations as notifications",
-    es: "Elige invitaciones como notificaciones",
-    sw: "Chagua mialiko kama arifa",
-    vi: "Chọn lời mời làm thông báo"
-  }[uiLanguage] || "Mina notifieringar";
+  const toggleTargetGroup = (groupId: string) => {
+    setTargetGroups(prev => {
+      if (groupId === "all") {
+        return ["all"];
+      }
+      const filtered = prev.filter(g => g !== "all");
+      if (filtered.includes(groupId)) {
+        const next = filtered.filter(g => g !== groupId);
+        return next.length === 0 ? ["all"] : next;
+      } else {
+        return [...filtered, groupId];
+      }
+    });
+  };
+
+  const toggleLanguage = (langCode: string) => {
+    setSelectedLanguages(prev =>
+      prev.includes(langCode) ? prev.filter(l => l !== langCode) : [...prev, langCode]
+    );
+  };
+
+  const toggleFormat = (format: "physical" | "telephone") => {
+    setFormats(prev =>
+      prev.includes(format) ? prev.filter(f => f !== format) : [...prev, format]
+    );
+  };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto pb-32 relative">
-      {onClose && (
-        <button
-          onClick={onClose}
-          className="absolute -top-12 right-0 p-2 text-brand-ink/50 hover:text-brand-ink hover:bg-brand-ink/5 rounded-full transition-all"
-          aria-label="Stäng inställningar"
-        >
-          <X size={20} />
-        </button>
-      )}
-      
-      {/* Header */}
-      <div className="flex flex-col space-y-3 bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-ink/10 pb-4">
-          <h2 className="font-sans text-xl text-brand-ink font-semibold tracking-tight flex items-center gap-2">
-            <Bell size={18} className="text-brand-accent shrink-0" />
-            {notificationsLabel}
+    <div className="space-y-6 max-w-2xl mx-auto pb-24 relative animate-in fade-in duration-200">
+      {/* Header Bar */}
+      <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs">
+        <div>
+          <h2 className="font-serif italic text-2xl font-medium text-brand-ink tracking-tight flex items-center gap-2.5">
+            <Sparkles size={22} className="text-brand-accent shrink-0" />
+            Anpassa dina val
           </h2>
+          <p className="text-brand-ink/70 text-xs sm:text-sm font-light mt-1">
+            Välj vilka inbjudningar och notiser du vill ta del av. Alla ändringar sparas automatiskt.
+          </p>
         </div>
-        
-        <p className="text-brand-ink/75 text-xs sm:text-sm leading-relaxed font-light">
-          När en inbjudan matchar dina preferenser får du en diskret avisering direkt i din telefon samtidigt som din integritet skyddas. Avsändaren kan inte se att du fått dennes meddelande annat än genom att du svarar med ett personligt SMS endast mellan er två.
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-2 text-brand-ink/50 hover:text-brand-ink hover:bg-brand-ink/5 rounded-full transition-all cursor-pointer"
+            aria-label="Stäng"
+          >
+            <X size={20} />
+          </button>
+        )}
+      </div>
+
+      {/* Sektion 1: Dina områden */}
+      <div className="bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-brand-ink/5">
+          <MapPin size={18} className="text-brand-accent shrink-0" />
+          <h3 className="font-sans font-medium text-base text-brand-ink">
+            1. Dina områden
+          </h3>
+        </div>
+        <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
+          Ställ in ditt primära bevakningsområde samt vilka begränsade områden du är tillgänglig för.
         </p>
+        <Step1Geography
+          primaryArea={primaryArea}
+          setPrimaryArea={setPrimaryArea}
+          limitAreas={limitAreas}
+          setLimitAreas={setLimitAreas}
+          limitedAreas={limitedAreas}
+          setLimitedAreas={setLimitedAreas}
+          uiLanguage={uiLanguage}
+          isInline={true}
+        />
       </div>
 
-      {/* Step Contents */}
-      <div className="transition-all duration-300">
-        {currentStep === 1 && (
-          <Step1Geography
-            primaryArea={primaryArea}
-            setPrimaryArea={setPrimaryArea}
-            limitAreas={limitAreas}
-            setLimitAreas={setLimitAreas}
-            limitedAreas={limitedAreas}
-            setLimitedAreas={setLimitedAreas}
-            uiLanguage={uiLanguage}
-          />
-        )}
-
-        {currentStep === 2 && (
-          <Step2Language
-            selectedLanguages={selectedLanguages}
-            setSelectedLanguages={setSelectedLanguages}
-            uiLanguage={uiLanguage}
-          />
-        )}
-
-        {currentStep === 3 && (
-          <Step3Organizations
-            organization={organization}
-            setOrganization={setOrganization}
-            limitOrganizations={limitOrganizations}
-            setLimitOrganizations={setLimitOrganizations}
-            limitedOrganizations={limitedOrganizations}
-            setLimitedOrganizations={setLimitedOrganizations}
-            uiLanguage={uiLanguage}
-          />
-        )}
-
-        {currentStep === 4 && (
-          <Step4Formats
-            formats={formats}
-            setFormats={setFormats}
-            spiritualTips={spiritualTips}
-            setSpiritualTips={setSpiritualTips}
-            gdprAccepted={gdprAccepted}
-            setGdprAccepted={setGdprAccepted}
-            uiLanguage={uiLanguage}
-          />
-        )}
+      {/* Sektion 2: Inbjudningar du vill se */}
+      <div className="bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-brand-ink/5">
+          <Users size={18} className="text-brand-accent shrink-0" />
+          <h3 className="font-sans font-medium text-base text-brand-ink">
+            2. Inbjudningar du vill se
+          </h3>
+        </div>
+        <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
+          Välj vilka målgrupper du vill ta emot inbjudningar för.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          {TARGET_GROUPS.map(group => {
+            const isSelected = targetGroups.includes(group.id);
+            return (
+              <button
+                key={group.id}
+                type="button"
+                onClick={() => toggleTargetGroup(group.id)}
+                className={`flex items-center justify-between p-3.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                  isSelected
+                    ? "border-brand-accent bg-brand-paper text-brand-ink"
+                    : "border-brand-ink/10 bg-brand-bg hover:border-brand-accent/30 text-brand-ink/70"
+                }`}
+              >
+                <span>{group.label}</span>
+                {isSelected && <Check size={14} className="text-brand-accent shrink-0 ml-1" />}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Spacer to prevent fixed bottom bar from covering content */}
-      <div className="h-24"></div>
+      {/* Sektion 3: Deltagandesätt */}
+      <div className="bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-brand-ink/5">
+          <PhoneCall size={18} className="text-brand-accent shrink-0" />
+          <h3 className="font-sans font-medium text-base text-brand-ink">
+            3. Deltagandesätt
+          </h3>
+        </div>
+        <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
+          Ange på vilka sätt du är tillgänglig att delta när en inbjudan skickas ut.
+        </p>
+        <div className="space-y-3">
+          {/* Fysiskt */}
+          <label className="flex items-center justify-between p-3.5 bg-brand-bg rounded-xl border border-brand-ink/5 cursor-pointer hover:border-brand-ink/10 transition-all">
+            <span className="text-xs font-medium text-brand-ink">Fysiskt på plats</span>
+            <input
+              type="checkbox"
+              checked={formats.includes("physical")}
+              onChange={() => toggleFormat("physical")}
+              className="accent-brand-accent h-4 w-4 rounded cursor-pointer"
+            />
+          </label>
 
-      {/* Fixerad bottenrad (Navigation) */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50">
-        <div className="bg-white/95 backdrop-blur-md border border-brand-ink/10 p-4 rounded-2xl shadow-xl flex items-center justify-between gap-4">
+          {/* Digital / Telefon (Kaskadnotiser Nivå 3) */}
+          <label className="flex items-center justify-between p-3.5 bg-brand-bg rounded-xl border border-brand-ink/5 cursor-pointer hover:border-brand-ink/10 transition-all">
+            <div>
+              <span className="text-xs font-medium text-brand-ink block">Digitalt & Telefon (Kaskadnotis Nivå 3)</span>
+              <span className="text-[10px] text-brand-ink/60 font-light block mt-0.5">
+                Tillåt kontakt via telefon eller videomöte vid brådskande förfrågningar.
+              </span>
+            </div>
+            <input
+              type="checkbox"
+              checked={allowDigital}
+              onChange={(e) => setAllowDigital(e.target.checked)}
+              className="accent-brand-accent h-4 w-4 rounded cursor-pointer shrink-0 ml-2"
+            />
+          </label>
+
+          {/* Andliga tankar */}
+          <label className="flex items-center justify-between p-3.5 bg-brand-bg rounded-xl border border-brand-ink/5 cursor-pointer hover:border-brand-ink/10 transition-all">
+            <span className="text-xs font-medium text-brand-ink">Andliga tankar & Korta budskap</span>
+            <input
+              type="checkbox"
+              checked={spiritualTips}
+              onChange={(e) => setSpiritualTips(e.target.checked)}
+              className="accent-brand-accent h-4 w-4 rounded cursor-pointer"
+            />
+          </label>
+        </div>
+      </div>
+
+      {/* Sektion 4: Språk */}
+      <div className="bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-brand-ink/5">
+          <Globe size={18} className="text-brand-accent shrink-0" />
+          <h3 className="font-sans font-medium text-base text-brand-ink">
+            4. Språk
+          </h3>
+        </div>
+        <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
+          Välj de språk du förstår och vill ta emot inbjudningar på.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          {LANGUAGE_OPTIONS.map(lang => {
+            const isSelected = selectedLanguages.includes(lang.code);
+            return (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => toggleLanguage(lang.code)}
+                className={`flex items-center justify-between p-3.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                  isSelected
+                    ? "border-brand-accent bg-brand-paper text-brand-ink"
+                    : "border-brand-ink/10 bg-brand-bg hover:border-brand-accent/30 text-brand-ink/70"
+                }`}
+              >
+                <span>{lang.label}</span>
+                {isSelected && <Check size={14} className="text-brand-accent shrink-0 ml-1" />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Done Button */}
+      {onClose && (
+        <div className="pt-2 flex justify-end">
           <button
             type="button"
-            disabled={currentStep === 1}
-            onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium text-xs sm:text-sm transition-all active:scale-95 ${
-              currentStep === 1
-                ? "bg-transparent text-transparent border-transparent cursor-default pointer-events-none select-none"
-                : "bg-brand-bg hover:bg-brand-paper border border-brand-ink/10 text-brand-ink cursor-pointer"
-            }`}
+            onClick={onClose}
+            className="px-6 py-3 bg-brand-accent text-white font-medium text-xs sm:text-sm rounded-xl hover:opacity-90 transition-all cursor-pointer shadow-sm flex items-center gap-2"
           >
-            <ArrowLeft size={16} />
-            <span>Bakåt</span>
+            <Check size={16} />
+            <span>Klar</span>
           </button>
-
-          {/* Centered fraction indicator */}
-          <span className="font-mono text-xs font-semibold text-brand-accent">
-            {currentStep}/4
-          </span>
-
-          {currentStep < 4 ? (
-            <button
-              type="button"
-              onClick={() => setCurrentStep(prev => Math.min(4, prev + 1))}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-ink hover:bg-brand-ink/90 text-brand-bg font-medium text-xs sm:text-sm cursor-pointer transition-all active:scale-95"
-            >
-              <span>Nästa</span>
-              <ArrowRight size={16} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              disabled={!gdprAccepted}
-              onClick={() => {
-                if (onClose) {
-                  onClose();
-                }
-              }}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-accent hover:opacity-95 text-white font-medium text-xs sm:text-sm cursor-pointer transition-all active:scale-95 ${
-                !gdprAccepted ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              <ShieldCheck size={16} />
-              <span>Klart!</span>
-            </button>
-          )}
         </div>
-      </div>
-
+      )}
     </div>
   );
 }

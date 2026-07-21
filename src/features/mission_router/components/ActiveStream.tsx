@@ -35,6 +35,16 @@ const ORGANIZATIONS = [
   "Staven"
 ];
 
+export function washAnnouncementText(text: string): string {
+  return text
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\[\.\?\]/g, "")
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .join("\n");
+}
+
 export default function ActiveStream({
   onSelectAlert,
   uiLanguage,
@@ -47,8 +57,27 @@ export default function ActiveStream({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Usage count & adaptive help state
+  const [usageCount, setUsageCount] = useState<number>(() => {
+    if (typeof localStorage !== "undefined") {
+      const stored = localStorage.getItem("mission_router_usage_count");
+      return stored ? parseInt(stored, 10) : 0;
+    }
+    return 0;
+  });
+  const [showHelpText, setShowHelpText] = useState<boolean>(usageCount < 3);
+
+  const defaultAreaString = savedTags?.primaryArea || (savedTags?.limitedAreas && savedTags.limitedAreas.length > 0 ? savedTags.limitedAreas.join(", ") : "Göteborg");
+
+  const buildTemplate = (showHelp: boolean) => {
+    if (showHelp) {
+      return `Tid: (t.ex. Idag kl 18:00)\nMötesplats: (Var ses vi fysiskt, eller länk/telefon)\nAktivitet: (Vad ska vi göra?)\nBjud in från områden: ${defaultAreaString}\nMålgrupp: Alla`;
+    }
+    return `Tid: \nMötesplats: \nAktivitet: \nBjud in från områden: ${defaultAreaString}\nMålgrupp: Alla`;
+  };
+
   // Form states for creating an invitation (Väntrummet)
-  const [announcementText, setAnnouncementText] = useState<string>("Tid: \nPlats: \nVad vi ska göra: ");
+  const [announcementText, setAnnouncementText] = useState<string>(() => buildTemplate(usageCount < 3));
   const [sending, setSending] = useState<boolean>(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -171,12 +200,15 @@ export default function ActiveStream({
     e.preventDefault();
     if (!announcementText.trim()) return;
 
+    // Apply automatic text washing to strip parenthetical instructions before analysis
+    const washedCleanText = washAnnouncementText(announcementText);
+
     setWashing(true);
     try {
       const res = await fetch("/api/wash", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: announcementText })
+        body: JSON.stringify({ text: washedCleanText })
       });
 
       if (!res.ok) throw new Error("Gick inte att tvätta inbjudan.");
@@ -185,12 +217,22 @@ export default function ActiveStream({
       setWashResult(data);
 
       setSelectedCategory(data.extractedMetadata.category || "Vara en vän");
-      setSelectedArea(data.extractedMetadata.area || "");
+      setSelectedArea(data.extractedMetadata.area || defaultAreaString);
       setSelectedTime(data.extractedMetadata.time || "");
       setSelectedAudience(data.extractedMetadata.audience || "Alla");
       setSelectedOrganization(data.extractedMetadata.organization || "Enskild/Familj");
       setSelectedLocationName(data.extractedMetadata.locationName || "Kapellet");
       setSelectedLanguage(data.extractedMetadata.language || "Svenska");
+
+      // Update announcementText to washed clean version
+      setAnnouncementText(washedCleanText);
+
+      // Increment usage count
+      const newCount = usageCount + 1;
+      setUsageCount(newCount);
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem("mission_router_usage_count", newCount.toString());
+      }
 
       setCurrentStep(2);
     } catch (err: any) {
@@ -199,6 +241,12 @@ export default function ActiveStream({
     } finally {
       setWashing(false);
     }
+  };
+
+  const toggleHelpText = () => {
+    const nextShow = !showHelpText;
+    setShowHelpText(nextShow);
+    setAnnouncementText(buildTemplate(nextShow));
   };
 
   // Enhetsdetektering för att styra SMS vs QR-kod
@@ -244,21 +292,29 @@ Text: ${announcementText}` : "";
           {currentStep === 1 ? (
             <form onSubmit={handleWash} className="space-y-5">
               <div className="space-y-1.5">
-                <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
-                  {uiLanguage === "sv" ? "Beskriv aktivitet eller inbjudan (fritext)" : "Describe activity or invitation (free text)"}
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
+                    {uiLanguage === "sv" ? "Skapa inbjudan (Universell 5-raders mall)" : "Create invitation (Universal 5-line template)"}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={toggleHelpText}
+                    className="font-mono text-[10px] uppercase tracking-wider text-brand-accent hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>{showHelpText ? "Dölj hjälp ( .? )" : "Visa hjälp ( .? )"}</span>
+                  </button>
+                </div>
                 <textarea
                   required
-                  rows={4}
+                  rows={6}
                   value={announcementText}
                   onChange={(e) => setAnnouncementText(e.target.value)}
-                  placeholder={uiLanguage === "sv" ? "Skriv helt fritt, t.ex: Bjuder på fika och varm soppa hemma hos oss i Partille nu på tisdag kl 18. Vi talar svenska och engelska!" : "Write freely, e.g.: Hosting fika and warm soup at our place in Partille this Tuesday at 6 PM. We speak Swedish and English!"}
-                  className="w-full px-4 py-3 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-xl text-brand-ink text-xs focus:outline-none transition-all placeholder-brand-ink/30 resize-none leading-relaxed font-light"
+                  className="w-full px-4 py-3 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-xl text-brand-ink text-xs focus:outline-none transition-all placeholder-brand-ink/30 resize-none leading-relaxed font-mono"
                 />
                 <span className="font-mono text-[9px] text-brand-accent/70 block mt-1 leading-normal uppercase">
                   {uiLanguage === "sv" 
-                    ? "Tips: Berätta vad ni bjuder in till, stadsdel, dag/tid och vilka språk som talas. AI:n föreslår taggar automatiskt!" 
-                    : "Tip: Tell us what you are inviting to, neighborhood, day/time, and what languages are spoken. The AI suggests tags automatically!"}
+                    ? "Tips: Instruktioner inom parentes ( ... ) rensas automatiskt bort när inbjudan skickas ut." 
+                    : "Tip: Instructions inside parentheses ( ... ) are automatically cleaned up when sending."}
                 </span>
               </div>
 

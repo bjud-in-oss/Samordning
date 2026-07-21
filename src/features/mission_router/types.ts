@@ -32,6 +32,7 @@ export interface SubscriptionRecord {
     areasOfInterest?: string[];
     targetGroups?: string[];
     allowDigital?: boolean;
+    usage_count?: number;
   };
 }
 

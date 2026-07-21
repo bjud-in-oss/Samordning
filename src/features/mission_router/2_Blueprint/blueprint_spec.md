@@ -1,6 +1,6 @@
 [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/2_Blueprint]
 
-# Arkitekturspecifikation: Runda 1, 2 & Synkronisering
+# Arkitekturspecifikation: Runda 1, 2, 3 & UI-renovering ("Industrial Clarity")
 
 ## Runda 1 ("Anpassa") - Permanenta beslut
 1. **Skrotning av 4-stegs-steppern**: Stepper-navigation och kyrklig terminologi ersätts med en samlad, enkelsidig "Anpassa"-vy.
@@ -10,29 +10,34 @@
 ---
 
 ## Runda 2 ("Bjud in andra") - Universell 5-raders mall
-1. **Mallen**:
-   - Tid (När)
-   - Mötesplats (Hybrid: Fysisk adress eller digital länk/telefon)
-   - Aktivitet (Vad ska vi göra?)
-   - Bjud in från områden (Vilka områden)
-   - Målgrupp (Förvalt till "Alla")
-
-2. **Adaptiv hjälptext (`usage_count`)**:
-   - `usage_count < 3` visar instruktionsparenteser.
-   - Växlas manuellt med `.?`.
-   - `usage_count` sparas och stegras reaktivt med +1 i `localStorage` vid varje skapad/analyserad inbjudan.
+1. **Mallen**: Tid, Mötesplats (hybrid), Aktivitet, Bjud in från områden, Målgrupp ("Alla").
+2. **Adaptiv hjälptext (`usage_count`)**: `usage_count < 3` eller tryck på `.?` visar hjälp parenteser.
 
 ---
 
-## Runda 3 (Synkronisering av Parser, Backend-texttvätt & QR-payload)
-1. **Central Backend-texttvätt (`washAnnouncementText`)**:
-   - Implementerad och exporterad i `src/features/mission_router/domain/parser.ts`.
-   - Anropas automatiskt i `server.ts` på all inkommande text (#WEBB, direct SMS, WhatsApp, API) före Gemini-analys, lagring och push-sändning. Eliminering av alla instruktionsparenteser `(...)` och hjälptaggar.
+## Runda 3 (Synkronisering & Backend-texttvätt)
+1. **Central Backend-texttvätt**: Skalar bort instruktionsparenteser och hjälptaggar i backend.
+2. **Symmetrisk SMS/QR Payload**: Innehåller de 5 mallfälten.
 
-2. **Symmetrisk SMS- & QR-Payload**:
-   - Innehåller de 5 mallnycklarna: `Tid`, `Mötesplats`, `Aktivitet`, `Bjud in från områden`, `Målgrupp` (samt `Avsändare` och `Kategori`).
-   - `#WEBB`-mottagaren i `server.ts` parsas flexibelt rad-för-rad för att extrahera dessa nycklar med fallbacks.
+---
 
-3. **SMS-hjälpsvar (`.?` & `.mall`)**:
-   - `.?` returnerar 5-raders mallen med hjälpinstruktioner och lista över gällande SMS-kommandon.
-   - `.mall` returnerar den rena 5-raders mallen för direktkopiering.
+## UI-renovering ("Industrial Clarity" Layout, Toggle & FAB)
+1. **Ren Header utan dubbla rubriker**:
+   - Rubriken "Inbjudan till dig" överst.
+   - Språkväljaren placeras längst upp i övre högra hörnet.
+   - Ingen statusprick i toppheadern längre.
+
+2. **Reaktiv Toggle för "Anpassa"**:
+   - Klick på "Anpassa"-knappen togglar inställningspanelen reaktivt (`currentView === 'settings' ? 'stream' : 'settings'`).
+   - När "Anpassa" är aktivt döljs flikrubriker och FAB.
+
+3. **Flytande skaparknapp (FAB `+`)**:
+   - Placerad i nedre högra hörnet (`fixed bottom-6 right-6 z-40`) i strömvy (`currentView === 'stream'` och `activeTab === 'stream'`).
+   - Ett klick på `+` öppnar skaparvyn ("Bjud in andra").
+
+4. **Tillbakapil (`← Tillbaka`)**:
+   - Placerad i övre vänstra hörnet när man befinner sig i skaparvyn (`activeTab === 'create'`).
+   - Klick på tillbakapilen återgår enkelt till strömvyn.
+
+5. **Sidfots-statusprick i `Disclaimer.tsx`**:
+   - Statuspricken (`isOnline`/`isSyncing`) flyttas från toppheadern ner till sidfoten i `Disclaimer.tsx`, placerad diskret intill Admin-knappen.

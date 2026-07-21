@@ -1,20 +1,23 @@
-# 4_Produce: Synkronisering & Backend-texttvätt
+# 4_Produce: UI-renovering ("Industrial Clarity")
 
 ## Genomförda åtgärder
-1. **Central Backend-texttvätt (`washAnnouncementText`)**:
-   - Skapades och exporterades från `src/features/mission_router/domain/parser.ts`.
-   - Tvättar bort alla parentes-instruktioner `(...)` och hjälptaggar `[.?]`.
-   - Tillämpas automatiskt i `server.ts` för alla inkommande meddelanden (#WEBB, SMS, WhatsApp, API).
+1. **Ren Header**:
+   - Toppheadern förenklad med ren titel "Inbjudan till dig" och område.
+   - Språkväljaren är placerad längst upp till höger.
+   - Dubblerade flikrubriker och dubbla rubriktexter har tagits bort.
 
-2. **Symmetrisk 5-raders SMS- & QR-Payload**:
-   - `ActiveStream.tsx` genererar nu `#WEBB`-SMS och QR-payload med de 5 nycklarna (`Tid`, `Mötesplats`, `Aktivitet`, `Bjud in från områden`, `Målgrupp`).
-   - `#WEBB`-hanteraren i `server.ts` parsar rad för rad för att extrahera dessa nycklar och tillämpar backend-texttvätten.
+2. **Reaktiv Toggle på "Anpassa"**:
+   - Klick på "Anpassa"-knappen växlar direkt mellan inställningsvyn och strömmen (`currentView === 'settings' ? 'stream' : 'settings'`).
+   - När "Anpassa" visas döljs skaparknappen (FAB `+`) och flikrubriker.
 
-3. **Uppräkning av `usage_count`**:
-   - `usage_count` stegras reaktivt med +1 i `localStorage` vid varje skapad inbjudan.
+3. **Flytande skaparknapp (FAB `+`)**:
+   - Placerad längst ner till höger (`fixed bottom-6 right-6 z-40`) när man är i strömvyn.
+   - Klick på `+` öppnar direkt "Bjud in andra"-formuläret.
 
-4. **Svar på `.?` & `.mall`**:
-   - `.?` returnerar 5-raders mallen med hjälptext och lista över gällande kommandon.
-   - `.mall` returnerar den rena 5-raders mallen för snabb redigering.
+4. **Tillbakapil (`← Tillbaka`)**:
+   - Skaparvyn har en tydlig tillbakapil i övre vänstra hörnet som återgår till strömmen.
 
-5. **Koden kompilera 100% grönt utan varningar eller byggfel.**
+5. **Sidfots-statusprick i `Disclaimer.tsx`**:
+   - Statuspricken för synkronisering och uppkoppling (`isOnline`/`isSyncing`) har flyttats från headern till sidfoten i `Disclaimer.tsx`, placerad diskret bredvid Admin-knappen.
+
+6. **Fullständig kompilering verifierad utan några fel.**

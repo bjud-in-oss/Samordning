@@ -1,7 +1,7 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/sms_assistant/4_Produce]
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/4_Produce]
 
 import React, { useState, useEffect, useCallback } from "react";
-import { ShieldAlert, Languages, X, Smartphone, Settings } from "lucide-react";
+import { ShieldAlert, Languages, X, Smartphone, Settings, Plus } from "lucide-react";
 import OnboardingWizard from "./features/mission_router/components/onboarding/OnboardingWizard";
 import AlertDetail from "./features/mission_router/components/AlertDetail";
 import ActiveStream from "./features/mission_router/components/ActiveStream";
@@ -354,34 +354,14 @@ export default function App() {
         <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between whitespace-nowrap overflow-hidden select-none">
           {/* VÄNSTER SIDA */}
           <div className="flex items-center gap-2 min-w-0 flex-1 mr-4">
-            <span
-              className={`w-2 h-2 rounded-full shrink-0 ${
-                isSyncing
-                  ? "bg-brand-ocean animate-pulse"
-                  : isOnline
-                  ? "bg-brand-accent"
-                  : "bg-brand-error"
-              }`}
-              title={
-                isSyncing
-                  ? TRANSLATIONS[uiLanguage].syncSyncing
-                  : TRANSLATIONS[uiLanguage].syncSynced
-              }
-            ></span>
-            <span className="text-xs font-sans text-brand-ink/80 truncate">
-              {activeTab === "settings" ? (
-                TRANSLATIONS[uiLanguage].showingCount
-                  .replace("{count}", String(streamCounts.filtered))
-                  .replace("{total}", String(streamCounts.total))
-              ) : (
-                <>
-                  {TRANSLATIONS[uiLanguage].primaryAreaLabel}:{" "}
-                  <span className="italic font-serif text-brand-accent font-medium">
-                    {savedTags?.primaryArea || TRANSLATIONS[uiLanguage].noAreaSelected}
-                  </span>
-                </>
-              )}
-            </span>
+            <h1 className="font-serif italic text-lg sm:text-xl font-medium tracking-tight text-brand-ink">
+              Inbjudan till dig
+            </h1>
+            {savedTags?.primaryArea && (
+              <span className="text-xs font-sans text-brand-ink/50 hidden sm:inline">
+                • <span className="italic font-serif text-brand-accent">{savedTags.primaryArea}</span>
+              </span>
+            )}
           </div>
 
           {/* HÖGER SIDA */}
@@ -447,9 +427,9 @@ export default function App() {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setCurrentView('settings');
+              setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings');
             }}
-            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-0 bg-white border border-brand-ink/10 rounded-2xl font-mono text-[9px] sm:text-[11px] uppercase tracking-widest text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper transition-all shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-wait ${currentView === 'settings' ? 'ring-1 ring-brand-ink text-brand-ink' : ''} ${!pushEnabled ? 'opacity-50 grayscale' : ''}`}
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-0 bg-white border border-brand-ink/10 rounded-2xl font-mono text-[9px] sm:text-[11px] uppercase tracking-widest text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper transition-all shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-wait ${currentView === 'settings' ? 'ring-1 ring-brand-ink text-brand-ink bg-brand-paper' : ''} ${!pushEnabled ? 'opacity-50 grayscale' : ''}`}
           >
             <Settings size={14} className="hidden sm:inline" />
             <span>Anpassa</span>
@@ -474,27 +454,6 @@ export default function App() {
         ) : (
           <div className="animate-in fade-in duration-200 space-y-6">
             
-            {/* Dynamic Navigation Links (Diskreta klickbara länkar för de två inaktiva flikarna) */}
-            <div className="flex items-center justify-center gap-6 text-[11px] font-mono text-brand-ink/40 uppercase tracking-widest pt-2">
-              {tabs.filter(t => t.id !== activeTab).map(tab => (
-                <button
-                  key={tab.id}
-                  id={`nav-link-${tab.id}`}
-                  onClick={() => handleTabChange(tab.id)}
-                  className="hover:text-brand-accent hover:underline transition-all cursor-pointer font-medium"
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Active Tab H1 Heading */}
-            <div className="text-center">
-              <h1 className="font-serif italic text-3xl sm:text-4xl font-medium tracking-tight text-brand-ink leading-tight">
-                {tabs.find(t => t.id === activeTab)?.label}
-              </h1>
-            </div>
-
             {/* Dynamic Content */}
             <div className="w-full">
               {currentView === 'settings' && (
@@ -534,6 +493,7 @@ export default function App() {
                   onStreamCountChange={handleStreamCountChange}
                   inlineCreate={true}
                   isAdmin={isAdmin}
+                  onBack={() => setActiveTab("stream")}
                 />
               )}
             </div>
@@ -542,11 +502,24 @@ export default function App() {
         )}
       </main>
 
+      {/* Floating Action Button (FAB) for creating invitations */}
+      {currentView === 'stream' && activeTab === 'stream' && !activeAlertId && (
+        <button
+          onClick={() => setActiveTab('create')}
+          className="fixed bottom-6 right-6 z-40 bg-brand-accent hover:bg-brand-accent/90 text-white rounded-full p-4 shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+          title={TRANSLATIONS[uiLanguage || "sv"].tabCreateInvitation || "Skapa inbjudan"}
+        >
+          <Plus size={24} />
+        </button>
+      )}
+
       {/* Centered Foot Disclaimer */}
       <Disclaimer 
         uiLanguage={uiLanguage || "sv"} 
         onShowIntro={() => setHasAcceptedIntro(false)}
         onAdminTrigger={handleAdminAuth}
+        isOnline={isOnline}
+        isSyncing={isSyncing}
       />
 
       {/* IOS Web Push Instructions modal */}

@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
 import React, { useState, useEffect } from "react";
-import { ExternalLink, Send, CheckCircle, Sparkles, ShieldAlert } from "lucide-react";
+import { ExternalLink, Send, CheckCircle, Sparkles, ShieldAlert, ArrowLeft } from "lucide-react";
 import { ActiveAlert } from "../types";
 import { TRANSLATIONS, UiLanguage } from "../translations";
 import { GOTEBORG_AREAS } from "../domain/mapData";
@@ -14,6 +14,7 @@ interface ActiveStreamProps {
   onStreamCountChange?: (filteredCount: number, totalCount: number) => void;
   inlineCreate?: boolean;
   isAdmin?: boolean;
+  onBack?: () => void;
 }
 
 const ORGANIZATIONS = [
@@ -51,7 +52,8 @@ export default function ActiveStream({
   savedTags,
   onStreamCountChange,
   inlineCreate = false,
-  isAdmin = false
+  isAdmin = false,
+  onBack
 }: ActiveStreamProps) {
   const [stream, setStream] = useState<ActiveAlert[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -274,6 +276,17 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
   if (inlineCreate) {
     return (
       <div className="space-y-6 w-full max-w-2xl mx-auto">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-brand-ink/60 hover:text-brand-ink transition-colors cursor-pointer"
+          >
+            <ArrowLeft size={16} />
+            <span>Tillbaka</span>
+          </button>
+        )}
+
         {toast && (
           <div id="toast-success-message" className="p-4 bg-brand-accent/5 border border-brand-accent/10 text-brand-accent text-xs font-mono uppercase tracking-wider rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-3 duration-200">
             <CheckCircle size={14} className="text-brand-accent shrink-0" />

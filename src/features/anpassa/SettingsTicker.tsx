@@ -27,7 +27,7 @@ export default function SettingsTicker({ savedTags, onClick }: SettingsTickerPro
       return `• i [${areaText}]`;
     } else if (tickerIndex === 1) {
       const langText = savedTags?.languages?.length ? savedTags.languages.join(", ") : "Svenska";
-      return `• på [${langText}]`;
+      return `• översätta till [${langText}]`;
     } else {
       const targetText = savedTags?.targetGroups?.length && !savedTags.targetGroups.includes("all") ? savedTags.targetGroups.join(", ") : "Alla";
       return `• för [${targetText}]`;
@@ -38,7 +38,7 @@ export default function SettingsTicker({ savedTags, onClick }: SettingsTickerPro
     <button
       type="button"
       onClick={onClick}
-      className="bg-transparent border-0 p-0 font-mono text-xs text-brand-accent/90 hover:text-brand-accent transition-opacity duration-300 cursor-pointer truncate max-w-[180px] sm:max-w-[260px] text-left focus:outline-none font-normal"
+      className="bg-transparent border-0 shadow-none p-0 font-mono text-xs text-brand-accent/90 hover:text-brand-accent transition-opacity duration-300 cursor-pointer truncate max-w-[180px] sm:max-w-[260px] text-left focus:outline-none font-normal"
       title="Klicka för att anpassa inställningar"
     >
       {getTickerText()}

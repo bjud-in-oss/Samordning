@@ -1,25 +1,27 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/anpassa/2_Blueprint]
 
-# Arkitekturspecifikation: Återställning av Osynlig Ticker, Fällbara Inställningar och Resursspråktext
+# Arkitekturspecifikation: Etapp 4 - Ramlös Ticker, Aktiv Språktext och PWA-Slutverifiering
 
-## 1. Osynlig Header-Ticker (`src/features/anpassa/SettingsTicker.tsx` & `App.tsx`)
-- Skapa komponenten `SettingsTicker.tsx` under `src/features/anpassa/`.
-- Tickern ska vara HELT OSYNLIG utan bakgrundskort, tiles, piller eller kanter (`bg-transparent border-0 p-0`, ren text).
-- Skiftar mjukt var 3,5:e sekund bredvid rubriken H1 "Inbjudan till dig":
+## 1. Helt Ramlös & Osynlig SettingsTicker (`src/features/anpassa/SettingsTicker.tsx`)
+- Tabort alla bakgrundskort, tiles, kanter och skuggor (`bg-transparent`, `border-0`, `shadow-none`, `p-0`).
+- Tickern återges som ren, klickbar text direkt efter rubriken H1 "Inbjudan till dig".
+- Ändra den tidsstyrda textcykeln till den aktiva resurstanken för språk:
   1. `• i [Kortedala, Bergsjön]` (eller valt primärområde / alla områden)
-  2. `• på [Svenska]` (eller valda språk)
+  2. `• översätta till [Svenska]` (aktiv resurstank istället för passivt "på")
   3. `• för [Alla]` (eller valda målgrupper)
-- Klick på den rena osynliga texten navigerar användaren direkt till "Anpassa" (`setCurrentView('settings')`).
+- Klick på texten navigerar användaren direkt till inställningar (`setCurrentView('settings')`).
 
-## 2. Fällbara Djupa Inställningar (`src/features/anpassa/OnboardingWizard.tsx`)
-- Sektion 1 (Dina områden) och Sektion 2 (Inbjudningar du vill se) visas alltid öppna.
-- Sektion 3 (Deltagandesätt) och Sektion 4 (Språk) döljs bakom den fällbara knappen `"⚙️ Visa fler inställningar"`.
+---
 
-## 3. Språktext-tvätt (`translations.ts` & `OnboardingWizard.tsx`)
-- Uppdatera hjälptexten under Sektion 4 (Språk) i `OnboardingWizard.tsx` samt `step2Subtitle` i `translations.ts` till resurstanken:
-  `"Vilka språk förstår du eller kan hjälpa till att översätta på?"`
+## 2. PWA Service Worker & Offline-caching (`public/sw.js`)
+- Säkerställ fullständig PWA-hantering i `public/sw.js`:
+  - `push`-händelser för bakgrundsaviseringar med tysta avfärdanden (`CANCEL`).
+  - `notificationclick`-händelser för fokustagning och öppnande av inbjudningsfönstret.
+  - `install` & `fetch`-händelser för offline-caching av PWA-skalet och statiska resurser.
 
-## 4. Vardagstext vid Tomt Tillstånd (`src/features/inbjudningar/ActiveStream.tsx`)
-- Säkerställ att det tomma flödestillståndet visar vardagstexten och snabbknappen:
-  `"Ska du ändå ta en fika, promenad eller fixa något i trädgården?"`
-  `"[ ➕ Skapa en snabb inbjudan för det du redan gör ]"`
+---
+
+## 3. Automatisk Gallring i Backend (`server.ts`)
+- Bekräfta och verifiera den automatiska gallringsloopen i `server.ts` (`setInterval` var 60:e sekund):
+  - Inaktuella inbjudningar med utgången tidsstämpel (`alert.expiryTimestamp < Date.now()`) gallras och rensas ur minnet automatiskt.
+  - Disk-synkronisering utlöses vid gallring så att inaktuella inbjudningar inte överlever en omstart.

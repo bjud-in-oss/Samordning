@@ -1,5 +1,29 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
+const CACHE_NAME = 'inbjudan-pwa-v1';
+
+self.addEventListener('install', function(event) {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', function(event) {
+  event.waitUntil(clients.claim());
+});
+
+self.addEventListener('fetch', function(event) {
+  // Pass through API & dynamic requests to network directly
+  if (event.request.url.includes('/api/')) {
+    return;
+  }
+  event.respondWith(
+    caches.match(event.request).then(function(response) {
+      return response || fetch(event.request);
+    }).catch(function() {
+      return caches.match('/');
+    })
+  );
+});
+
 self.addEventListener('push', function(event) {
   let data = {};
   if (event.data) {

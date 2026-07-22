@@ -1,14 +1,18 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/anpassa/2_Blueprint]
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/android_app/2_Blueprint]
 
-# Arkitekturspecifikation: Ultrakort Språktext och En-i-Taget-Rotering i SettingsTicker
+# Arkitekturspecifikation: Vattentät Service Worker-aktivering och Render ADMIN_PIN
 
-## 1. Ultrakort Språktext (`src/features/anpassa/SettingsTicker.tsx`)
-- Ändra textprefixet för språksteg från `• översätta till [Språk]` till det ultrakorta `• översätta [Språk]`.
-- Exempel:
-  - `• översätta [Svenska]`
-  - `• översätta [Engelska]`
+## 1. Säker Service Worker-registrering & Push-prenumeration (`src/features/android_app/pwaService.ts`)
+- Utöka och stärka `pwaService.ts` med funktioner för säker aktivering av Service Worker:
+  1. `getActiveServiceWorkerRegistration(swPath)`: Registrerar Service Worker och väntar ALLTID på `await navigator.serviceWorker.ready`.
+  2. Automatisk tillståndskontroll (`active` state): Om `registration.active` inte är redo direkt, lyssnar den på `statechange` tills worker är i tillståndet `activated` / `active`.
+  3. `subscribeUserToPush(publicKey, swPath)`: Säkerställer aktiv Service Worker innan `registration.pushManager.subscribe()` anropas.
+- Uppdatera `App.tsx` så att `handleEnablePush` använder `subscribeUserToPush` från `pwaService.ts` för att garantera att felet `Subscription failed - no active Service Worker` aldrig uppstår.
 
-## 2. En-i-Taget Rotering för Områden & Språk
-- Om användaren har valt flera områden (i `limitedAreas`) eller flera språk (i `languages`), roteras ett enskilt element i taget per rondering för att garantera att hela textraden ryms på en enda rad i mobila vyportar utan radbrytning eller klumpiga piller/tiles.
-- Rotationslogiken hålls ren och tidsstyrd (3,5 sekunders intervall) via intern tillståndshantering (`subIndex`).
-- Texten är helt ramlös (`bg-transparent`, `border-0`, `shadow-none`, `p-0`) och fungerar som en direkt klickbar länk till inställningar.
+---
+
+## 2. Stöd för process.env.ADMIN_PIN i Backend (`server.ts`)
+- Implementera/säkerställ endpointen `/api/admin/verify` i `server.ts`:
+  1. Kontrollera först om `process.env.ADMIN_PIN` finns inställt i miljövariablerna (t.ex. på Render). Om `ADMIN_PIN` finns, verifieras inkommande PIN direkt mot detta värde.
+  2. Om `process.env.ADMIN_PIN` saknas, faller verifieringen tillbaka på att kontrollera mot `data/admins.json` (eller `adminNumbers`/`API_SECRET`).
+  3. Returnera strukturerat svar `{ success: true, verified: true, isAdmin: true, source: 'env' | 'file' }` eller `401 Unauthorized`.

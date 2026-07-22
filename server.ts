@@ -204,6 +204,35 @@ setInterval(() => {
 
 function setupRoutes(app: express.Express) {
 
+// Admin verification endpoint (checks process.env.ADMIN_PIN first, falls back to data/admins.json)
+app.post("/api/admin/verify", (req, res) => {
+  const { pin, phone, secret, password } = req.body || {};
+  const inputPin = String(pin || secret || password || "").trim();
+  const inputPhone = String(phone || "").trim();
+
+  const envAdminPin = process.env.ADMIN_PIN ? process.env.ADMIN_PIN.trim() : "";
+
+  // 1. Check process.env.ADMIN_PIN in first hand if defined
+  if (envAdminPin.length > 0) {
+    if (inputPin === envAdminPin) {
+      return res.json({ success: true, verified: true, isAdmin: true, source: "env" });
+    } else {
+      return res.status(401).json({ success: false, verified: false, error: "Felaktig PIN-kod." });
+    }
+  }
+
+  // 2. Fallback: Check data/admins.json (or loaded adminNumbers / API_SECRET)
+  const isSecretMatch = inputPin === API_SECRET;
+  const isPhoneAdmin = inputPhone && adminNumbers.some(num => normalizePhone(num) === normalizePhone(inputPhone));
+  const isPinInAdmins = inputPin && adminNumbers.some(num => normalizePhone(num) === normalizePhone(inputPin));
+
+  if (isSecretMatch || isPhoneAdmin || isPinInAdmins) {
+    return res.json({ success: true, verified: true, isAdmin: true, source: "file" });
+  }
+
+  return res.status(401).json({ success: false, verified: false, error: "Obehörig admin eller felaktig PIN." });
+});
+
 // Administrator list is maintained strictly server-side/file-side.
 
 // VAPID Public Key for Web Push subscription

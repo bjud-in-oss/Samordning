@@ -1,20 +1,53 @@
 [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/2_Blueprint]
 
-# Arkitekturspecifikation: Sanering av Sikt & Begränsningar i "Anpassa"
+# Arkitekturspecifikation: FSD Domänuppdelning i 5 Isolera Moduler
 
-## Sanering av Begränsningar, Toggles och Terminologi
-1. **Skrotning av begränsande terminologi**:
-   - Alla begrepp och ord som "primär", "bevakning", "begränsa övriga notiser" och "begränsade områden" tas bort helt från gränssnittet och språknylarna.
-   - Inga kryssrutor för "Begränsa övriga notiser" eller dolda sekundära områdeslistor.
+## 1. Mål och struktur
+Systemet delas upp i 5 strikt isolerade Feature-Sliced Design (FSD) domäner under `src/features/`:
 
-2. **Sektion 1 i "Anpassa" (Dina områden)**:
-   - **Rubrik**: `1. Dina områden`
-   - **Fråga**: `Vilka områden brukar du träffa andra i?`
-   - **Interaktion**:
-     - Alla områden visas i ett rent och enhetligt nät.
-     - Användaren klickar för att tända/släcka de områden de brukar träffa andra i (multi-select).
-     - Ett val "Inget område" rensar valen om man inte vill välja något specifikt område.
-     - Kartknappen "Visa gräns" finns kvar för att granska distriktsgränser.
+1. **`src/features/inbjudningar/`**
+   - **Ansvarsområde**: Läsa och visa inbjudningar och anslag.
+   - **Komponenter/Filer**:
+     - `ActiveStream.tsx` (Anslagstavla / Ström)
+     - `AlertDetail.tsx` (Detaljvy för enskild inbjudan)
+     - Shared Types / Sub-components som behövs för läsning.
 
-3. **Kompatibilitet med sparad data (SSOT)**:
-   - Områdesvalen sparas reaktivt i `areas` och `limitedAreas` / `primaryArea` så att bakåtkompatibilitet upprätthålls i `localStorage` och API utan att användaren möts av förvirrande begränsningstermer.
+2. **`src/features/skapa_inbjudan/`**
+   - **Ansvarsområde**: Formulär för att skapa inbjudan med universell 5-raders mall, AI-texttvätt, QR-kod och SMS-generering.
+   - **Komponenter/Filer**:
+     - `CreateInvitationForm.tsx` (Extraherad / isolerad skaparvy)
+     - `washAnnouncementText` & tvätt-helpers.
+
+3. **`src/features/anpassa/`**
+   - **Ansvarsområde**: Profil, filter och personliga inställningar.
+   - **Komponenter/Filer**:
+     - `OnboardingWizard.tsx` (Inställningspanelen "Anpassa")
+     - `Step1Geography.tsx` (Dina områden)
+     - `Step2Language.tsx` (Språk)
+     - `Step3Organizations.tsx` (Målgrupper / Organisationer)
+     - `Step4Formats.tsx` (Deltagandesätt)
+     - `mapData.ts` (Områden och koordinater)
+
+4. **`src/features/sms_assistant/`**
+   - **Ansvarsområde**: Backend SMS-gateway, moderering, parser, AI-analys och AdminConsole.
+   - **Komponenter/Filer**:
+     - `AdminConsole.tsx`
+     - `supportAgent.ts`
+     - `parser.ts` & SMS/WhatsApp integrationslogik.
+
+5. **`src/features/android_app/`**
+   - **Ansvarsområde**: Android Web App Manifest, Service Worker (`sw.js`), PWA/TWA-konfiguration och Web Push-prenumerationshantering.
+   - **Komponenter/Filer**:
+     - `manifest.json` config / helpers
+     - `sw.js` integration / Service Worker helper scripts.
+
+---
+
+## 2. Importer och Beroendegraf
+- `src/App.tsx` importerar rent från de isolerade domänerna:
+  - `import ActiveStream from "./features/inbjudningar/ActiveStream";`
+  - `import AlertDetail from "./features/inbjudningar/AlertDetail";`
+  - `import OnboardingWizard from "./features/anpassa/OnboardingWizard";`
+  - `import AdminConsole from "./features/sms_assistant/AdminConsole";`
+  - `import Disclaimer from "./features/inbjudningar/Disclaimer";`
+- Inga cirkulära importer. Gemensamma typer hålls rena i `src/features/mission_router/types.ts` eller lokalt re-exporterade.

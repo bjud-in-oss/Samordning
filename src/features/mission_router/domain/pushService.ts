@@ -187,7 +187,7 @@ export async function triggerPushAlert(alert: ActiveAlert): Promise<number> {
 }
 
 // Broadcasts a silent Web Push CANCEL request to remove active notifications from locked screens
-export async function broadcastCancelPush(alertId: string, area: string) {
+export async function broadcastCancelPush(alertId: string, area?: string) {
   const cancelPayload = JSON.stringify({
     type: "CANCEL",
     id: alertId
@@ -195,7 +195,7 @@ export async function broadcastCancelPush(alertId: string, area: string) {
 
   let cancelPushCount = 0;
   for (const s of subscriptions) {
-    const areaMatch = s.tags.areas.includes(area);
+    const areaMatch = area ? s.tags.areas.includes(area) : true;
     const hasMatch = areaMatch || s.tags.alwaysNotify;
 
     if (hasMatch) {

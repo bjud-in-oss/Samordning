@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { ShieldAlert, Languages, X, Smartphone, Settings, Plus } from "lucide-react";
-import OnboardingWizard from "./features/mission_router/components/onboarding/OnboardingWizard";
-import AlertDetail from "./features/mission_router/components/AlertDetail";
-import ActiveStream from "./features/mission_router/components/ActiveStream";
-import Disclaimer from "./features/mission_router/components/Disclaimer";
+import OnboardingWizard from "./features/anpassa/OnboardingWizard";
+import AlertDetail from "./features/inbjudningar/AlertDetail";
+import ActiveStream from "./features/inbjudningar/ActiveStream";
+import Disclaimer from "./features/inbjudningar/Disclaimer";
 import { TRANSLATIONS, UiLanguage } from "./features/mission_router/translations";
 import AdminConsole from "./features/sms_assistant/components/AdminConsole";
 

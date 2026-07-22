@@ -1,32 +1,30 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/3_Council_Impact]
 
-# Council Impact Debate: Etapp 2 - Perfekt FSD Domänuppdelning och Slutgiltig Städning
+# Rådslagsdebatt & Synkroniserings-/Konsekvensanalys (Etapp 3)
 
-## Dialektisk Analys
+## Rådslagsdebatt (Dialektisk analys)
 
 ### The Innovator (Att förändra)
-Genom att dela upp systemet i 5 dedikerade, självständiga FSD-domänmappar (`inbjudningar`, `skapa_inbjudan`, `anpassa`, `sms_assistant`, `android_app`) skapar vi en extremt modulär kodbas. Skapandet av `src/features/skapa_inbjudan/` isolerar 5-raders mallen och AI-tvättens logik så att skaparflödet blir återanvändbart och enkelt att underhålla.
+> "Vi måste säkerställa att ingen missar en inbjudan eller gemenskap på grund av språksållning. Språkval i profilen ska representera användarens unika resurskapacitet (tolkning/översättning), inte ett exkluderande filter. Genom att ta bort språkspärren i `pushService.ts` och istället låta alla prenumeranter i området få notiser oavsett språk skapar vi en helt öppen och inkluderande matchningsmotor! Dessutom möjliggör vi Kaskadnotiser (Nivå 3 - Digitalt/Telefon) för brådskande behov."
 
 ### The Reflector (Att vända)
-Det är avgörande att ta bort den föråldrade mappen `src/features/mission_router/components/` permanent för att förhindra framtida import-förvirring och skuggningsfel där gamla komponenter importeras av misstag. Samtliga importer i `App.tsx` måste verifieras mot domängränserna.
+> "Vår struktur kräver strikt efterlevnad av kontrakt och FSD-gränser. När vi tar bort språkfiltret måste vi se till att vi inte skapar onödigt spammiga aviseringar, utan att områdes- och målgruppsmatchningen hålls knivskarp. Admin-konsolen måste verifieras så att inga gamla sökvägar eller brutna mallar ligger kvar. Alla ändringar i `server.ts` och `pushService.ts` ska vara bakåtkompatibla och rena."
 
 ### The Mediator (Att förlika)
-Rådet godkänner domänstrukturen och saneringen. Vi genomför extraheringen av `CreateInvitationForm.tsx` till `src/features/skapa_inbjudan/`, raderar den gamla `components/`-mappen och verifierar med fullständig typkontroll.
+> "Inskränkningar i språket skadar gemenskapen och strider mot principen om resursspegling. Vi tar definitivt bort språksållningen i `pushService.ts` så att alla volontärer i angivet område får avisering. Profilens språkval sparas som resursdata. För kaskadnotiser stödjer vi `allowDigital` och nivå 3 för brådskande utskick. Samtidigt uppdaterar vi `AdminConsole.tsx` och `server.ts` för fullständig symmetri med FSD-arkitekturen."
 
 ---
 
 ## Architectural Synchronization & Impact Analysis
 
-### Operativa filer som uppdateras/skapas i 4_Produce:
-1. **`src/features/skapa_inbjudan/CreateInvitationForm.tsx`**:
-   - Ny dedikerad modul för 5-raders mall och AI-tvätt för inbjudningar.
-2. **`src/features/skapa_inbjudan/index.ts`**:
-   - Exporterar `CreateInvitationForm`.
-3. **`src/features/inbjudningar/ActiveStream.tsx`**:
-   - Importerar `CreateInvitationForm` från `src/features/skapa_inbjudan`.
-4. **`src/App.tsx`**:
-   - Säkerställer att alla importer pekar på sina respektive domäner (`inbjudningar`, `anpassa`, `sms_assistant`, `android_app`).
-5. **Radering av `src/features/mission_router/components/`**:
-   - Raderar alla föråldrade filer och mappar under `src/features/mission_router/components/`.
+### Operativa filer att modifiera i `4_Produce`:
+1. `src/features/mission_router/domain/pushService.ts`:
+   - Ta bort exkluderande språkfilter vid `triggerPushAlert`. Alla prenumeranter i matchande område får aviseringen oavsett språk.
+   - Stödja eskalering/kaskadnotis (Nivå 3 / `allowDigital`) för brådskande förfrågningar.
+2. `server.ts`:
+   - Verifiera att `triggerPushAlert` och alla routes (`/api/incoming-sms`, `/api/subscription`, `/api/wash`) stämmer överens med den nya språkliga matchningsprincipen och 5-radersmallar.
+3. `src/features/sms_assistant/components/AdminConsole.tsx`:
+   - Uppdatera med snabbknappar och mallar för 5-raders inbjudningsformat och verifiera SMS-simuleringen.
 
-Rutning: Framåt till 4_Produce.
+### Beslut:
+- **Route Forward**: Steg till `4_Produce` godkänt.

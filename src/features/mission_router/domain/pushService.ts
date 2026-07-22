@@ -110,8 +110,8 @@ export async function triggerPushAlert(alert: ActiveAlert): Promise<number> {
   for (const s of subscriptions) {
     let hasMatch = false;
 
-    if (isCommon) {
-      // Scenario 1: Gemensam aktivitet - skicka till ALLA aktiva prenumeranter
+    if (isCommon || alert.escalationLevel === 3) {
+      // Scenario 1 & Nivå 3 Kaskadnotis: Skicka till ALLA aktiva prenumeranter
       hasMatch = true;
     } else if (alert.escalationLevel === 1) {
       // Scenario 2: Lokalt Stöd - Nivå 1 - ENBART prenumeranter vars valda stödområde (Sektion A) matchar stadsdelen
@@ -129,8 +129,9 @@ export async function triggerPushAlert(alert: ActiveAlert): Promise<number> {
     }
 
     if (hasMatch) {
-      // For non-common messages, we can respect legacy brother/sister constraints & language
-      if (!isCommon) {
+      // Inkluderande Matchningsmotor: Inga språkhinder!
+      // Profilens språkval fungerar som en resursspegel (tolkningskompetens), ej som sållningsfilter.
+      if (!isCommon && alert.escalationLevel !== 3) {
         // Organization-based filtering (legacy brother/sister tag)
         const subOrg = s.tags.organization || "bror";
         let orgMatches = true;
@@ -143,20 +144,6 @@ export async function triggerPushAlert(alert: ActiveAlert): Promise<number> {
         if (!orgMatches) {
           addSimLog("system", `Hoppar över prenumerant ${s.id.substring(0, 6)}... då larmet kräver ${alert.gender} och prenumeranten tillhör ${subOrg === "bror" ? "Äldstekvorum" : "Hjälpförening"}.`);
           continue;
-        }
-
-        // Language-based filtering
-        const subLangs = s.tags.languages || [];
-        if (subLangs.length > 0) {
-          const isMatched = subLangs.some(lang => {
-            const normSub = normalize(lang);
-            return normSub === normAlert || lang.toLowerCase().includes(alertLang) || alertLang.includes(lang.toLowerCase());
-          });
-
-          if (!isMatched) {
-            addSimLog("system", `Hoppar över prenumerant ${s.id.substring(0, 6)}... då prenumeranten inte stödjer det önskade språket [${alert.language}].`);
-            continue;
-          }
         }
       }
 

@@ -1,4 +1,4 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/sms_assistant/4_Produce]
+// [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 import express from "express";
 import path from "path";
 import fs from "fs";

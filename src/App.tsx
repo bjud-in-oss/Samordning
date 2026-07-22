@@ -80,6 +80,29 @@ export default function App() {
   const [currentView, setCurrentView] = useState<'stream' | 'settings'>('stream');
   const [isToggling, setIsToggling] = useState<boolean>(false);
 
+  // Dynamic Header Ticker state
+  const [tickerIndex, setTickerIndex] = useState<number>(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTickerIndex(prev => (prev + 1) % 3);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getTickerText = () => {
+    if (tickerIndex === 0) {
+      const areaText = savedTags?.primaryArea || (savedTags?.limitedAreas?.length ? savedTags.limitedAreas.join(", ") : "Alla områden");
+      return `i [${areaText}]`;
+    } else if (tickerIndex === 1) {
+      const langText = savedTags?.languages?.length ? savedTags.languages.join(", ") : "Svenska";
+      return `på [${langText}]`;
+    } else {
+      const targetText = savedTags?.targetGroups?.length && !savedTags.targetGroups.includes("all") ? savedTags.targetGroups.join(", ") : "Alla";
+      return `för [${targetText}]`;
+    }
+  };
+
   // Real-time visual feedback syncing state
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [isOnline, setIsOnline] = useState<boolean>(() => {
@@ -96,6 +119,15 @@ export default function App() {
       window.removeEventListener("online", updateOnlineStatus);
       window.removeEventListener("offline", updateOnlineStatus);
     };
+  }, []);
+
+  useEffect(() => {
+    const handleOpenCreate = () => {
+      setCurrentView("stream");
+      setActiveTab("create");
+    };
+    window.addEventListener("open-create-invitation", handleOpenCreate);
+    return () => window.removeEventListener("open-create-invitation", handleOpenCreate);
   }, []);
 
   // Sync state feedback whenever tags are saved
@@ -327,15 +359,28 @@ export default function App() {
           <p className="font-serif italic text-brand-ink text-lg leading-relaxed">
             {TRANSLATIONS[uiLanguage].introScreenText}
           </p>
-          <button
-            onClick={() => {
-              localStorage.setItem("mission_router_has_accepted_intro", "true");
-              setHasAcceptedIntro(true);
-            }}
-            className="w-full py-4 px-6 bg-brand-accent text-white font-medium text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] hover:bg-brand-accent/90"
-          >
-            {TRANSLATIONS[uiLanguage].introScreenBtn}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => {
+                localStorage.setItem("mission_router_has_accepted_intro", "true");
+                setHasAcceptedIntro(true);
+                setCurrentView("stream");
+              }}
+              className="flex-1 py-3.5 px-5 bg-brand-accent text-white font-medium text-xs sm:text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] hover:bg-brand-accent/90 cursor-pointer text-center"
+            >
+              {TRANSLATIONS[uiLanguage].introScreenBtnOk || "OK, uppfattat"}
+            </button>
+            <button
+              onClick={() => {
+                localStorage.setItem("mission_router_has_accepted_intro", "true");
+                setHasAcceptedIntro(true);
+                setCurrentView("settings");
+              }}
+              className="flex-1 py-3.5 px-5 bg-brand-paper border border-brand-ink/10 text-brand-ink font-medium text-xs sm:text-sm rounded-xl transition-all duration-200 shadow-sm active:scale-[0.99] hover:bg-brand-ink/5 cursor-pointer text-center"
+            >
+              {TRANSLATIONS[uiLanguage].introScreenBtnCustomize || "⚙️ Anpassa notiser"}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -354,14 +399,17 @@ export default function App() {
         <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between whitespace-nowrap overflow-hidden select-none">
           {/* VÄNSTER SIDA */}
           <div className="flex items-center gap-2 min-w-0 flex-1 mr-4">
-            <h1 className="font-serif italic text-lg sm:text-xl font-medium tracking-tight text-brand-ink">
+            <h1 className="font-serif italic text-lg sm:text-xl font-medium tracking-tight text-brand-ink shrink-0">
               Inbjudan till dig
             </h1>
-            {savedTags?.primaryArea && (
-              <span className="text-xs font-sans text-brand-ink/50 hidden sm:inline">
-                • <span className="italic font-serif text-brand-accent">{savedTags.primaryArea}</span>
-              </span>
-            )}
+            <button
+              type="button"
+              onClick={() => setCurrentView('settings')}
+              className="px-2.5 py-1 bg-brand-paper hover:bg-brand-accent/10 border border-brand-accent/30 rounded-full font-mono text-[10px] text-brand-accent font-semibold transition-all cursor-pointer truncate max-w-[180px] sm:max-w-[240px]"
+              title="Klicka för att anpassa inställningar"
+            >
+              {getTickerText()}
+            </button>
           </div>
 
           {/* HÖGER SIDA */}
@@ -482,6 +530,7 @@ export default function App() {
                   onStreamCountChange={handleStreamCountChange}
                   inlineCreate={false}
                   isAdmin={isAdmin}
+                  pushEnabled={pushEnabled}
                 />
               )}
 
@@ -493,6 +542,7 @@ export default function App() {
                   onStreamCountChange={handleStreamCountChange}
                   inlineCreate={true}
                   isAdmin={isAdmin}
+                  pushEnabled={pushEnabled}
                   onBack={() => setActiveTab("stream")}
                 />
               )}

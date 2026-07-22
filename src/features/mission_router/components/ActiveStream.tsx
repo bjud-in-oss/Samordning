@@ -15,6 +15,7 @@ interface ActiveStreamProps {
   inlineCreate?: boolean;
   isAdmin?: boolean;
   onBack?: () => void;
+  pushEnabled?: boolean;
 }
 
 const ORGANIZATIONS = [
@@ -53,7 +54,8 @@ export default function ActiveStream({
   onStreamCountChange,
   inlineCreate = false,
   isAdmin = false,
-  onBack
+  onBack,
+  pushEnabled = false
 }: ActiveStreamProps) {
   const [stream, setStream] = useState<ActiveAlert[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -193,12 +195,22 @@ export default function ActiveStream({
   }, [filteredStream.length, stream.length]);
 
   const getEmptyDesc = () => {
-    switch (uiLanguage) {
-      case "en": return "There are no active invitations in your chosen areas right now. You will receive a notification as soon as a new invitation is posted.";
-      case "es": return "No hay invitaciones activas en sus áreas seleccionadas en este momento. Recibirá una notificación tan pronto como se publique una nueva invitación.";
-      case "sw": return "Hakuna mialiko hai kwa sasa katika maeneo uliyochagua. Utapokea arifa mwaliko mpya unapowekwa.";
-      case "vi": return "Hiện tại không có lời mời nào trong các khu vực bạn đã chọn. Bạn sẽ nhận được thông báo ngay khi có lời mời mới.";
-      default: return "Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en avisering så fort en ny inbjudan läggs upp.";
+    if (pushEnabled) {
+      switch (uiLanguage) {
+        case "en": return "There are no active invitations in your chosen areas right now. You will receive a notification as soon as a new invitation is posted.";
+        case "es": return "No hay invitaciones activas en sus áreas seleccionadas en este momento. Recibirá una notificación tan pronto como se publique una nueva invitación.";
+        case "sw": return "Hakuna mialiko hai kwa sasa katika maeneo uliyochagua. Utapokea arifa mwaliko mpya unapowekwa.";
+        case "vi": return "Hiện tại không có lời mời nào trong các khu vực bạn đã chọn. Bạn sẽ nhận được thông báo ngay khi có lời mời mới.";
+        default: return "Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en avisering så fort en ny inbjudan läggs upp.";
+      }
+    } else {
+      switch (uiLanguage) {
+        case "en": return "There are no active invitations in your chosen areas right now. You will see new invitations here as soon as they are posted.";
+        case "es": return "No hay invitaciones activas en sus áreas seleccionadas en este momento. Verá nuevas invitaciones aquí tan pronto como se publiquen.";
+        case "sw": return "Hakuna mialiko hai kwa sasa katika maeneo uliyochagua. Utaona mialiko mipya hapa mara tu inapowekwa.";
+        case "vi": return "Hiện tại không có lời mời nào trong các khu vực bạn đã chọn. Bạn sẽ thấy lời mời mới tại đây ngay khi chúng được đăng.";
+        default: return "Just nu finns inga aktiva inbjudningar i dina valda områden. Du ser nya inbjudningar här så fort de läggs upp.";
+      }
     }
   };
 
@@ -642,10 +654,24 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
 
       {/* Stream List Cards */}
       {filteredStream.length === 0 ? (
-        <div className="p-8 bg-white border border-brand-ink/5 rounded-2xl text-center space-y-4">
-          <p className="font-serif italic text-sm sm:text-base text-brand-ink/70 leading-relaxed font-light">
+        <div className="p-8 sm:p-10 bg-white border border-brand-ink/5 rounded-2xl text-center space-y-4">
+          <p className="font-serif italic text-base sm:text-lg text-brand-ink/80 leading-relaxed font-light">
             {getEmptyDesc()}
           </p>
+          <div className="pt-3 border-t border-brand-ink/5 space-y-3">
+            <p className="text-xs text-brand-ink/60 font-light">
+              Ska du ändå ta en fika, promenad eller fixa något i trädgården?
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("open-create-invitation"));
+              }}
+              className="w-full py-3.5 px-4 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>➕ Skapa en snabb inbjudan för det du redan gör</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

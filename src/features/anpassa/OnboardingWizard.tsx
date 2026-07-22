@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
 import React, { useState, useEffect, useRef } from "react";
-import { MapPin, Users, PhoneCall, Globe, Check, X, Smartphone, Sparkles, Shield } from "lucide-react";
+import { MapPin, Users, PhoneCall, Globe, Check, X, Smartphone, Sparkles, Shield, Settings } from "lucide-react";
 import { GOTEBORG_AREAS } from "./mapData";
 import { TRANSLATIONS, UiLanguage } from "../mission_router/translations";
 import Step1Geography from "./Step1Geography";
@@ -105,6 +105,8 @@ export default function OnboardingWizard({
   const [alwaysNotify, setAlwaysNotify] = useState<boolean>(
     savedTags?.alwaysNotify ?? true
   );
+
+  const [showMoreSettings, setShowMoreSettings] = useState<boolean>(false);
 
   const onSaveRef = useRef(onSave);
   useEffect(() => {
@@ -252,90 +254,106 @@ export default function OnboardingWizard({
         </div>
       </div>
 
-      {/* Sektion 3: Deltagandesätt */}
-      <div className="bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs space-y-4">
-        <div className="flex items-center gap-2.5 pb-3 border-b border-brand-ink/5">
-          <PhoneCall size={18} className="text-brand-accent shrink-0" />
-          <h3 className="font-sans font-medium text-base text-brand-ink">
-            3. Deltagandesätt
-          </h3>
-        </div>
-        <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
-          Ange på vilka sätt du är tillgänglig att delta när en inbjudan skickas ut.
-        </p>
-        <div className="space-y-3">
-          {/* Fysiskt */}
-          <label className="flex items-center justify-between p-3.5 bg-brand-bg rounded-xl border border-brand-ink/5 cursor-pointer hover:border-brand-ink/10 transition-all">
-            <span className="text-xs font-medium text-brand-ink">Fysiskt på plats</span>
-            <input
-              type="checkbox"
-              checked={formats.includes("physical")}
-              onChange={() => toggleFormat("physical")}
-              className="accent-brand-accent h-4 w-4 rounded cursor-pointer"
-            />
-          </label>
+      {/* Toggle button for extra/deep settings */}
+      <div className="pt-2 flex justify-center">
+        <button
+          type="button"
+          onClick={() => setShowMoreSettings(prev => !prev)}
+          className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-brand-paper border border-brand-ink/10 text-brand-ink text-xs font-mono uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs"
+        >
+          <Settings size={14} className="text-brand-accent" />
+          <span>{showMoreSettings ? "⚙️ Dölj extra inställningar" : "⚙️ Visa fler inställningar"}</span>
+        </button>
+      </div>
 
-          {/* Digital / Telefon */}
-          <label className="flex items-center justify-between p-3.5 bg-brand-bg rounded-xl border border-brand-ink/5 cursor-pointer hover:border-brand-ink/10 transition-all">
-            <div>
-              <span className="text-xs font-medium text-brand-ink block">Digitalt & Telefon (Kaskadnotis Nivå 3)</span>
-              <span className="text-[10px] text-brand-ink/60 font-light block mt-0.5">
-                Tillåt kontakt via telefon eller videomöte vid brådskande förfrågningar.
-              </span>
+      {showMoreSettings && (
+        <>
+          {/* Sektion 3: Deltagandesätt */}
+          <div className="bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs space-y-4 animate-in fade-in duration-200">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-brand-ink/5">
+              <PhoneCall size={18} className="text-brand-accent shrink-0" />
+              <h3 className="font-sans font-medium text-base text-brand-ink">
+                3. Deltagandesätt
+              </h3>
             </div>
-            <input
-              type="checkbox"
-              checked={allowDigital}
-              onChange={(e) => setAllowDigital(e.target.checked)}
-              className="accent-brand-accent h-4 w-4 rounded cursor-pointer shrink-0 ml-2"
-            />
-          </label>
+            <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
+              Ange på vilka sätt du är tillgänglig att delta när en inbjudan skickas ut.
+            </p>
+            <div className="space-y-3">
+              {/* Fysiskt */}
+              <label className="flex items-center justify-between p-3.5 bg-brand-bg rounded-xl border border-brand-ink/5 cursor-pointer hover:border-brand-ink/10 transition-all">
+                <span className="text-xs font-medium text-brand-ink">Fysiskt på plats</span>
+                <input
+                  type="checkbox"
+                  checked={formats.includes("physical")}
+                  onChange={() => toggleFormat("physical")}
+                  className="accent-brand-accent h-4 w-4 rounded cursor-pointer"
+                />
+              </label>
 
-          {/* Andliga tankar */}
-          <label className="flex items-center justify-between p-3.5 bg-brand-bg rounded-xl border border-brand-ink/5 cursor-pointer hover:border-brand-ink/10 transition-all">
-            <span className="text-xs font-medium text-brand-ink">Andliga tankar & Korta budskap</span>
-            <input
-              type="checkbox"
-              checked={spiritualTips}
-              onChange={(e) => setSpiritualTips(e.target.checked)}
-              className="accent-brand-accent h-4 w-4 rounded cursor-pointer"
-            />
-          </label>
-        </div>
-      </div>
+              {/* Digital / Telefon */}
+              <label className="flex items-center justify-between p-3.5 bg-brand-bg rounded-xl border border-brand-ink/5 cursor-pointer hover:border-brand-ink/10 transition-all">
+                <div>
+                  <span className="text-xs font-medium text-brand-ink block">Digitalt & Telefon (Kaskadnotis Nivå 3)</span>
+                  <span className="text-[10px] text-brand-ink/60 font-light block mt-0.5">
+                    Tillåt kontakt via telefon eller videomöte vid brådskande förfrågningar.
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={allowDigital}
+                  onChange={(e) => setAllowDigital(e.target.checked)}
+                  className="accent-brand-accent h-4 w-4 rounded cursor-pointer shrink-0 ml-2"
+                />
+              </label>
 
-      {/* Sektion 4: Språk */}
-      <div className="bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs space-y-4">
-        <div className="flex items-center gap-2.5 pb-3 border-b border-brand-ink/5">
-          <Globe size={18} className="text-brand-accent shrink-0" />
-          <h3 className="font-sans font-medium text-base text-brand-ink">
-            4. Språk
-          </h3>
-        </div>
-        <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
-          Välj de språk du förstår och vill ta emot inbjudningar på.
-        </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-          {LANGUAGE_OPTIONS.map(lang => {
-            const isSelected = selectedLanguages.includes(lang.code);
-            return (
-              <button
-                key={lang.code}
-                type="button"
-                onClick={() => toggleLanguage(lang.code)}
-                className={`flex items-center justify-between p-3.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                  isSelected
-                    ? "border-brand-accent bg-brand-paper text-brand-ink"
-                    : "border-brand-ink/10 bg-brand-bg hover:border-brand-accent/30 text-brand-ink/70"
-                }`}
-              >
-                <span>{lang.label}</span>
-                {isSelected && <Check size={14} className="text-brand-accent shrink-0 ml-1" />}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+              {/* Andliga tankar */}
+              <label className="flex items-center justify-between p-3.5 bg-brand-bg rounded-xl border border-brand-ink/5 cursor-pointer hover:border-brand-ink/10 transition-all">
+                <span className="text-xs font-medium text-brand-ink">Andliga tankar & Korta budskap</span>
+                <input
+                  type="checkbox"
+                  checked={spiritualTips}
+                  onChange={(e) => setSpiritualTips(e.target.checked)}
+                  className="accent-brand-accent h-4 w-4 rounded cursor-pointer"
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Sektion 4: Språk */}
+          <div className="bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs space-y-4 animate-in fade-in duration-200">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-brand-ink/5">
+              <Globe size={18} className="text-brand-accent shrink-0" />
+              <h3 className="font-sans font-medium text-base text-brand-ink">
+                4. Språk
+              </h3>
+            </div>
+            <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
+              Välj de språk du förstår och vill ta emot inbjudningar på.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {LANGUAGE_OPTIONS.map(lang => {
+                const isSelected = selectedLanguages.includes(lang.code);
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => toggleLanguage(lang.code)}
+                    className={`flex items-center justify-between p-3.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-brand-accent bg-brand-paper text-brand-ink"
+                        : "border-brand-ink/10 bg-brand-bg hover:border-brand-accent/30 text-brand-ink/70"
+                    }`}
+                  >
+                    <span>{lang.label}</span>
+                    {isSelected && <Check size={14} className="text-brand-accent shrink-0 ml-1" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Done Button */}
       {onClose && (

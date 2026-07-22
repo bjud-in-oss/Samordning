@@ -1,53 +1,49 @@
-[CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/2_Blueprint]
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/2_Blueprint]
 
-# Arkitekturspecifikation: FSD Domänuppdelning i 5 Isolera Moduler
+# Arkitekturspecifikation: Etapp 1 - Dynamisk Header-ticker, Introskärm, Tomt-tillstånd och Skaparförenklingar
 
-## 1. Mål och struktur
-Systemet delas upp i 5 strikt isolerade Feature-Sliced Design (FSD) domäner under `src/features/`:
+## 1. Mål och Funktionsöversikt
+Etapp 1 uppgraderar hela gränssnittsflödet för inbjudningsplattformen med fokus på användarvänlighet, tydlighet och förenklad inbjudandeproduktion:
 
-1. **`src/features/inbjudningar/`**
-   - **Ansvarsområde**: Läsa och visa inbjudningar och anslag.
-   - **Komponenter/Filer**:
-     - `ActiveStream.tsx` (Anslagstavla / Ström)
-     - `AlertDetail.tsx` (Detaljvy för enskild inbjudan)
-     - Shared Types / Sub-components som behövs för läsning.
+1. **Dynamisk Header-ticker (`App.tsx`)**:
+   - Intill rubriken "Inbjudan till dig" visas ett interaktivt chip som mjukt animerar/växlar mellan användarens valda inställningar:
+     * `i [Kortedala, Bergsjön]` (eller valt område / `Alla områden`)
+     * `på [Svenska, ...]`
+     * `för [Alla / Valda målgrupper]`
+   - Klick på chipet öppnar reaktivt inställningsvyn ("Anpassa").
 
-2. **`src/features/skapa_inbjudan/`**
-   - **Ansvarsområde**: Formulär för att skapa inbjudan med universell 5-raders mall, AI-texttvätt, QR-kod och SMS-generering.
-   - **Komponenter/Filer**:
-     - `CreateInvitationForm.tsx` (Extraherad / isolerad skaparvy)
-     - `washAnnouncementText` & tvätt-helpers.
+2. **Introskärm med två vägar (`App.tsx` & `translations.ts`)**:
+   - Tydlig förklaring av hur aviseringar fungerar och var de aktiveras.
+   - Ersätter den gamla enskilda knappen med två direkta alternativ:
+     * `[ OK, uppfattat ]`: Går direkt till inbjudningsströmmen.
+     * `[ ⚙️ Anpassa notiser ]`: Öppnar inställningsvyn "Anpassa" direkt.
 
-3. **`src/features/anpassa/`**
-   - **Ansvarsområde**: Profil, filter och personliga inställningar.
-   - **Komponenter/Filer**:
-     - `OnboardingWizard.tsx` (Inställningspanelen "Anpassa")
-     - `Step1Geography.tsx` (Dina områden)
-     - `Step2Language.tsx` (Språk)
-     - `Step3Organizations.tsx` (Målgrupper / Organisationer)
-     - `Step4Formats.tsx` (Deltagandesätt)
-     - `mapData.ts` (Områden och koordinater)
+3. **Dynamiskt Tomt-tillstånd (`ActiveStream.tsx`)**:
+   - `ActiveStream` tar emot `pushEnabled: boolean`.
+   - Om `pushEnabled === true`: *"Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en avisering så fort en ny inbjudan läggs upp."*
+   - Om `pushEnabled === false`: *"Just nu finns inga aktiva inbjudningar i dina valda områden. Du ser nya inbjudningar här så fort de läggs upp."*
+   - Inkluderar mjuk handlingsuppmaning: *"Ska du ändå ta en fika, promenad eller fixa något i trädgården?"* med knappen `[ ➕ Skapa en snabb inbjudan för det du redan gör ]`.
 
-4. **`src/features/sms_assistant/`**
-   - **Ansvarsområde**: Backend SMS-gateway, moderering, parser, AI-analys och AdminConsole.
-   - **Komponenter/Filer**:
-     - `AdminConsole.tsx`
-     - `supportAgent.ts`
-     - `parser.ts` & SMS/WhatsApp integrationslogik.
+4. **Collapsible djupa inställningar (`OnboardingWizard.tsx`)**:
+   - Sektion 1 (Områden) och Sektion 2 (Målgrupper) är öppna från början.
+   - Sektion 3 (Deltagandesätt) och Sektion 4 (Språk) döljs bakom knappen `⚙️ Visa fler inställningar` (och fälls ut vid klick).
 
-5. **`src/features/android_app/`**
-   - **Ansvarsområde**: Android Web App Manifest, Service Worker (`sw.js`), PWA/TWA-konfiguration och Web Push-prenumerationshantering.
-   - **Komponenter/Filer**:
-     - `manifest.json` config / helpers
-     - `sw.js` integration / Service Worker helper scripts.
+5. **Förifyllning av områden & Skapar-FAB (`ActiveStream.tsx` / `Step1Geography.tsx`)**:
+   - I skaparformuläret förifylls "Bjud in från områden" med alla valda områden i profilen (t.ex. "Bergsjön, Kortedala"), eller "Alla områden".
+   - Flytande knapp (`+`) förankras inom den centrerade `max-w-xl`-containern nära flödet.
+   - När formuläret fälls ut visas den tydliga rubriken "Bjud in andra" överst.
+   - `Step1Geography.tsx` får en explicit snabbknapp för `Alla områden`.
+
+6. **Total WhatsApp-sanering (`server.ts` & `parser.ts`)**:
+   - Rensa samtliga texter, kommentarer, mockar och routar från ordet "WhatsApp". Tjänsten drivs uteslutande via SMS och Web Push / Android PWA.
 
 ---
 
-## 2. Importer och Beroendegraf
-- `src/App.tsx` importerar rent från de isolerade domänerna:
-  - `import ActiveStream from "./features/inbjudningar/ActiveStream";`
-  - `import AlertDetail from "./features/inbjudningar/AlertDetail";`
-  - `import OnboardingWizard from "./features/anpassa/OnboardingWizard";`
-  - `import AdminConsole from "./features/sms_assistant/AdminConsole";`
-  - `import Disclaimer from "./features/inbjudningar/Disclaimer";`
-- Inga cirkulära importer. Gemensamma typer hålls rena i `src/features/mission_router/types.ts` eller lokalt re-exporterade.
+## 2. Berörda Filer
+- `src/App.tsx`
+- `src/features/inbjudningar/ActiveStream.tsx`
+- `src/features/anpassa/OnboardingWizard.tsx`
+- `src/features/anpassa/Step1Geography.tsx`
+- `src/features/mission_router/translations.ts`
+- `server.ts`
+- `src/features/mission_router/domain/parser.ts`

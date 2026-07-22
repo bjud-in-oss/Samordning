@@ -60,7 +60,7 @@ export interface ActiveAlert {
   timestamp: number;
   chat?: ChatMessage[];
   responsibleParty: string;
-  contactType: "sms" | "email" | "whatsapp" | "web";
+  contactType: "sms" | "email" | "web";
   contactValue: string;
   expiryTimestamp: number;
   category?: string;
@@ -78,7 +78,7 @@ export interface SimLog {
   details?: any;
 }
 
-export interface WhatsAppStatus {
+export interface GatewayStatus {
   status: "disconnected" | "connecting" | "connected" | "error";
   qrCode: string | null;
   error: string | null;

@@ -15,6 +15,7 @@ interface ActiveStreamProps {
   inlineCreate?: boolean;
   isAdmin?: boolean;
   onBack?: () => void;
+  pushEnabled?: boolean;
 }
 
 const ORGANIZATIONS = [
@@ -37,7 +38,8 @@ export default function ActiveStream({
   onStreamCountChange,
   inlineCreate = false,
   isAdmin = false,
-  onBack
+  onBack,
+  pushEnabled = false
 }: ActiveStreamProps) {
   const [stream, setStream] = useState<ActiveAlert[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -53,7 +55,9 @@ export default function ActiveStream({
   });
   const [showHelpText, setShowHelpText] = useState<boolean>(usageCount < 3);
 
-  const defaultAreaString = savedTags?.primaryArea || (savedTags?.limitedAreas && savedTags.limitedAreas.length > 0 ? savedTags.limitedAreas.join(", ") : "Göteborg");
+  const defaultAreaString = savedTags?.limitedAreas && savedTags.limitedAreas.length > 0 
+    ? savedTags.limitedAreas.join(", ") 
+    : (savedTags?.primaryArea || "Alla områden");
 
   const buildTemplate = (showHelp: boolean) => {
     if (showHelp) {
@@ -413,15 +417,26 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
             <p className="text-xs font-mono text-brand-error uppercase tracking-wider">{error}</p>
           </div>
         ) : filteredStream.length === 0 ? (
-          <div className="bg-white rounded-2xl p-10 border border-brand-ink/5 text-center space-y-3">
-            <p className="font-serif italic text-lg text-brand-ink/70">
-              {uiLanguage === "sv" ? "Inga anslag matchar dina filter just nu." : "No notices match your filters right now."}
+          <div className="bg-white rounded-2xl p-8 sm:p-10 border border-brand-ink/5 text-center space-y-4">
+            <p className="font-serif italic text-base sm:text-lg text-brand-ink/80 leading-relaxed">
+              {pushEnabled 
+                ? "Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en avisering så fort en ny inbjudan läggs upp." 
+                : "Just nu finns inga aktiva inbjudningar i dina valda områden. Du ser nya inbjudningar här så fort de läggs upp."}
             </p>
-            <p className="text-xs text-brand-ink/50 font-light max-w-sm mx-auto">
-              {uiLanguage === "sv" 
-                ? "Ändra dina inställningar under 'Anpassa' för att se inbjudningar från fler områden eller kategorier."
-                : "Change your settings under 'Customize' to see invitations from more areas or categories."}
-            </p>
+            <div className="pt-3 border-t border-brand-ink/5 space-y-3">
+              <p className="text-xs text-brand-ink/60 font-light">
+                Ska du ändå ta en fika, promenad eller fixa något i trädgården?
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("open-create-invitation"));
+                }}
+                className="w-full py-3.5 px-4 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>➕ Skapa en snabb inbjudan för det du redan gör</span>
+              </button>
+            </div>
           </div>
         ) : (
           filteredStream.map(item => (

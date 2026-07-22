@@ -8,6 +8,8 @@ export interface TranslationDict {
   gatewayPrompt: string;
   introScreenText: string;
   introScreenBtn: string;
+  introScreenBtnOk: string;
+  introScreenBtnCustomize: string;
   
   // OnboardingForm
   onboardingHeader: string;
@@ -102,6 +104,8 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     introScreenText: "Denna tjänst underlättar för var och en som besöker församlingen att vara en vän, få näring av Guds goda ord och hjälpa andra med respekt om varandras integritet. Var och en med intresse för att besöka kyrkan kan när som helst slå på eller av notiser eller föreslå inbjudningar. Man läser där inbjudningar anonymt men bjuder in andra öppet med enkla förslag via församlingsledare. Ingen annan än du, eller den du väljer att SMSa ett svar till, kan se om att du fått eller sett notiserna. Detta är en fristående, inofficiell tjänst utan sponsring från Utby församling.",
     introScreenBtn: "Börja använda appen",
+    introScreenBtnOk: "OK, uppfattat",
+    introScreenBtnCustomize: "⚙️ Anpassa notiser",
     
     onboardingHeader: "Bli notifierad",
     onboardingSubtitle: "Du får då en diskret avisering direkt i din telefon när det finns en inbjudan till dig som matchar dina val. Allt sparas i ett flöde.",
@@ -185,6 +189,8 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     introScreenText: "This service makes it easier for everyone who visits the ward to be a friend, be nourished by the good word of God, and help others while respecting each other's privacy. Anyone with an interest in visiting the church can turn notifications on or off at any time, or suggest invitations. Here, invitations are read anonymously, but you invite others openly with simple suggestions via ward leaders. No one but you, or the person you choose to text a reply to, can see whether you have received or viewed the notifications. This is an independent, unofficial service without sponsorship from the Utby ward.",
     introScreenBtn: "Start using the app",
+    introScreenBtnOk: "OK, got it",
+    introScreenBtnCustomize: "⚙️ Customize notifications",
     
     onboardingHeader: "Get notified",
     onboardingSubtitle: "You will receive a discrete notification directly on your phone when there is an invitation for you that matches your choices. Everything is saved in a feed.",
@@ -268,6 +274,8 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     introScreenText: "Este servicio facilita que todos los que visitan el barrio sean amigos, se nutran de la buena palabra de Dios y ayuden a los demás, respetando la privacidad de cada uno. Cualquier persona interesada en visitar la iglesia puede activar o desactivar las notificaciones en cualquier momento, o sugerir invitaciones. Aquí las invitaciones se leen de forma anónima, pero se invita a otros abiertamente con sugerencias sencillas a través de los líderes del barrio. Nadie más que tú, o la persona a la que elijas enviar un mensaje de texto, puede ver si has recibido o visto las notificaciones. Este es un servicio independiente y no oficial, sin el patrocinio del barrio de Utby.",
     introScreenBtn: "Empezar a usar la aplicación",
+    introScreenBtnOk: "OK, entendido",
+    introScreenBtnCustomize: "⚙️ Personalizar notificaciones",
     
     onboardingHeader: "Recibe notificaciones",
     onboardingSubtitle: "Recibirá una notificación discreta directamente en su teléfono cuando haya una invitación que coincida con sus elecciones. Todo se guarda en un flujo.",
@@ -351,6 +359,8 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     introScreenText: "Huduma hii inarahisisha kwa kila mtu anayetembelea kata kuwa rafiki, kulishwa na neno zuri la Mungu, na kusaidia wengine huku mkiheshimu faragha ya kila mmoja. Yeyote aliye na nia ya kutembelea kanisa anaweza kuwasha au kuzima arifa wakati wowote, au kupendekeza mialiko. Hapa, mialiko inasomwa bila kujulikana, lakini unawaalika wengine waziwazi kwa mapendekezo rahisi kupitia viongozi wa kata. Hakuna mtu mwingine ila wewe, au mtu unayechagua kumtumia ujumbe, anayeweza kuona kama umepokea au kutazama arifa. Hii ni huduma inayojitegemea, isiyo rasmi na haina ufadhili kutoka kwa kata ya Utby.",
     introScreenBtn: "Anza kutumia programu",
+    introScreenBtnOk: "Sawa, nimeelewa",
+    introScreenBtnCustomize: "⚙️ Rekebisha arifa",
     
     onboardingHeader: "Pata arifa",
     onboardingSubtitle: "Utapokea arifa ya siri moja kwa moja kwenye simu yako wakati kuna mwaliko unaolingana na chaguo zako. Kila kitu kinahifadhiwa kwenye mkondo.",
@@ -434,6 +444,8 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
     introScreenText: "Dịch vụ này giúp cho mọi người đến thăm tiểu giáo khu dễ dàng trở thành một người bạn, được nuôi dưỡng bởi lời tốt lành của Thượng Đế và giúp đỡ người khác trong khi tôn trọng quyền riêng tư của nhau. Bất kỳ ai quan tâm đến việc đến thăm nhà thờ đều có thể bật hoặc tắt thông báo bất cứ lúc nào, hoặc đề xuất lời mời. Tại đây, các lời mời được đọc ẩn danh, nhưng bạn mời người khác một cách công khai bằng những đề xuất đơn giản thông qua các lãnh đạo tiểu giáo khu. Không ai khác ngoài bạn, hoặc người mà bạn chọn để nhắn tin trả lời, có thể thấy liệu bạn đã nhận hoặc xem thông báo hay chưa. Đây là một dịch vụ độc lập, không chính thức và không có sự tài trợ từ tiểu giáo khu Utby.",
     introScreenBtn: "Bắt đầu sử dụng ứng dụng",
+    introScreenBtnOk: "OK, đã hiểu",
+    introScreenBtnCustomize: "⚙️ Tùy chỉnh thông báo",
     
     onboardingHeader: "Nhận thông báo",
     onboardingSubtitle: "Bạn sẽ nhận được thông báo kín đáo trực tiếp trên điện thoại của mình khi có lời mời phù hợp với các lựa chọn của bạn. Mọi thứ được lưu trong một nguồn cấp dữ liệu.",

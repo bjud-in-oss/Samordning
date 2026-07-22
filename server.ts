@@ -623,7 +623,7 @@ app.post("/api/incoming-email", async (req, res) => {
 });
 
 // Web Simulator trigger endpoints
-app.post("/api/sim/whatsapp", async (req, res) => {
+app.post("/api/sim/sms", async (req, res) => {
   const { from, body } = req.body;
   const dummyFrom = from || "0709998877";
   const dummyBody = body || "[Kortedala] [18:00] [Vara en vän] [Middag hos familjen Andersson. Välkomna!] [Hjälpföreningen] [0701234567]";
@@ -640,6 +640,17 @@ app.post("/api/sim/whatsapp", async (req, res) => {
     body: JSON.stringify({ sender: dummyFrom, text: dummyBody })
   });
 
+  const data = await response.json();
+  res.json(data);
+});
+
+// Legacy alias route for simulator backwards compatibility
+app.post("/api/sim/whatsapp", async (req, res) => {
+  const response = await fetch(`http://localhost:${PORT}/api/sim/sms`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req.body)
+  });
   const data = await response.json();
   res.json(data);
 });
@@ -670,8 +681,15 @@ app.get("/api/sim/active-alerts", (req, res) => {
   res.json(safeAlerts);
 });
 
+app.get("/api/gateway/status", (req, res) => {
+  res.json({
+    status: "active",
+    qrCode: null,
+    error: null
+  });
+});
+
 app.get("/api/whatsapp/status", (req, res) => {
-  // Return clean disconnected state for simulator dashboard backwards compatibility
   res.json({
     status: "disconnected",
     qrCode: null,

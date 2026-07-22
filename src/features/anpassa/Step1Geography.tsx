@@ -110,6 +110,36 @@ export default function Step1Geography({
             );
           })}
 
+          {/* Option for "Alla områden" */}
+          <button
+            type="button"
+            id="all-areas-btn"
+            onClick={() => {
+              setLimitAreas(false);
+              setPrimaryArea(undefined);
+              setLimitedAreas([]);
+            }}
+            className={`flex items-center justify-between p-4 rounded-xl border text-left transition-all min-h-[58px] duration-200 ${
+              !limitAreas && limitedAreas.length === 0
+                ? "border-brand-accent bg-brand-paper/40 text-brand-ink font-semibold"
+                : "border-brand-ink/5 bg-brand-bg text-brand-ink/80 hover:border-brand-accent/20"
+            }`}
+          >
+            <div className="flex-1 flex flex-col justify-center">
+              <span className="font-serif italic text-sm sm:text-base font-medium text-brand-ink leading-tight">Alla områden</span>
+              <span className="text-[10px] text-brand-ink/65 font-light mt-1">Visa alla inbjudningar i hela regionen</span>
+            </div>
+            <div
+              className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
+                !limitAreas && limitedAreas.length === 0
+                  ? "bg-brand-accent border-brand-accent text-white"
+                  : "border-brand-ink/10 bg-white"
+              }`}
+            >
+              {!limitAreas && limitedAreas.length === 0 && <Check size={12} strokeWidth={2.5} />}
+            </div>
+          </button>
+
           {/* Option for "Inget område" */}
           <button
             type="button"

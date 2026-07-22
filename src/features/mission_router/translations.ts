@@ -116,7 +116,7 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     step1Subtitle: "Vilka områden brukar du träffa andra i?",
     
     step2Title: "Steg 2 av 4: Språkstöd",
-    step2Subtitle: "Klicka på de språk du kan hjälpa till med under gemensamma träffar eller lektioner (inget är förvalt, man måste inte välja).",
+    step2Subtitle: "Vilka språk förstår du eller kan hjälpa till att översätta på?",
 
     step3Title: "Steg 3 av 4: Grupptillhörighet",
     step3Subtitle: "Här kan du ta del av öppna inbjudningar från följande grupper och de unga missionärerna i kyrkan. Bli notifierad från grupper som samarbetar (välj en för dig):",

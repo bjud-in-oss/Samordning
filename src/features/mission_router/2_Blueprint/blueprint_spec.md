@@ -1,35 +1,25 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/2_Blueprint]
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/anpassa/2_Blueprint]
 
-# Arkitekturspecifikation: Etapp 3 - Inkluderande Matchningsmotor, Kaskadnotiser och Backend-verifiering
+# Arkitekturspecifikation: Återställning av Osynlig Ticker, Fällbara Inställningar och Resursspråktext
 
-## 1. Inkluderande Matchningsmotor (`pushService.ts` & `server.ts`)
-1. **Inga språkhinder**:
-   - Alla prenumeranter i valda geografiska områden ska ta emot inbjudningar oavsett vilket språk inbjudan skapades på.
-   - Språkvalet i användarens profil fungerar som en **resursspegel** (register över vilka språk användaren kan erbjuda tolkning/översättning för) och får **ALDRIG** användas som ett sållningsfilter för att blockera aviseringar.
-   - Översättning och lokaliserat gränssnitt hanteras i klienten/notisen utifrån mottagarens valda UI-språk.
+## 1. Osynlig Header-Ticker (`src/features/anpassa/SettingsTicker.tsx` & `App.tsx`)
+- Skapa komponenten `SettingsTicker.tsx` under `src/features/anpassa/`.
+- Tickern ska vara HELT OSYNLIG utan bakgrundskort, tiles, piller eller kanter (`bg-transparent border-0 p-0`, ren text).
+- Skiftar mjukt var 3,5:e sekund bredvid rubriken H1 "Inbjudan till dig":
+  1. `• i [Kortedala, Bergsjön]` (eller valt primärområde / alla områden)
+  2. `• på [Svenska]` (eller valda språk)
+  3. `• för [Alla]` (eller valda målgrupper)
+- Klick på den rena osynliga texten navigerar användaren direkt till "Anpassa" (`setCurrentView('settings')`).
 
-2. **Geografisk och Målgruppsmatchning**:
-   - Inbjudningar matchas mot prenumerantens valda områden (`primaryArea` och `limitedAreas`).
-   - Målgruppsmatchning sker mot angiven målgrupp utan att expandera eller begränsa den underliggande datastrukturen.
+## 2. Fällbara Djupa Inställningar (`src/features/anpassa/OnboardingWizard.tsx`)
+- Sektion 1 (Dina områden) och Sektion 2 (Inbjudningar du vill se) visas alltid öppna.
+- Sektion 3 (Deltagandesätt) och Sektion 4 (Språk) döljs bakom den fällbara knappen `"⚙️ Visa fler inställningar"`.
 
----
+## 3. Språktext-tvätt (`translations.ts` & `OnboardingWizard.tsx`)
+- Uppdatera hjälptexten under Sektion 4 (Språk) i `OnboardingWizard.tsx` samt `step2Subtitle` i `translations.ts` till resurstanken:
+  `"Vilka språk förstår du eller kan hjälpa till att översätta på?"`
 
-## 2. Kaskadnotiser (Nivå 3 - Digitalt/Telefon)
-1. **Brådskande förfrågningar & Digital Eskalering**:
-   - I `pushService.ts` introduceras/bekräftas stöd för kaskadnotiser där flaggan `allowDigital` (eller eskalering till nivå 3) aktiverar utökad digital avisering (Web Push med hög prioritet / kaskad till alla berörda stödgrupper).
-   - När en inbjudan eskalerats (`escalationLevel === 3` eller vid brådskande larm) skickas aviseringen till samtliga bevakande användare med `requireInteraction: true` för maximal uppmärksamhet på låsskärmen.
-
----
-
-## 3. Symmetrisk AdminConsole (`src/features/sms_assistant/components/AdminConsole.tsx`)
-1. **FSD-anpassning & Universell 5-raders mall**:
-   - Alla simulerade testmeddelanden, SMS-kommandon och webbpubliceringar i `AdminConsole` följer de 5 rena FSD-domänvägarna.
-   - Mallen följer den universella 5-radersstrukturen:
-     ```
-     Tid: [tid]
-     Mötesplats: [plats]
-     Aktivitet: [vad]
-     Bjud in från områden: [område]
-     Målgrupp: Alla
-     ```
-   - Alla administrativa kommandon (`.ja`, `.nej`, `.status`, `.mall`, `#WEBB`) stämmer exakt överens med `server.ts`.
+## 4. Vardagstext vid Tomt Tillstånd (`src/features/inbjudningar/ActiveStream.tsx`)
+- Säkerställ att det tomma flödestillståndet visar vardagstexten och snabbknappen:
+  `"Ska du ändå ta en fika, promenad eller fixa något i trädgården?"`
+  `"[ ➕ Skapa en snabb inbjudan för det du redan gör ]"`

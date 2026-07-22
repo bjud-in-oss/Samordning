@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { ShieldAlert, Languages, X, Smartphone, Settings, Plus } from "lucide-react";
+import SettingsTicker from "./features/anpassa/SettingsTicker";
 import OnboardingWizard from "./features/anpassa/OnboardingWizard";
 import AlertDetail from "./features/inbjudningar/AlertDetail";
 import ActiveStream from "./features/inbjudningar/ActiveStream";
@@ -402,14 +403,10 @@ export default function App() {
             <h1 className="font-serif italic text-lg sm:text-xl font-medium tracking-tight text-brand-ink shrink-0">
               Inbjudan till dig
             </h1>
-            <button
-              type="button"
+            <SettingsTicker
+              savedTags={savedTags}
               onClick={() => setCurrentView('settings')}
-              className="px-2.5 py-1 bg-brand-paper hover:bg-brand-accent/10 border border-brand-accent/30 rounded-full font-mono text-[10px] text-brand-accent font-semibold transition-all cursor-pointer truncate max-w-[180px] sm:max-w-[240px]"
-              title="Klicka för att anpassa inställningar"
-            >
-              {getTickerText()}
-            </button>
+            />
           </div>
 
           {/* HÖGER SIDA */}

@@ -329,7 +329,9 @@ export default function OnboardingWizard({
               </h3>
             </div>
             <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
-              Välj de språk du förstår och vill ta emot inbjudningar på.
+              {uiLanguage === "sv" 
+                ? "Vilka språk förstår du eller kan hjälpa till att översätta på?" 
+                : "Which languages do you understand or can help translate in?"}
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {LANGUAGE_OPTIONS.map(lang => {

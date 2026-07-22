@@ -251,7 +251,9 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
             </p>
             <div className="pt-3 border-t border-brand-ink/5 space-y-3">
               <p className="text-xs text-brand-ink/60 font-light">
-                Ska du ändå ta en fika, promenad eller fixa något i trädgården?
+                {uiLanguage === "sv" 
+                  ? "Ska du ändå ta en fika, promenad eller fixa något i trädgården?"
+                  : "Are you having a coffee, going for a walk or working in the garden anyway?"}
               </p>
               <button
                 type="button"
@@ -260,7 +262,7 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
                 }}
                 className="w-full py-3.5 px-4 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>➕ Skapa en snabb inbjudan för det du redan gör</span>
+                <span>{uiLanguage === "sv" ? "➕ Skapa en snabb inbjudan för det du redan gör" : "➕ Create a quick invitation for what you are already doing"}</span>
               </button>
             </div>
           </div>

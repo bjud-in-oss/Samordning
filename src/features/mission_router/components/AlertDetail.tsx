@@ -25,9 +25,16 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
         setLoading(true);
         setError(null);
         const res = await fetch(`/api/alerts/${alertId}`);
+        const contentType = res.headers.get("content-type");
         if (!res.ok) {
-          const body = await res.json();
-          throw new Error(body.error || "Misslyckades att hämta inbjudan.");
+          if (contentType && contentType.includes("application/json")) {
+            const body = await res.json();
+            throw new Error(body.error || "Misslyckades att hämta inbjudan.");
+          }
+          throw new Error("Aktiviteten hittades inte, har förfallit eller raderats permanent.");
+        }
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Svaret från servern kunde inte tolkas som JSON.");
         }
         const data = await res.json();
         if (active) {

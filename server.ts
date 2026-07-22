@@ -266,6 +266,29 @@ app.post("/api/subscription", (req, res) => {
   res.json({ success: true, id: recordId });
 });
 
+// View all active Alerts/Announcements
+app.get("/api/alerts", (req, res) => {
+  const safeAlerts = Object.values(activeAlerts)
+    .filter(alert => alert.status !== "pending")
+    .map(alert => ({
+      id: alert.id,
+      type: alert.type,
+      area: alert.area,
+      time: alert.time,
+      gender: alert.gender,
+      language: alert.language,
+      locationName: alert.locationName,
+      timestamp: alert.timestamp,
+      scrubbedText: alert.scrubbedText,
+      responsibleParty: alert.responsibleParty,
+      contactType: alert.contactType,
+      category: alert.category,
+      isFull: !!alert.isFull,
+      status: alert.status || "active"
+    }));
+  res.json(safeAlerts);
+});
+
 // View specific Alert/Announcement detail (ONLY scrubbed data, compliant with handboken 33.8)
 app.get("/api/alerts/:id", (req, res) => {
   const alert = activeAlerts[req.params.id];

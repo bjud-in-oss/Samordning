@@ -87,8 +87,12 @@ export default function ActiveStream({
       if (!res.ok) {
         throw new Error("Gick inte att läsa in aktiva anslag.");
       }
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Servern returnerade inte JSON vid hämtning av anslag.");
+      }
       const data = await res.json();
-      setStream(data);
+      setStream(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setError(err.message || "Tekniskt fel vid inläsning.");
     } finally {

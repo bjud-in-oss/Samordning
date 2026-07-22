@@ -111,9 +111,13 @@ export default function ActiveStream({
     try {
       const res = await fetch("/api/sim/active-alerts");
       if (!res.ok) throw new Error("Failed to fetch active stream.");
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Invalid response format from server.");
+      }
       const data = await res.json();
       
-      const sorted = data.sort((a: any, b: any) => b.timestamp - a.timestamp);
+      const sorted = (Array.isArray(data) ? data : []).sort((a: any, b: any) => b.timestamp - a.timestamp);
       setStream(sorted);
     } catch (err: any) {
       setError(err.message || "Could not retrieve live stream.");

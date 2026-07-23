@@ -42,6 +42,15 @@ export default function CreateInvitationForm({
   onBack,
   onSuccess
 }: CreateInvitationFormProps) {
+  // Favorites stored in localStorage
+  const [favorites, setFavorites] = useState<any[]>(() => {
+    if (typeof localStorage !== "undefined") {
+      const stored = localStorage.getItem("mission_router_favorites");
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
+
   const [usageCount, setUsageCount] = useState<number>(() => {
     if (typeof localStorage !== "undefined") {
       const stored = localStorage.getItem("mission_router_usage_count");
@@ -72,10 +81,49 @@ export default function CreateInvitationForm({
 
   const [selectedArea, setSelectedArea] = useState<string>(savedTags?.primaryArea || GOTEBORG_AREAS[0]);
   const [selectedCategory, setSelectedCategory] = useState<string>("Inbjudan");
-  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>("Idag kl 18:00");
   const [selectedOrganization, setSelectedOrganization] = useState<string>("Arrangör");
   const [selectedAudience, setSelectedAudience] = useState<string>("Alla");
   const [locationName, setLocationName] = useState<string>(savedTags?.primaryArea || GOTEBORG_AREAS[0]);
+
+  const saveAsFavorite = () => {
+    const newFav = {
+      id: Date.now().toString(),
+      label: `${selectedCategory} (${selectedTime || "18:00"})`,
+      category: selectedCategory,
+      area: selectedArea,
+      time: selectedTime,
+      location: locationName,
+      audience: selectedAudience,
+      organization: selectedOrganization,
+      text: announcementText
+    };
+    const updated = [newFav, ...favorites.slice(0, 9)];
+    setFavorites(updated);
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("mission_router_favorites", JSON.stringify(updated));
+    }
+    setToast("Inbjudan sparades som favorit!");
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const removeFavorite = (favId: string) => {
+    const updated = favorites.filter(f => f.id !== favId);
+    setFavorites(updated);
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("mission_router_favorites", JSON.stringify(updated));
+    }
+  };
+
+  const applyFavorite = (fav: any) => {
+    setSelectedCategory(fav.category || "Inbjudan");
+    setSelectedArea(fav.area || GOTEBORG_AREAS[0]);
+    setSelectedTime(fav.time || "Idag kl 18:00");
+    setLocationName(fav.location || fav.area || GOTEBORG_AREAS[0]);
+    setSelectedAudience(fav.audience || "Alla");
+    setSelectedOrganization(fav.organization || "Arrangör");
+    if (fav.text) setAnnouncementText(fav.text);
+  };
 
   const applyPreset = (preset: typeof PRESETS[0]) => {
     setSelectedCategory(preset.category);
@@ -83,6 +131,7 @@ export default function CreateInvitationForm({
     const presetText = `Tid: ${preset.time}\nMötesplats: ${selectedArea}\nAktivitet: ${preset.activity}\nBjud in från områden: ${selectedArea}\nMålgrupp: Alla`;
     setAnnouncementText(presetText);
   };
+
 
   const toggleHelpText = () => {
     const nextShow = !showHelpText;
@@ -249,10 +298,40 @@ Aktivitet: ${cleanedBody}`;
 
         {currentStep === 1 ? (
           <form onSubmit={handleWash} className="space-y-5">
+            {/* Saved Personal Favorites */}
+            {favorites.length > 0 && (
+              <div className="space-y-2 p-3 bg-amber-50/60 rounded-xl border border-amber-200/60">
+                <label className="font-mono text-[9px] uppercase tracking-wider text-amber-900 font-semibold block">
+                  ⭐ Mina sparade favoriter ({favorites.length})
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {favorites.map((fav) => (
+                    <div key={fav.id} className="inline-flex items-center gap-1 bg-white border border-amber-200 rounded-lg px-2.5 py-1 text-xs font-mono">
+                      <button
+                        type="button"
+                        onClick={() => applyFavorite(fav)}
+                        className="text-amber-950 hover:text-brand-accent transition-colors text-left"
+                      >
+                        <span>{fav.label}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeFavorite(fav.id)}
+                        className="text-amber-700/50 hover:text-rose-600 ml-1 text-[10px]"
+                        title="Ta bort favorit"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Snabbknappar / Presets */}
             <div className="space-y-2">
               <label className="font-mono text-[9px] uppercase tracking-wider text-brand-ink/60 block">
-                {uiLanguage === "sv" ? "Snabbmaller / Vanliga aktiviteter" : "Quick Presets"}
+                {uiLanguage === "sv" ? "Snabbmallar / Vanliga aktiviteter" : "Quick Presets"}
               </label>
               <div className="flex flex-wrap gap-2">
                 {PRESETS.map((p) => {
@@ -271,6 +350,7 @@ Aktivitet: ${cleanedBody}`;
                 })}
               </div>
             </div>
+
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
@@ -402,6 +482,17 @@ Aktivitet: ${cleanedBody}`;
                     ))}
                   </select>
                 </div>
+              </div>
+
+              {/* Save as favorite button */}
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={saveAsFavorite}
+                  className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300/60 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>⭐ Spara som min personliga favorit</span>
+                </button>
               </div>
             </div>
 

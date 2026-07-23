@@ -63,6 +63,35 @@ export default function Step1Geography({
 
       {/* Area Grid selector (Multi-select) */}
       <div className="space-y-3">
+        {/* Quick Action buttons */}
+        <div className="flex items-center justify-between gap-2 pb-1">
+          <button
+            type="button"
+            id="all-areas-btn"
+            onClick={() => {
+              setLimitAreas(false);
+              setPrimaryArea(undefined);
+              setLimitedAreas([...GOTEBORG_AREAS]);
+            }}
+            className="px-3 py-1.5 bg-brand-paper hover:bg-brand-accent/10 border border-brand-ink/10 text-brand-ink font-mono text-[11px] uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center gap-1"
+          >
+            <span>⚡ Markera alla</span>
+          </button>
+
+          <button
+            type="button"
+            id="no-area-btn"
+            onClick={() => {
+              setLimitAreas(true);
+              setPrimaryArea(undefined);
+              setLimitedAreas([]);
+            }}
+            className="px-3 py-1.5 bg-brand-bg hover:bg-brand-paper border border-brand-ink/10 text-brand-ink/60 hover:text-brand-ink font-mono text-[11px] uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center gap-1"
+          >
+            <span>✕ Rensa alla</span>
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {GOTEBORG_AREAS.map(area => {
             const selected = isAreaSelected(area);
@@ -109,67 +138,9 @@ export default function Step1Geography({
               </div>
             );
           })}
-
-          {/* Option for "Alla områden" */}
-          <button
-            type="button"
-            id="all-areas-btn"
-            onClick={() => {
-              setLimitAreas(false);
-              setPrimaryArea(undefined);
-              setLimitedAreas([]);
-            }}
-            className={`flex items-center justify-between p-4 rounded-xl border text-left transition-all min-h-[58px] duration-200 ${
-              !limitAreas && limitedAreas.length === 0
-                ? "border-brand-accent bg-brand-paper/40 text-brand-ink font-semibold"
-                : "border-brand-ink/5 bg-brand-bg text-brand-ink/80 hover:border-brand-accent/20"
-            }`}
-          >
-            <div className="flex-1 flex flex-col justify-center">
-              <span className="font-serif italic text-sm sm:text-base font-medium text-brand-ink leading-tight">Alla områden</span>
-              <span className="text-[10px] text-brand-ink/65 font-light mt-1">Visa alla inbjudningar i hela regionen</span>
-            </div>
-            <div
-              className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
-                !limitAreas && limitedAreas.length === 0
-                  ? "bg-brand-accent border-brand-accent text-white"
-                  : "border-brand-ink/10 bg-white"
-              }`}
-            >
-              {!limitAreas && limitedAreas.length === 0 && <Check size={12} strokeWidth={2.5} />}
-            </div>
-          </button>
-
-          {/* Option for "Inget område" */}
-          <button
-            type="button"
-            id="no-area-btn"
-            onClick={() => {
-              setPrimaryArea(undefined);
-              setLimitedAreas([]);
-            }}
-            className={`flex items-center justify-between p-4 rounded-xl border text-left transition-all min-h-[58px] duration-200 ${
-              limitedAreas.length === 0 && primaryArea === undefined
-                ? "border-brand-accent bg-brand-paper/40 text-brand-ink font-semibold"
-                : "border-brand-ink/5 bg-brand-bg text-brand-ink/80 hover:border-brand-accent/20"
-            }`}
-          >
-            <div className="flex-1 flex flex-col justify-center">
-              <span className="font-serif italic text-sm sm:text-base font-medium text-brand-ink leading-tight">Inget område</span>
-              <span className="text-[10px] text-brand-ink/65 font-light mt-1">Inget särskilt område valt</span>
-            </div>
-            <div
-              className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
-                limitedAreas.length === 0 && primaryArea === undefined
-                  ? "bg-brand-accent border-brand-accent text-white"
-                  : "border-brand-ink/10 bg-white"
-              }`}
-            >
-              {limitedAreas.length === 0 && primaryArea === undefined && <Check size={12} strokeWidth={2.5} />}
-            </div>
-          </button>
         </div>
       </div>
+
 
       {/* Full-screen Leaflet Modal */}
       {modalArea && (

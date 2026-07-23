@@ -139,8 +139,14 @@ export default function ActiveStream({
     };
   }, []);
 
-  // Filter Stream based on User Preferences
-  const filteredStream = stream.filter(item => {
+  const t = TRANSLATIONS[uiLanguage] || TRANSLATIONS.sv;
+  const [introExpanded, setIntroExpanded] = useState<boolean>(false);
+
+  // Filter Stream based on User Preferences and Status
+  const pendingAlerts = stream.filter(item => item.status === "pending");
+  const activeStream = stream.filter(item => item.status !== "pending" && item.status !== "rejected");
+
+  const filteredStream = activeStream.filter(item => {
     if (!savedTags) return true; // Show all if no filters saved
 
     // 1. Geography filter
@@ -174,12 +180,31 @@ export default function ActiveStream({
     return true;
   });
 
+  const handleModerate = async (id: string, newStatus: "active" | "rejected") => {
+    try {
+      const res = await fetch(`/api/alerts/${id}/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        fetchStream();
+      } else {
+        alert("Kunde inte uppdatera inbjudningsstatus.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Nätverksfel vid moderering.");
+    }
+  };
+
   // Notify parent of stream count updates
   useEffect(() => {
     if (onStreamCountChange) {
-      onStreamCountChange(filteredStream.length, stream.length);
+      onStreamCountChange(filteredStream.length, activeStream.length);
     }
-  }, [filteredStream.length, stream.length, onStreamCountChange]);
+  }, [filteredStream.length, activeStream.length, onStreamCountChange]);
+
 
   const handleWash = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -256,8 +281,126 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
 
   return (
     <div className="space-y-6 w-full max-w-2xl mx-auto">
+      {/* Top Header Card */}
+      <div className="bg-white rounded-2xl p-5 sm:p-6 border border-brand-ink/5 shadow-xs text-left space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="font-serif italic text-2xl sm:text-3xl font-medium text-brand-ink">
+            {t.introHeading || "Inbjudan till dig"}
+          </h2>
+          <span className="font-mono text-[9px] uppercase tracking-widest px-2.5 py-1 rounded bg-brand-paper text-brand-accent font-semibold">
+            PWA Stream
+          </span>
+        </div>
+
+        <div className="text-xs text-brand-ink/80 leading-relaxed font-light space-y-2">
+          <p>
+            {t.introShortText}
+            {!introExpanded && (
+              <button
+                type="button"
+                onClick={() => setIntroExpanded(true)}
+                className="ml-1.5 text-brand-ocean hover:underline font-medium cursor-pointer"
+              >
+                {t.readMoreBtn}
+              </button>
+            )}
+          </p>
+
+          {introExpanded && (
+            <div className="pt-2 border-t border-brand-ink/5 space-y-2 animate-in fade-in duration-200">
+              <p>{t.introFullText}</p>
+              <button
+                type="button"
+                onClick={() => setIntroExpanded(false)}
+                className="text-brand-ocean hover:underline font-medium cursor-pointer text-[11px]"
+              >
+                {t.readLessBtn}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Disclaimer placed right under description */}
+        <p className="text-[10px] text-brand-ink/50 italic pt-1 border-t border-brand-ink/5">
+          {t.disclaimerText}
+        </p>
+      </div>
+
+      {/* Admin Moderation Queue Banner (visible to admins when pending posts exist) */}
+      {isAdmin && pendingAlerts.length > 0 && (
+        <div className="bg-amber-50/90 rounded-2xl p-5 border border-amber-200/80 shadow-xs text-left space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[11px] font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+              <ShieldAlert size={16} className="text-amber-600" />
+              Modereringskö ({pendingAlerts.length} väntande inbjudan)
+            </span>
+            <span className="text-[10px] font-mono text-amber-800/70">Endast synligt för admin</span>
+          </div>
+
+          <div className="space-y-3">
+            {pendingAlerts.map(item => (
+              <div key={item.id} className="bg-white rounded-xl p-4 border border-amber-200 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900">
+                    ID #{item.id} • Väntar godkännande
+                  </span>
+                  <span className="font-mono text-[10px] text-brand-ink/50">{item.time}</span>
+                </div>
+
+                <div>
+                  <h4 className="font-serif italic text-lg font-medium text-brand-ink">
+                    {item.category} • {item.area}
+                  </h4>
+                  <p className="text-xs text-brand-ink/80 font-light mt-1">
+                    {item.scrubbedText || item.rawText}
+                  </p>
+                  <p className="text-[10px] text-brand-ink/50 mt-1 font-mono">
+                    Avsändare: {item.responsibleParty} ({item.contactValue})
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-brand-ink/5 text-xs font-mono">
+                  <button
+                    type="button"
+                    onClick={() => handleModerate(item.id, "active")}
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer flex items-center gap-1 font-semibold"
+                  >
+                    <span>✓ Godkänn (.ja)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleModerate(item.id, "rejected")}
+                    className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors cursor-pointer flex items-center gap-1 font-semibold"
+                  >
+                    <span>✕ Avvisa (.nej)</span>
+                  </button>
+
+                  {item.contactValue && item.contactValue !== "0736108997" && (
+                    <div className="flex items-center gap-1 ml-auto">
+                      <a
+                        href={`tel:${item.contactValue}`}
+                        className="px-2.5 py-1.5 bg-brand-paper hover:bg-brand-ink/10 text-brand-ink rounded-lg transition-colors text-[10px]"
+                      >
+                        📞 Ring
+                      </a>
+                      <a
+                        href={`sms:${item.contactValue}?body=${encodeURIComponent(`Hej! Angående inbjudan #${item.id}: `)}`}
+                        className="px-2.5 py-1.5 bg-brand-paper hover:bg-brand-ink/10 text-brand-ink rounded-lg transition-colors text-[10px]"
+                      >
+                        💬 SMS
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Feed list */}
       <div className="space-y-4 text-left">
+
         {loading ? (
           <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-3">
             <div className="w-8 h-8 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mx-auto" />

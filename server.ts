@@ -359,10 +359,10 @@ app.post("/api/subscription", (req, res) => {
   res.json({ success: true, id: recordId });
 });
 
-// View all active Alerts/Announcements
+// View all active Alerts/Announcements (including pending for admin feed filtering)
 app.get("/api/alerts", (req, res) => {
   const safeAlerts = Object.values(activeAlerts)
-    .filter(alert => alert.status !== "pending")
+    .filter(alert => alert.status !== "rejected")
     .map(alert => ({
       id: alert.id,
       type: alert.type,
@@ -373,14 +373,33 @@ app.get("/api/alerts", (req, res) => {
       locationName: alert.locationName,
       timestamp: alert.timestamp,
       scrubbedText: alert.scrubbedText,
+      rawText: alert.rawText,
       responsibleParty: alert.responsibleParty,
       contactType: alert.contactType,
+      contactValue: alert.contactValue,
       category: alert.category,
       isFull: !!alert.isFull,
       status: alert.status || "active"
     }));
   res.json(safeAlerts);
 });
+
+// Moderation endpoint to update alert status (e.g. approve 'active' or reject 'rejected')
+app.post("/api/alerts/:id/status", (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const alert = activeAlerts[id];
+  if (!alert) return res.status(404).json({ error: "Inbjudan hittades inte." });
+
+  if (status === "rejected") {
+    delete activeAlerts[id];
+  } else {
+    alert.status = status;
+  }
+  saveActiveAlerts();
+  res.json({ success: true, id, status: status === "rejected" ? "deleted" : alert.status });
+});
+
 
 // View specific Alert/Announcement detail (ONLY scrubbed data, compliant with handboken 33.8)
 app.get("/api/alerts/:id", (req, res) => {

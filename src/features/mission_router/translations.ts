@@ -95,7 +95,16 @@ export interface TranslationDict {
   syncingText: string;
   syncSynced: string;
   syncSyncing: string;
+
+  // Intro & Disclaimer
+  introHeading: string;
+  introShortText: string;
+  introFullText: string;
+  readMoreBtn: string;
+  readLessBtn: string;
+  disclaimerText: string;
 }
+
 
 export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
   sv: {
@@ -181,8 +190,15 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     realtimeSynced: "Synkroniserad i realtid",
     syncingText: "Synkroniserar...",
     syncSynced: "Synkad",
-    syncSyncing: "Synkar"
+    syncSyncing: "Synkar",
+    introHeading: "Inbjudan till dig",
+    introShortText: "En digital anslagstavla och SMS-gateway för samlingar, fika och aktiviteter i ditt närområde.",
+    introFullText: "Denna PWA-anslagstavla gör det enkelt för alla att skapa, hitta och svara på samlingar, fika, promenader och möten. Denna tjänst underlättar för var och en att vara en vän, få näring av Guds goda ord och hjälpa andra med respekt om varandras integritet.",
+    readMoreBtn: "...läs mer",
+    readLessBtn: "visa mindre",
+    disclaimerText: "Detta är en fristående, inofficiell tjänst utan sponsring från Utby församling."
   },
+
   en: {
     gatewayTitle: "Invitation for you",
     gatewaySubtitle: "",
@@ -266,9 +282,16 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     realtimeSynced: "Synchronized in real time",
     syncingText: "Syncing...",
     syncSynced: "Synced",
-    syncSyncing: "Syncing"
+    syncSyncing: "Syncing",
+    introHeading: "Invitation for you",
+    introShortText: "A digital bulletin board and SMS gateway for gatherings, coffee and activities in your area.",
+    introFullText: "This PWA bulletin board makes it easy for everyone to create, find, and respond to gatherings, walks, and meetings. This service makes it easier for everyone to be a friend, be nourished by God's good word, and help others with respect for each other's privacy.",
+    readMoreBtn: "...read more",
+    readLessBtn: "show less",
+    disclaimerText: "This is an independent, unofficial service without sponsorship from the Utby ward."
   },
   es: {
+
     gatewayTitle: "Invitación para ti",
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
@@ -351,9 +374,16 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     realtimeSynced: "Sincronizado en tiempo real",
     syncingText: "Sincronizando...",
     syncSynced: "Sincronizado",
-    syncSyncing: "Sincronizando"
+    syncSyncing: "Sincronizando",
+    introHeading: "Invitación para ti",
+    introShortText: "Un tableros de anuncios digital y puerta de enlace SMS para reuniones en tu área.",
+    introFullText: "Este tablero de anuncios PWA facilita que todos creen, encuentren y respondan a reuniones y actividades en el área local.",
+    readMoreBtn: "...leer más",
+    readLessBtn: "mostrar menos",
+    disclaimerText: "Este es un servicio independiente e no oficial sin patrocinio del barrio de Utby."
   },
   sw: {
+
     gatewayTitle: "Mwaliko kwako",
     gatewaySubtitle: "",
     gatewayPrompt: "Välj ditt språk för att fortsätta • Choose your language",
@@ -436,7 +466,13 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     realtimeSynced: "Imeoanishwa katika muda halisi",
     syncingText: "Inasawazisha...",
     syncSynced: "Imesawazishwa",
-    syncSyncing: "Inasawazisha"
+    syncSyncing: "Inasawazisha",
+    introHeading: "Mwaliko kwako",
+    introShortText: "Ubao wa matangazo ya kidijitali na lango la SMS kwa ajili ya mikutano na shughuli katika eneo lako.",
+    introFullText: "Ubao huu wa matangazo wa PWA unamrahisishia kila mtu kuunda, kupata na kujibu mikutano na shughuli katika eneo la karibu.",
+    readMoreBtn: "...soma zaidi",
+    readLessBtn: "onyesha kidogo",
+    disclaimerText: "Hii ni huduma inayojitegemea, isiyo rasmi na haina ufadhili kutoka kwa kata ya Utby."
   },
   vi: {
     gatewayTitle: "Lời mời dành cho bạn",
@@ -521,6 +557,13 @@ export const TRANSLATIONS: Record<UiLanguage, TranslationDict> = {
     realtimeSynced: "Được đồng bộ hóa trong thời gian thực",
     syncingText: "Đang đồng bộ hóa...",
     syncSynced: "Đã đồng bộ",
-    syncSyncing: "Đang đồng bộ"
+    syncSyncing: "Đang đồng bộ",
+    introHeading: "Lời mời dành cho bạn",
+    introShortText: "Bảng thông báo kỹ thuật số và cổng SMS cho các cuộc gặp gỡ trong khu vực của bạn.",
+    introFullText: "Bảng thông báo PWA này giúp mọi người dễ dàng tạo, tìm và phản hồi các cuộc gặp gỡ và hoạt động trong khu vực địa phương.",
+    readMoreBtn: "...đọc thêm",
+    readLessBtn: "thu gọn",
+    disclaimerText: "Đây là dịch vụ độc lập, không chính thức và không có sự tài trợ từ tiểu giáo khu Utby."
   }
 };
+

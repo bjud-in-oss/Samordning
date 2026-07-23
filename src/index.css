@@ -13,3 +13,9 @@
   --color-brand-ocean: #2d6a7f;
 }
 
+html, body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+

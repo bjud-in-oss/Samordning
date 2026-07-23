@@ -65,7 +65,7 @@ export interface ActiveAlert {
   expiryTimestamp: number;
   category?: string;
   isFull?: boolean;
-  status?: 'active' | 'pending';
+  status?: 'active' | 'pending' | 'rejected';
   escalationLevel?: number;
   totalActiveAlerts?: number;
 }

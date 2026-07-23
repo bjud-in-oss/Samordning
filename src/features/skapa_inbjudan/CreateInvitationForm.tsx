@@ -1,7 +1,7 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/4_Produce] - PWA Form & SMS Links Verified Saved
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Pure PWA Form with Dynamic Reglage & Personal Favorites
 
 import React, { useState } from "react";
-import { Send, CheckCircle, Sparkles, ArrowLeft, Coffee, Footprints, MessageSquare, Flower2, Church } from "lucide-react";
+import { Send, CheckCircle, Sparkles, ArrowLeft, Clock, MapPin, Users, Globe, Star, Trash2 } from "lucide-react";
 import { UiLanguage } from "../mission_router/translations";
 import { GOTEBORG_AREAS } from "../anpassa/mapData";
 import { washAnnouncementText } from "../mission_router/domain/parser";
@@ -27,13 +27,8 @@ const ORGANIZATIONS = [
   "Staven"
 ];
 
-const PRESETS = [
-  { id: "fika", label: "☕ Fika", icon: Coffee, category: "Gemenskap", activity: "Fika och trevligt samtal", time: "Idag kl 15:00" },
-  { id: "promenad", label: "🚶 Promenad", icon: Footprints, category: "Aktivitet", activity: "Lugn promenad i närområdet", time: "Ieftermiddag kl 14:00" },
-  { id: "samtal", label: "💬 Samtal", icon: MessageSquare, category: "Samtal", activity: "Samtal & reflektera tillsammans", time: "Ikväll kl 19:00" },
-  { id: "tradgard", label: "🌱 Trädgård", icon: Flower2, category: "Hjälp/Arbete", activity: "Hjälp med trädgård eller fix", time: "Lördag kl 10:00" },
-  { id: "gudstjanst", label: "⛪ Gudstjänst", icon: Church, category: "Gudstjänst", activity: "Gudstjänst & gemensamt deltagande", time: "Söndag kl 11:00" },
-];
+const TIME_REGLAGE = ["Idag kl 18:00", "Ikväll kl 19:00", "Imorgon kl 15:00", "Lördag kl 10:00", "Söndag kl 11:00"];
+const AUDIENCE_REGLAGE = ["Alla", "Ungdomar", "Vuxna/Seniorer", "Barnfamiljer", "Enskild"];
 
 export default function CreateInvitationForm({
   uiLanguage,
@@ -66,7 +61,7 @@ export default function CreateInvitationForm({
 
   const buildTemplate = (showHelp: boolean) => {
     if (showHelp) {
-      return `Tid: (t.ex. Idag kl 18:00)\nMötesplats: (Var ses vi fysiskt, eller länk/telefon)\nAktivitet: (Vad ska vi göra?)\nBjud in från områden: ${defaultAreaString}\nMålgrupp: Alla`;
+      return `Tid: (t.ex. Idag kl 18:00)\nMötesplats: (Var ses vi fysiskt, eller länk/telefon)\nAktivitet: (Vad ska vi göra? Write free text...)\nBjud in från områden: ${defaultAreaString}\nMålgrupp: Alla`;
     }
     return `Tid: \nMötesplats: \nAktivitet: \nBjud in från områden: ${defaultAreaString}\nMålgrupp: Alla`;
   };
@@ -86,6 +81,9 @@ export default function CreateInvitationForm({
   const [selectedAudience, setSelectedAudience] = useState<string>("Alla");
   const [locationName, setLocationName] = useState<string>(savedTags?.primaryArea || GOTEBORG_AREAS[0]);
 
+  // Modal reglage toggles
+  const [activeReglage, setActiveReglage] = useState<"time" | "location" | "area" | "audience" | null>(null);
+
   const saveAsFavorite = () => {
     const newFav = {
       id: Date.now().toString(),
@@ -103,7 +101,7 @@ export default function CreateInvitationForm({
     if (typeof localStorage !== "undefined") {
       localStorage.setItem("mission_router_favorites", JSON.stringify(updated));
     }
-    setToast("Inbjudan sparades som favorit!");
+    setToast("Inbjudan sparades som personlig favorit!");
     setTimeout(() => setToast(null), 3000);
   };
 
@@ -125,13 +123,17 @@ export default function CreateInvitationForm({
     if (fav.text) setAnnouncementText(fav.text);
   };
 
-  const applyPreset = (preset: typeof PRESETS[0]) => {
-    setSelectedCategory(preset.category);
-    setSelectedTime(preset.time);
-    const presetText = `Tid: ${preset.time}\nMötesplats: ${selectedArea}\nAktivitet: ${preset.activity}\nBjud in från områden: ${selectedArea}\nMålgrupp: Alla`;
-    setAnnouncementText(presetText);
+  const updateTemplateField = (field: string, value: string) => {
+    setAnnouncementText(prev => {
+      const lines = prev.split("\n");
+      const fieldIndex = lines.findIndex(l => l.toLowerCase().startsWith(field.toLowerCase() + ":"));
+      if (fieldIndex !== -1) {
+        lines[fieldIndex] = `${field}: ${value}`;
+        return lines.join("\n");
+      }
+      return `${prev}\n${field}: ${value}`;
+    });
   };
-
 
   const toggleHelpText = () => {
     const nextShow = !showHelpText;
@@ -328,27 +330,145 @@ Aktivitet: ${cleanedBody}`;
               </div>
             )}
 
-            {/* Snabbknappar / Presets */}
+            {/* Reglageknappar för snabbval */}
             <div className="space-y-2">
               <label className="font-mono text-[9px] uppercase tracking-wider text-brand-ink/60 block">
-                {uiLanguage === "sv" ? "Snabbmallar / Vanliga aktiviteter" : "Quick Presets"}
+                {uiLanguage === "sv" ? "Snabb-reglage (Tid, Mötesplats, Område, Målgrupp)" : "Quick Reglage (Time, Location, Area, Audience)"}
               </label>
               <div className="flex flex-wrap gap-2">
-                {PRESETS.map((p) => {
-                  const Icon = p.icon;
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => applyPreset(p)}
-                      className="px-3 py-1.5 bg-brand-paper hover:bg-brand-accent/10 border border-brand-ink/10 hover:border-brand-accent/30 rounded-lg text-xs font-mono text-brand-ink flex items-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      <Icon size={13} className="text-brand-accent" />
-                      <span>{p.label}</span>
-                    </button>
-                  );
-                })}
+                <button
+                  type="button"
+                  onClick={() => setActiveReglage(activeReglage === "time" ? null : "time")}
+                  className={`px-3 py-1.5 border rounded-lg text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
+                    activeReglage === "time" ? "bg-brand-accent text-white border-brand-accent" : "bg-brand-paper hover:bg-brand-accent/10 border-brand-ink/10 text-brand-ink"
+                  }`}
+                >
+                  <Clock size={13} />
+                  <span>Tid: {selectedTime}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveReglage(activeReglage === "location" ? null : "location")}
+                  className={`px-3 py-1.5 border rounded-lg text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
+                    activeReglage === "location" ? "bg-brand-accent text-white border-brand-accent" : "bg-brand-paper hover:bg-brand-accent/10 border-brand-ink/10 text-brand-ink"
+                  }`}
+                >
+                  <MapPin size={13} />
+                  <span>Plats: {locationName}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveReglage(activeReglage === "area" ? null : "area")}
+                  className={`px-3 py-1.5 border rounded-lg text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
+                    activeReglage === "area" ? "bg-brand-accent text-white border-brand-accent" : "bg-brand-paper hover:bg-brand-accent/10 border-brand-ink/10 text-brand-ink"
+                  }`}
+                >
+                  <Globe size={13} />
+                  <span>Område: {selectedArea}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveReglage(activeReglage === "audience" ? null : "audience")}
+                  className={`px-3 py-1.5 border rounded-lg text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
+                    activeReglage === "audience" ? "bg-brand-accent text-white border-brand-accent" : "bg-brand-paper hover:bg-brand-accent/10 border-brand-ink/10 text-brand-ink"
+                  }`}
+                >
+                  <Users size={13} />
+                  <span>Målgrupp: {selectedAudience}</span>
+                </button>
               </div>
+
+              {/* Reglage Modal / Expanders */}
+              {activeReglage === "time" && (
+                <div className="p-3 bg-brand-paper/40 rounded-xl border border-brand-ink/10 space-y-2 animate-in fade-in duration-150">
+                  <span className="font-mono text-[10px] text-brand-accent uppercase font-semibold block">Välj Tid:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {TIME_REGLAGE.map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTime(t);
+                          updateTemplateField("Tid", t);
+                          setActiveReglage(null);
+                        }}
+                        className="px-2.5 py-1 bg-white border border-brand-ink/10 rounded text-xs font-mono text-brand-ink hover:border-brand-accent transition-colors"
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeReglage === "location" && (
+                <div className="p-3 bg-brand-paper/40 rounded-xl border border-brand-ink/10 space-y-2 animate-in fade-in duration-150">
+                  <span className="font-mono text-[10px] text-brand-accent uppercase font-semibold block">Välj Mötesplats / Kartmatchning:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["Utby kyrka", "Härlanda Tjärn", "Skatås motionscentrum", "Kortedala torg", "Munkebäckstorget", "Online/Telefon"].map(loc => (
+                      <button
+                        key={loc}
+                        type="button"
+                        onClick={() => {
+                          setLocationName(loc);
+                          updateTemplateField("Mötesplats", loc);
+                          setActiveReglage(null);
+                        }}
+                        className="px-2.5 py-1 bg-white border border-brand-ink/10 rounded text-xs font-mono text-brand-ink hover:border-brand-accent transition-colors"
+                      >
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeReglage === "area" && (
+                <div className="p-3 bg-brand-paper/40 rounded-xl border border-brand-ink/10 space-y-2 animate-in fade-in duration-150">
+                  <span className="font-mono text-[10px] text-brand-accent uppercase font-semibold block">Välj Område (samma som i Anpassa):</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {GOTEBORG_AREAS.map(area => (
+                      <button
+                        key={area}
+                        type="button"
+                        onClick={() => {
+                          setSelectedArea(area);
+                          updateTemplateField("Bjud in från områden", area);
+                          setActiveReglage(null);
+                        }}
+                        className="px-2.5 py-1 bg-white border border-brand-ink/10 rounded text-xs font-mono text-brand-ink hover:border-brand-accent transition-colors"
+                      >
+                        {area}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeReglage === "audience" && (
+                <div className="p-3 bg-brand-paper/40 rounded-xl border border-brand-ink/10 space-y-2 animate-in fade-in duration-150">
+                  <span className="font-mono text-[10px] text-brand-accent uppercase font-semibold block">Välj Målgrupp:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {AUDIENCE_REGLAGE.map(aud => (
+                      <button
+                        key={aud}
+                        type="button"
+                        onClick={() => {
+                          setSelectedAudience(aud);
+                          updateTemplateField("Målgrupp", aud);
+                          setActiveReglage(null);
+                        }}
+                        className="px-2.5 py-1 bg-white border border-brand-ink/10 rounded text-xs font-mono text-brand-ink hover:border-brand-accent transition-colors"
+                      >
+                        {aud}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
 

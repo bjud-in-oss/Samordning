@@ -1,29 +1,33 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/android_app/3_Council_Impact]
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/3_Council_Impact]
 
-# Rådslagsdebatt & Synkroniserings-/Konsekvensanalys (SW-aktivering & ADMIN_PIN)
+# Rådslagsdebatt & Synkroniserings-/Konsekvensanalys (FAS 1: Domänomdöpning, iOS Safari-fix & Firestore Client)
 
 ## Rådslagsdebatt (Dialektisk analys)
 
 ### The Innovator (Att förändra)
-> "Genom att introducera en explicit asynkron väntan på `navigator.serviceWorker.ready` och verifiera att `registration.active` existerar innan `pushManager.subscribe()` anropas försvinner alla race conditions vid PWA/Push-aktivering! Dessutom gör stödet för `process.env.ADMIN_PIN` i `/api/admin/verify` det extremt smidigt att styra adminbehörighet i molnmiljöer som Render."
+> "Genom att döpa om domänen till `mobile_pwa_app` blir arkitekturen plattformsoberoende och speglar PWA-funktionen korrekt. Med `build.target: ['es2015', 'safari13']` och ett globalt fel-overlay i `index.html` säkerställer vi 100 % driftsäkerhet på alla iOS WebKit-enheter. Anonym Firestore-läsning direkt i PWA-klienten avlastar backend drastiskt och möjliggör snabb global distribution via Netlify!"
 
 ### The Reflector (Att vända)
-> "Vi måste säkerställa att om Service Workern är under installation (`installing` eller `waiting`), så låser vi inte tråden för evigt utan har en säker event-lyssnare som löser ut när den blir `activated`. För backend-endpointen måste fall-backen till `data/admins.json` bibehålla bakåtkompatibiliteten så att befintliga admin-telefonnummer eller secrets fortfarande fungerar."
+> "Vi måste säkerställa att alla importer till `pwaService` justeras sömlöst utan brutna sökvägar. Firebase-klienten i `src/main/config/firebaseClient.ts` måste ha säkra reservvärden om miljövariabler saknas under lokal utveckling så att appen inte kraschar."
 
 ### The Mediator (Att förlika)
-> "Debatten är i full klang. Vi uppdaterar `pwaService.ts` med den vattentäta `subscribeUserToPush`-funktionen och uppdaterar `App.tsx` för att använda den. I `server.ts` lägger vi till `/api/admin/verify` med prioritetsordning: `process.env.ADMIN_PIN` först, därefter `data/admins.json` / `adminNumbers` / `API_SECRET`."
+> "Alla tre initiativ är nödvändiga för en stabil och skalbar PWA. Vi godkänner domänflytten till `src/features/mobile_pwa_app`, konfigurerar WebKit-målet i `vite.config.ts`, lägger till felhanteraren i `index.html` samt skapar `firebaseClient.ts`."
 
 ---
 
 ## Architectural Synchronization & Impact Analysis
 
-### Operativa filer att modifiera i `4_Produce`:
-1. `src/features/android_app/pwaService.ts`:
-   - Lägg till `getActiveServiceWorkerRegistration`, `subscribeUserToPush` och `urlBase64ToUint8Array`.
+### Operativa filer att modifiera/skapa i `4_Produce`:
+1. `src/features/mobile_pwa_app/` (Omdöpt från `src/features/android_app/` via `move`):
+   - `src/features/mobile_pwa_app/pwaService.ts`
 2. `src/App.tsx`:
-   - Integrera `subscribeUserToPush` i `handleEnablePush` för felfri Service Worker-prenumeration.
-3. `server.ts`:
-   - Lägg till `/api/admin/verify` endpoint med prioritering av `process.env.ADMIN_PIN` och reserv mot `data/admins.json`.
+   - Uppdatera import från `./features/android_app/pwaService` till `./features/mobile_pwa_app/pwaService`.
+3. `vite.config.ts`:
+   - Lägg till `build: { target: ['es2015', 'safari13'] }`.
+4. `index.html`:
+   - Lägg till inline error-boundary script för `window.onerror` och `window.onunhandledrejection`.
+5. `src/main/config/firebaseClient.ts` (NY):
+   - Firebase JS SDK-konfiguration för anonym Firestore-läsning.
 
 ### Beslut:
 - **Route Forward**: Steg till `4_Produce` godkänt.

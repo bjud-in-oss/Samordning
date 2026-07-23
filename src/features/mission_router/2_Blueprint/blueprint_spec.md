@@ -1,18 +1,15 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/android_app/2_Blueprint]
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/2_Blueprint]
 
-# Arkitekturspecifikation: Vattentät Service Worker-aktivering och Render ADMIN_PIN
+# Arkitekturspecifikation: FAS 1 – Domänomdöpning, iOS Safari-Fix och Firestore Client Setup
 
-## 1. Säker Service Worker-registrering & Push-prenumeration (`src/features/android_app/pwaService.ts`)
-- Utöka och stärka `pwaService.ts` med funktioner för säker aktivering av Service Worker:
-  1. `getActiveServiceWorkerRegistration(swPath)`: Registrerar Service Worker och väntar ALLTID på `await navigator.serviceWorker.ready`.
-  2. Automatisk tillståndskontroll (`active` state): Om `registration.active` inte är redo direkt, lyssnar den på `statechange` tills worker är i tillståndet `activated` / `active`.
-  3. `subscribeUserToPush(publicKey, swPath)`: Säkerställer aktiv Service Worker innan `registration.pushManager.subscribe()` anropas.
-- Uppdatera `App.tsx` så att `handleEnablePush` använder `subscribeUserToPush` från `pwaService.ts` för att garantera att felet `Subscription failed - no active Service Worker` aldrig uppstår.
+## 1. Domänomdöpning till `mobile_pwa_app`
+- Mappen `src/features/android_app/` döps om till `src/features/mobile_pwa_app/`.
+- Alla importvägar i projektet (inklusive `src/App.tsx` och `src/features/mobile_pwa_app/pwaService.ts`) uppdateras från `android_app` till `mobile_pwa_app`.
 
----
+## 2. iOS Safari WebKit-stabilisering & Felsökning
+- `vite.config.ts` konfigureras med `build.target: ['es2015', 'safari13']` för att garantera att transpilerad JavaScript är fullt kompatibel med WebKit på äldre och nyare iOS-enheter uden syntaxkrascher.
+- `index.html` förses med en global fel- och `unhandledrejection`-lyssnare som fångar upp unhandled runtime-fel och ritar ut ett mjukt fel-overlay med information och en "Ladda om"-knapp istället för en blank vit skärm.
 
-## 2. Stöd för process.env.ADMIN_PIN i Backend (`server.ts`)
-- Implementera/säkerställ endpointen `/api/admin/verify` i `server.ts`:
-  1. Kontrollera först om `process.env.ADMIN_PIN` finns inställt i miljövariablerna (t.ex. på Render). Om `ADMIN_PIN` finns, verifieras inkommande PIN direkt mot detta värde.
-  2. Om `process.env.ADMIN_PIN` saknas, faller verifieringen tillbaka på att kontrollera mot `data/admins.json` (eller `adminNumbers`/`API_SECRET`).
-  3. Returnera strukturerat svar `{ success: true, verified: true, isAdmin: true, source: 'env' | 'file' }` eller `401 Unauthorized`.
+## 3. Anonym Firebase Firestore Client Setup
+- Skapa `src/main/config/firebaseClient.ts` för anslutning via Firebase JS SDK (`firebase/app` och `firebase/firestore`).
+- Konfigurera klientanslutningen för 100 % anonym läsning av samlingen `alerts` direkt från Netlify i PWA-frontend utan att belasta eller anropa Render för läsoperationer.

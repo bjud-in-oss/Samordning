@@ -8,6 +8,35 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script>
+      (function() {
+        function showErrorOverlay(msg, errorObj) {
+          if (document.getElementById('ios-error-overlay')) return;
+          var overlay = document.createElement('div');
+          overlay.id = 'ios-error-overlay';
+          overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:#FAF8F5;color:#1C1917;z-index:99999;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;text-align:center;';
+          overlay.innerHTML = '<div style="max-width:360px;background:#fff;padding:20px;border-radius:16px;border:1px solid #E7E5E4;box-shadow:0 4px 12px rgba(0,0,0,0.05);">' +
+            '<h2 style="font-size:18px;margin-bottom:8px;font-weight:600;color:#991B1B;">Ett tillfälligt fel uppstod</h2>' +
+            '<p style="font-size:13px;color:#57534E;margin-bottom:16px;line-height:1.4;">Appen stötte på ett oväntat skriptfel på din enhet.</p>' +
+            '<button onclick="window.location.reload()" style="background:#0F766E;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Ladda om appen</button>' +
+            '</div>';
+          document.body ? document.body.appendChild(overlay) : window.addEventListener('DOMContentLoaded', function() { document.body.appendChild(overlay); });
+        }
+        window.addEventListener('error', function(e) {
+          console.error('[WebKit Error Guard]', e.error || e.message);
+          // Show overlay only if root container failed to render or fatal error
+          setTimeout(function() {
+            var root = document.getElementById('root');
+            if (!root || !root.firstElementChild) {
+              showErrorOverlay(e.message, e.error);
+            }
+          }, 1500);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+          console.error('[WebKit Rejection Guard]', e.reason);
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -88,6 +88,43 @@ let adminNumbers: string[] = [];
 const TRUSTED_FILE = path.join(process.cwd(), "data", "trusted.json");
 let trustedNumbers: string[] = [];
 
+// Paired Devices Store backing data/paired_devices.json
+const PAIRED_DEVICES_FILE = path.join(process.cwd(), "data", "paired_devices.json");
+const pairedDevices = new Set<string>();
+
+function loadPairedDevices() {
+  if (fs.existsSync(PAIRED_DEVICES_FILE)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(PAIRED_DEVICES_FILE, "utf-8"));
+      if (Array.isArray(data)) {
+        data.forEach((token: string) => pairedDevices.add(token));
+        console.log(`Loaded ${pairedDevices.size} paired devices from disk.`);
+      }
+    } catch (err) {
+      console.error("Failed to load paired devices from disk:", err);
+    }
+  }
+}
+
+function savePairedDevices() {
+  try {
+    const dataDir = path.join(process.cwd(), "data");
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir);
+    }
+    fs.writeFileSync(PAIRED_DEVICES_FILE, JSON.stringify(Array.from(pairedDevices), null, 2));
+  } catch (err) {
+    console.error("Failed to save paired devices to disk:", err);
+  }
+}
+
+function pairDeviceToken(token: string): boolean {
+  if (!token || !token.trim()) return false;
+  pairedDevices.add(token.trim());
+  savePairedDevices();
+  return true;
+}
+
 function loadAdmins() {
   const envAdmins = process.env.ADMIN_NUMBERS ? process.env.ADMIN_NUMBERS.split(',').map(n => n.trim()) : [];
   if (envAdmins.length > 0) {
@@ -169,6 +206,7 @@ async function sendOutboundSms(toNumbers: string[], message: string) {
 loadActiveAlerts();
 loadAdmins();
 loadTrusted();
+loadPairedDevices();
 initWebPush(); // Initialize Web Push
 
 // Automatic Expiry Cleanup Loop for invitations (Permanent suppression after 2 hours past scheduled time)
@@ -204,11 +242,37 @@ setInterval(() => {
 
 function setupRoutes(app: express.Express) {
 
+// Check device pairing status endpoint
+app.get("/api/admin/check-pairing", (req, res) => {
+  const token = String(req.query.token || "").trim();
+  if (token && pairedDevices.has(token)) {
+    return res.json({ paired: true, verified: true });
+  }
+  return res.json({ paired: false, verified: false });
+});
+
+// Device pairing / loopback endpoint
+app.post("/api/admin/pair", (req, res) => {
+  const { token } = req.body || {};
+  const tokenStr = String(token || "").trim();
+  if (!tokenStr) {
+    return res.status(400).json({ success: false, error: "Token krävs." });
+  }
+  pairDeviceToken(tokenStr);
+  return res.json({ success: true, paired: true, message: "Enheten har parats ihop och verifierats!" });
+});
+
 // Admin verification endpoint (checks process.env.ADMIN_PIN first, falls back to data/admins.json)
 app.post("/api/admin/verify", (req, res) => {
-  const { pin, phone, secret, password } = req.body || {};
+  const { pin, phone, secret, password, deviceToken } = req.body || {};
   const inputPin = String(pin || secret || password || "").trim();
   const inputPhone = String(phone || "").trim();
+  const tokenStr = String(deviceToken || "").trim();
+
+  // If token is already paired
+  if (tokenStr && pairedDevices.has(tokenStr)) {
+    return res.json({ success: true, verified: true, isAdmin: true, source: "paired_device" });
+  }
 
   const envAdminPin = process.env.ADMIN_PIN ? process.env.ADMIN_PIN.trim() : "";
 
@@ -379,7 +443,17 @@ app.post("/api/incoming-sms", async (req, res) => {
   const avsandareMatch = trimmedText.match(/^[\.#]avsändare\s+(.+)$/i);
   const expanderaMatch = trimmedText.match(/^[\.#]expandera\s+(\d+)$/i);
   const fullMatch = trimmedText.match(/^[\.#]full\s+(\d+)$/i);
+  const pairMatch = trimmedText.match(/^[\.#]PAIR\s*(.*)$/i);
   const isWebb = trimmedText.toUpperCase().startsWith("#WEBB");
+
+  if (pairMatch) {
+    const token = pairMatch[1].trim();
+    if (token) {
+      pairDeviceToken(token);
+      addSimLog("system", `ENHETSPARNING (#PAIR): Enhet ${token.substring(0, 10)}... parats ihop av ${sender}.`);
+      return res.json({ success: true, replyMessage: `Enhet verifierad och parkopplad med systemet!` });
+    }
+  }
 
   if (helpMatch) {
     const helpText = "5-raders mall för inbjudan:\nTid: (t.ex. Idag kl 18:00)\nMötesplats: (Plats/Länk/Tfn)\nAktivitet: (Vad ska ni göra?)\nBjud in från områden: (Område)\nMålgrupp: Alla\n\nKommandon: .ja [id], .nej [id], .ta bort [id], .status, .mall";

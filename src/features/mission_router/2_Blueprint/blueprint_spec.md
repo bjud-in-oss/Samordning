@@ -1,27 +1,21 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/2_Blueprint]
 
-# Arkitekturspecifikation: Slutgiltig Mappstruktur, PWA-Formulär, Silent Render Ping & Anonym Firestore
+# Arkitekturspecifikation: Anonym Enhetsparning (#PAIR) & PIN-Avveckling
 
-## 1. Slutgiltig Domänomdöpning till `mobile_pwa_app`
-- Mappen `src/features/android_app/` har helt fasats ut och ersatts av `src/features/mobile_pwa_app/`.
-- Samtliga importreferenser i `src/App.tsx` och relaterade moduler använder `src/features/mobile_pwa_app/pwaService`.
-
----
-
-## 2. PWA Formulär för Inbjudningar & SMS-Gateway (`src/features/skapa_inbjudan/CreateInvitationForm.tsx`)
-- Interaktivt PWA-formulär med snabbknappar (Fika, Promenad, Samtal, Trädgård, Gudstjänst).
-- Tydliga fält för Tid, Plats/Mötesplats, Målgrupp, Kategori och Aktivitet.
-- Automatisk generering av förformaterad `sms:0736108997?body=...`-URI riktad mot modererings-gatewayen.
-- QR-kodsgenerering som fallback för skrivbordsanvändare.
+## 1. Anonym Enhetsparning (#PAIR)
+- PIN-koder avvecklas helt för admin-behörighet.
+- Enheten genererar en unik `device_token` (lagrad i `localStorage`).
+- Status kontrolleras mot servern (`/api/admin/check-pairing?token=...`).
+- Om enheten ej är verifierad:
+  - Genereras en `#PAIR <device_token>`-kod för SMS-verifiering.
+  - För mobila enheter: Knappen "Verifiera min enhet via engångs-SMS (#PAIR)" öppnar `sms:0736108997?body=%23PAIR%20<device_token>`.
+  - För dator/stationär: Visas en dynamisk QR-kod med SMS-länken för skanning från admin-mobil.
+  - För utvecklingsmiljö / Gateway-enhet (loopback): Finns en snabbknapp "Direktaktivera lokal enhet" för att undvika onödiga SMS i testmiljö.
 
 ---
 
-## 3. Silent Render Ping (`src/features/mobile_pwa_app/pwaService.ts`)
-- `pingRenderBackend()` utför en tyst, bakgrunds-fetch till `/api/health` utan att störa användargränssnittet.
-- Anropas vid appens initiering i `src/App.tsx` för att väcka Render-instansen i bakgrunden när användaren öppnar PWA:n på Netlify.
-
----
-
-## 4. Anonym Firestore-läsning i `ActiveStream`
-- Hybrid realläsning via `firebaseClient.ts` med automatisk fallback till `/api/alerts`.
+## 2. Serverhantering av Enhetstoken (`server.ts`)
+- Servern lagrar verifierade enhetstoken i `data/paired_devices.json`.
+- Inkommande `#PAIR <device_token>` via `/api/incoming-sms` verifierar automatiskt enheten om avsändaren är admin/trusted eller godkänd.
+- `/api/admin/pair` tillåter även direkt registrering vid lokal testning.
 

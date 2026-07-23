@@ -1,33 +1,33 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/3_Council_Impact]
 
-# Rådslagsdebatt & Synkroniserings-/Konsekvensanalys (FAS 2: PWA-Formulär & Silent Render Ping)
+# Rådslagsdebatt & Synkroniserings-/Konsekvensanalys (FAS 3: Anonym Enhetsparning #PAIR & PIN-Avveckling)
 
 ## Rådslagsdebatt (Dialektisk analys)
 
 ### The Innovator (Att förändra)
-> "Med snabbknappar och färdiga fält i PWA-formuläret (`CreateInvitationForm`) kan användare skapa en inbjudan på sekunder. `sms:`-URI:n låter användaren direkt använda mobilens inbyggda SMS-app med föriylld text mot modererings-gatewayen. Samtidigt säkerställer `pingRenderBackend()` att Render-servern väcks i bakgrunden utan att fördröja PWA-uppstarten!"
+> "Genom att ersätta manuell PIN-inmatning med anonym enhetsparning via `#PAIR` minskar vi fiktionen för administratörer dramatiskt. Admin-mobilen skickar helt enkelt ett engångs-SMS med `#PAIR <device_token>` till gatewayen, vilket automatiskt godkänner enheten för framtida sessioner!"
 
 ### The Reflector (Att vända)
-> "Vi måste se till att `pingRenderBackend()` körs helt asynkront utan att kasta fel om backend t.ex. sover eller tar några sekunder att svara. SMS-URI:n måste URL-kodas korrekt så att radbrytningar och specialtecken bevaras i alla mobiloperatörers SMS-klienter."
+> "Vi måste erbjuda en lokal loopback/snabbaktiveringsknapp för gateway-mobilen och dev-miljön så att administratören slipper skicka SMS till sig själv under utveckling. Datorer och plattor måste ha en QR-kod med `#PAIR`-länken redo för direkt skanning."
 
 ### The Mediator (Att förlika)
-> "Syntesen är klockren. Vi uppdaterar `CreateInvitationForm.tsx` med snabbvalsknappar och SMS-länkar, lägger till `pingRenderBackend()` i `pwaService.ts` och anropar den från `App.tsx` vid appstart."
+> "Perfekt balans! Vi uppdaterar `AdminConsole.tsx` för att automatiskt kontrollera enhetens parningsstatus och erbjuda SMS/QR/#PAIR-parning samt lokal loopback-verifiering. `server.ts` uppdateras för att hantera parningstoken och `#PAIR`-SMS."
 
 ---
 
 ## Architectural Synchronization & Impact Analysis
 
 ### Operativa filer att modifiera i `4_Produce`:
-1. `src/features/skapa_inbjudan/CreateInvitationForm.tsx`:
-   - Lägg till snabbknappar för vanliga aktiviteter (Fika, Promenad, Samtal, Trädgård, Gudstjänst).
-   - Inkludera fält för Tid, Plats, Målgrupp, Kategori och Aktivitet.
-   - Skapa förformaterad `sms:0736108997?body=...`-länk och QR-kod.
+1. `src/features/sms_assistant/components/AdminConsole.tsx`:
+   - Ersätt PIN-inmatningsfältet med automatisk kontroll av `device_token`.
+   - Lägg till knappen "Verifiera min enhet via engångs-SMS (#PAIR)".
+   - Generera QR-kod för `#PAIR <device_token>` för datoranvändare.
+   - Lägg till lokalt loopback-val för gateway-enhet.
 
-2. `src/features/mobile_pwa_app/pwaService.ts`:
-   - Implementera `pingRenderBackend()` för tyst hälso-ping till `/api/health`.
-
-3. `src/App.tsx`:
-   - Importera och anropa `pingRenderBackend()` vid appinitiering.
+2. `server.ts`:
+   - Lägg till lagring och validering av parnings-token (`pairedDevices` / `data/paired_devices.json`).
+   - Lägg till endpoints `/api/admin/check-pairing` och `/api/admin/pair`.
+   - Stöd för `#PAIR <device_token>` i `/api/incoming-sms`.
 
 ### Beslut:
 - **Route Forward**: Steg till `4_Produce` godkänt.

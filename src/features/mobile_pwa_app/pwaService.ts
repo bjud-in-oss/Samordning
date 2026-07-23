@@ -1,11 +1,27 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/4_Produce] - Silent Render Ping Added
 
 export interface PwaServiceConfig {
   manifestUrl: string;
   swUrl: string;
 }
 
+/**
+  * Silent Render Ping to keep or wake up the backend on Render
+  * when the PWA is launched on Netlify or mobile device.
+  */
+export async function pingRenderBackend(): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    await fetch("/api/health", { method: "GET", cache: "no-store" });
+    console.debug("[PWA] Silent Render Ping executed successfully.");
+  } catch (err) {
+    // Silent fail in background to avoid disrupting user experience
+    console.debug("[PWA] Silent Render Ping background status:", err);
+  }
+}
+
 export function registerServiceWorker(swPath: string = "/sw.js"): Promise<ServiceWorkerRegistration | null> {
+
   if (typeof window !== "undefined" && "serviceWorker" in navigator) {
     return navigator.serviceWorker
       .register(swPath, { scope: "/" })

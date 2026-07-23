@@ -1,7 +1,7 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan]
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/4_Produce] - PWA Form & SMS Links Verified Saved
 
 import React, { useState } from "react";
-import { Send, CheckCircle, Sparkles, ArrowLeft } from "lucide-react";
+import { Send, CheckCircle, Sparkles, ArrowLeft, Coffee, Footprints, MessageSquare, Flower2, Church } from "lucide-react";
 import { UiLanguage } from "../mission_router/translations";
 import { GOTEBORG_AREAS } from "../anpassa/mapData";
 import { washAnnouncementText } from "../mission_router/domain/parser";
@@ -25,6 +25,14 @@ const ORGANIZATIONS = [
   "Missionärer",
   "Biskopsrådet",
   "Staven"
+];
+
+const PRESETS = [
+  { id: "fika", label: "☕ Fika", icon: Coffee, category: "Gemenskap", activity: "Fika och trevligt samtal", time: "Idag kl 15:00" },
+  { id: "promenad", label: "🚶 Promenad", icon: Footprints, category: "Aktivitet", activity: "Lugn promenad i närområdet", time: "Ieftermiddag kl 14:00" },
+  { id: "samtal", label: "💬 Samtal", icon: MessageSquare, category: "Samtal", activity: "Samtal & reflektera tillsammans", time: "Ikväll kl 19:00" },
+  { id: "tradgard", label: "🌱 Trädgård", icon: Flower2, category: "Hjälp/Arbete", activity: "Hjälp med trädgård eller fix", time: "Lördag kl 10:00" },
+  { id: "gudstjanst", label: "⛪ Gudstjänst", icon: Church, category: "Gudstjänst", activity: "Gudstjänst & gemensamt deltagande", time: "Söndag kl 11:00" },
 ];
 
 export default function CreateInvitationForm({
@@ -67,6 +75,14 @@ export default function CreateInvitationForm({
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedOrganization, setSelectedOrganization] = useState<string>("Arrangör");
   const [selectedAudience, setSelectedAudience] = useState<string>("Alla");
+  const [locationName, setLocationName] = useState<string>(savedTags?.primaryArea || GOTEBORG_AREAS[0]);
+
+  const applyPreset = (preset: typeof PRESETS[0]) => {
+    setSelectedCategory(preset.category);
+    setSelectedTime(preset.time);
+    const presetText = `Tid: ${preset.time}\nMötesplats: ${selectedArea}\nAktivitet: ${preset.activity}\nBjud in från områden: ${selectedArea}\nMålgrupp: Alla`;
+    setAnnouncementText(presetText);
+  };
 
   const toggleHelpText = () => {
     const nextShow = !showHelpText;
@@ -103,18 +119,24 @@ export default function CreateInvitationForm({
         if (data.result.extractedMetadata?.targetAudience) {
           setSelectedAudience(data.result.extractedMetadata.targetAudience);
         }
+        if (data.result.extractedMetadata?.locationName) {
+          setLocationName(data.result.extractedMetadata.locationName);
+        } else {
+          setLocationName(selectedArea);
+        }
       } else {
         const cleaned = washAnnouncementText(announcementText);
         setWashResult({
           cleanedText: cleaned,
           extractedMetadata: {
-            category: "Inbjudan",
+            category: selectedCategory || "Inbjudan",
             area: savedTags?.primaryArea || GOTEBORG_AREAS[0],
-            time: "18:00",
+            time: selectedTime || "18:00",
             organization: "Arrangör",
             targetAudience: "Alla"
           }
         });
+        setLocationName(selectedArea);
       }
       setCurrentStep(2);
     } catch (err) {
@@ -123,13 +145,14 @@ export default function CreateInvitationForm({
       setWashResult({
         cleanedText: cleaned,
         extractedMetadata: {
-          category: "Inbjudan",
+          category: selectedCategory || "Inbjudan",
           area: savedTags?.primaryArea || GOTEBORG_AREAS[0],
-          time: "18:00",
+          time: selectedTime || "18:00",
           organization: "Arrangör",
           targetAudience: "Alla"
         }
       });
+      setLocationName(selectedArea);
       setCurrentStep(2);
     } finally {
       setWashing(false);
@@ -146,7 +169,7 @@ export default function CreateInvitationForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           from: "0700000000",
-          body: `#WEBB\nKategori: ${selectedCategory}\nTid: ${selectedTime || "18:00"}\nMötesplats: ${washResult?.extractedMetadata?.locationName || selectedArea}\nBjud in från områden: ${selectedArea}\nMålgrupp: ${selectedAudience}\nAvsändare: ${selectedOrganization}\nAktivitet: ${cleanBody}`
+          body: `#WEBB\nKategori: ${selectedCategory}\nTid: ${selectedTime || "18:00"}\nMötesplats: ${locationName || selectedArea}\nBjud in från områden: ${selectedArea}\nMålgrupp: ${selectedAudience}\nAvsändare: ${selectedOrganization}\nAktivitet: ${cleanBody}`
         })
       });
 
@@ -175,17 +198,19 @@ export default function CreateInvitationForm({
   };
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  const smsPayload = washResult ? `#WEBB
+  const cleanedBody = washAnnouncementText(announcementText);
+  const smsPayload = `#WEBB
 Kategori: ${selectedCategory}
 Tid: ${selectedTime || "18:00"}
-Mötesplats: ${washResult.extractedMetadata.locationName || selectedArea}
+Mötesplats: ${locationName || selectedArea}
 Bjud in från områden: ${selectedArea}
 Målgrupp: ${selectedAudience}
 Avsändare: ${selectedOrganization || "Arrangör"}
-Aktivitet: ${washAnnouncementText(announcementText)}` : "";
+Aktivitet: ${cleanedBody}`;
 
-  const smsHref = `sms:0736108997?body=${encodeURIComponent(smsPayload)}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(smsHref)}`;
+  const gatewayNumber = "0736108997";
+  const smsHref = `sms:${gatewayNumber}?body=${encodeURIComponent(smsPayload)}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(smsHref)}`;
 
   return (
     <div className="space-y-6 w-full max-w-2xl mx-auto">
@@ -224,6 +249,29 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
 
         {currentStep === 1 ? (
           <form onSubmit={handleWash} className="space-y-5">
+            {/* Snabbknappar / Presets */}
+            <div className="space-y-2">
+              <label className="font-mono text-[9px] uppercase tracking-wider text-brand-ink/60 block">
+                {uiLanguage === "sv" ? "Snabbmaller / Vanliga aktiviteter" : "Quick Presets"}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {PRESETS.map((p) => {
+                  const Icon = p.icon;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => applyPreset(p)}
+                      className="px-3 py-1.5 bg-brand-paper hover:bg-brand-accent/10 border border-brand-ink/10 hover:border-brand-accent/30 rounded-lg text-xs font-mono text-brand-ink flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Icon size={13} className="text-brand-accent" />
+                      <span>{p.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
@@ -273,8 +321,8 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
           <div className="space-y-6 animate-in fade-in duration-200">
             <div className="p-4 bg-brand-paper/40 rounded-xl border border-brand-ink/5 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
-                  {uiLanguage === "sv" ? "AI-extraherade taggar & detaljer" : "AI-extracted tags & details"}
+                <span className="font-mono text-[9px] uppercase tracking-wider text-brand-accent font-semibold">
+                  {uiLanguage === "sv" ? "Inställningar för Tid, Plats, Målgrupp & Kategori" : "Settings for Time, Location, Audience & Category"}
                 </span>
                 <button
                   type="button"
@@ -316,11 +364,34 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
                     value={selectedTime}
                     onChange={e => setSelectedTime(e.target.value)}
                     className="w-full px-3 py-1.5 bg-white border border-brand-ink/10 rounded-lg text-xs font-mono"
+                    placeholder="t.ex. Idag kl 18:00"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-mono text-[9px] uppercase text-brand-ink/60">Arrangör</label>
+                  <label className="font-mono text-[9px] uppercase text-brand-ink/60">Plats / Mötesplats</label>
+                  <input
+                    type="text"
+                    value={locationName}
+                    onChange={e => setLocationName(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-white border border-brand-ink/10 rounded-lg text-xs font-mono"
+                    placeholder="Mötesplats"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-mono text-[9px] uppercase text-brand-ink/60">Målgrupp</label>
+                  <input
+                    type="text"
+                    value={selectedAudience}
+                    onChange={e => setSelectedAudience(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-white border border-brand-ink/10 rounded-lg text-xs font-mono"
+                    placeholder="Alla"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-mono text-[9px] uppercase text-brand-ink/60">Arrangör / Avsändare</label>
                   <select
                     value={selectedOrganization}
                     onChange={e => setSelectedOrganization(e.target.value)}
@@ -335,11 +406,11 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
             </div>
 
             <div className="p-4 bg-brand-paper/20 rounded-xl border border-brand-ink/5 space-y-2">
-              <span className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
-                {uiLanguage === "sv" ? "Rensad text (Anonymiserad)" : "Cleaned text (Anonymized)"}
+              <span className="font-mono text-[9px] uppercase tracking-wider text-brand-accent font-semibold">
+                {uiLanguage === "sv" ? "Aktivitet & Rensad text (Anonymiserad)" : "Activity & Cleaned text (Anonymized)"}
               </span>
               <p className="text-xs font-mono text-brand-ink/80 whitespace-pre-wrap leading-relaxed">
-                {washAnnouncementText(announcementText)}
+                {cleanedBody}
               </p>
             </div>
 
@@ -365,7 +436,7 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
 
               <div className="relative flex py-1 items-center">
                 <div className="flex-grow border-t border-brand-ink/10"></div>
-                <span className="flex-shrink mx-3 font-mono text-[9px] text-brand-ink/40 uppercase">Eller skicka via SMS/QR</span>
+                <span className="flex-shrink mx-3 font-mono text-[9px] text-brand-ink/40 uppercase font-semibold">Eller skicka via SMS / QR (Gateway 0736108997)</span>
                 <div className="flex-grow border-t border-brand-ink/10"></div>
               </div>
 
@@ -375,7 +446,7 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
                   className="w-full py-3.5 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/10 text-brand-ink font-mono text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 text-center"
                 >
                   <Send size={14} className="text-brand-accent" />
-                  <span>Öppna SMS-app för insändning</span>
+                  <span>Öppna SMS-app för insändning till {gatewayNumber}</span>
                 </a>
               ) : (
                 <div className="p-4 bg-brand-bg rounded-xl border border-brand-ink/5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
@@ -385,7 +456,7 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
                       Skanna med din mobiltelefon
                     </span>
                     <p className="text-[11px] text-brand-ink/70 leading-relaxed font-light">
-                      Koden öppnar din SMS-app med den rensade inbjudan färdig att skicka till modereings-gatewayen.
+                      Koden öppnar din SMS-app med den rensade inbjudan färdig att skicka till modererings-gatewayen ({gatewayNumber}).
                     </p>
                   </div>
                 </div>
@@ -397,3 +468,4 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
     </div>
   );
 }
+

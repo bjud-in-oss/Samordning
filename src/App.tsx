@@ -9,7 +9,7 @@ import ActiveStream from "./features/inbjudningar/ActiveStream";
 import Disclaimer from "./features/inbjudningar/Disclaimer";
 import { TRANSLATIONS, UiLanguage } from "./features/mission_router/translations";
 import AdminConsole from "./features/sms_assistant/components/AdminConsole";
-import { subscribeUserToPush } from "./features/mobile_pwa_app/pwaService";
+import { subscribeUserToPush, pingRenderBackend } from "./features/mobile_pwa_app/pwaService";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -23,7 +23,13 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export default function App() {
+  // Silent background ping to wake or warm up Render instance
+  useEffect(() => {
+    pingRenderBackend();
+  }, []);
+
   const isAdminConsole = typeof window !== "undefined" && window.location.search.includes("admin=true");
+
   if (isAdminConsole) {
     return <AdminConsole />;
   }

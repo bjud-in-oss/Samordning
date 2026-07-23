@@ -1,15 +1,22 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/2_Blueprint]
 
-# Arkitekturspecifikation: FAS 1 – Domänomdöpning, iOS Safari-Fix och Firestore Client Setup
+# Arkitekturspecifikation: Slutgiltig Mappstruktur, Mobile PWA Domain & Anonym Firestore ActiveStream
 
-## 1. Domänomdöpning till `mobile_pwa_app`
-- Mappen `src/features/android_app/` döps om till `src/features/mobile_pwa_app/`.
-- Alla importvägar i projektet (inklusive `src/App.tsx` och `src/features/mobile_pwa_app/pwaService.ts`) uppdateras från `android_app` till `mobile_pwa_app`.
+## 1. Slutgiltig Domänomdöpning till `mobile_pwa_app`
+- Mappen `src/features/android_app/` har helt fasats ut och ersatts av `src/features/mobile_pwa_app/`.
+- Samtliga importreferenser i `src/App.tsx` och relaterade moduler använder `src/features/mobile_pwa_app/pwaService`.
+- Alla gamla `android_app`-kvarlevor är bortrensade.
 
-## 2. iOS Safari WebKit-stabilisering & Felsökning
-- `vite.config.ts` konfigureras med `build.target: ['es2015', 'safari13']` för att garantera att transpilerad JavaScript är fullt kompatibel med WebKit på äldre och nyare iOS-enheter uden syntaxkrascher.
-- `index.html` förses med en global fel- och `unhandledrejection`-lyssnare som fångar upp unhandled runtime-fel och ritar ut ett mjukt fel-overlay med information och en "Ladda om"-knapp istället för en blank vit skärm.
+---
 
-## 3. Anonym Firebase Firestore Client Setup
-- Skapa `src/main/config/firebaseClient.ts` för anslutning via Firebase JS SDK (`firebase/app` och `firebase/firestore`).
-- Konfigurera klientanslutningen för 100 % anonym läsning av samlingen `alerts` direkt från Netlify i PWA-frontend utan att belasta eller anropa Render för läsoperationer.
+## 2. Anonym Firestore-läsning i `ActiveStream` (`src/features/inbjudningar/ActiveStream.tsx`)
+- `ActiveStream` kopplar upp sig mot anonym Firestore-läsning via `src/main/config/firebaseClient.ts`.
+- Om `db` i `firebaseClient` är tillgänglig (när `VITE_FIREBASE_PROJECT_ID` är definierat), aktiveras `subscribeToFirestoreAlerts` för anonym realtidslyssning direkt från Firestore.
+- Om Firestore inte returnerar data eller om miljövariabeln saknas, faller `ActiveStream` sömlöst tillbaka på backend-anropet `/api/alerts`.
+- Anonyma PWA-användare på Netlify kan därmed läsa alla inbjudningar med noll belasning på Render.
+
+---
+
+## 3. iOS Safari WebKit-säkring
+- `vite.config.ts` är låst med `build.target: ['es2015', 'safari13']`.
+- `index.html` innehåller en global felskyddslyssnare (`window.onerror` och `window.onunhandledrejection`) som förhindrar vita skärmar vid oväntade WebKit-undantag.

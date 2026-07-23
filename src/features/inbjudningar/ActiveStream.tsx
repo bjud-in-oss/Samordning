@@ -7,6 +7,7 @@ import { TRANSLATIONS, UiLanguage } from "../mission_router/translations";
 import { GOTEBORG_AREAS } from "../anpassa/mapData";
 import { washAnnouncementText } from "../mission_router/domain/parser";
 import { CreateInvitationForm } from "../skapa_inbjudan";
+import { subscribeToFirestoreAlerts } from "../../main/config/firebaseClient";
 
 interface ActiveStreamProps {
   onSelectAlert: (id: string) => void;
@@ -106,9 +107,36 @@ export default function ActiveStream({
   };
 
   useEffect(() => {
-    fetchStream();
-    const interval = setInterval(fetchStream, 15000); // Polla var 15:e sekund
-    return () => clearInterval(interval);
+    let unsubscribeFirestore = () => {};
+    let firestoreReceivedData = false;
+
+    // Try anonymous Firestore subscription first
+    unsubscribeFirestore = subscribeToFirestoreAlerts((firestoreAlerts) => {
+      if (Array.isArray(firestoreAlerts) && firestoreAlerts.length > 0) {
+        firestoreReceivedData = true;
+        setStream(firestoreAlerts);
+        setLoading(false);
+      }
+    });
+
+    // If Firestore does not emit data within 1 second, fetch from /api/alerts as fallback
+    const fallbackTimer = setTimeout(() => {
+      if (!firestoreReceivedData) {
+        fetchStream();
+      }
+    }, 1000);
+
+    const interval = setInterval(() => {
+      if (!firestoreReceivedData) {
+        fetchStream();
+      }
+    }, 15000); // Polla var 15:e sekund om inte Firestore är aktivt
+
+    return () => {
+      unsubscribeFirestore();
+      clearTimeout(fallbackTimer);
+      clearInterval(interval);
+    };
   }, []);
 
   // Filter Stream based on User Preferences

@@ -12,6 +12,7 @@ export default defineConfig(() => {
       },
     },
     build: {
+      // iOS Safari13 / ES2015 target explicitly set
       target: ['es2015', 'safari13'],
     },
     server: {

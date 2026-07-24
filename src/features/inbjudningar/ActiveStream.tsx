@@ -282,48 +282,21 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
   return (
     <div className="space-y-6 w-full max-w-2xl mx-auto">
       {/* Top Header Card */}
-      <div className="bg-white rounded-2xl p-5 sm:p-6 border border-brand-ink/5 shadow-xs text-left space-y-3">
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-brand-ink/5 shadow-xs text-left">
         <div className="flex items-center justify-between">
           <h2 className="font-serif italic text-2xl sm:text-3xl font-medium text-brand-ink">
             {t.introHeading || "Inbjudan till dig"}
           </h2>
-          <span className="font-mono text-[9px] uppercase tracking-widest px-2.5 py-1 rounded bg-brand-paper text-brand-accent font-semibold">
-            PWA Stream
-          </span>
-        </div>
-
-        <div className="text-xs text-brand-ink/80 leading-relaxed font-light space-y-2">
-          <p>
-            {t.introShortText}
-            {!introExpanded && (
-              <button
-                type="button"
-                onClick={() => setIntroExpanded(true)}
-                className="ml-1.5 text-brand-ocean hover:underline font-medium cursor-pointer"
-              >
-                {t.readMoreBtn}
-              </button>
-            )}
-          </p>
-
-          {introExpanded && (
-            <div className="pt-2 border-t border-brand-ink/5 space-y-2 animate-in fade-in duration-200">
-              <p>{t.introFullText}</p>
-              <button
-                type="button"
-                onClick={() => setIntroExpanded(false)}
-                className="text-brand-ocean hover:underline font-medium cursor-pointer text-[11px]"
-              >
-                {t.readLessBtn}
-              </button>
-            </div>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-3 py-1.5 bg-brand-paper hover:bg-brand-ink/10 text-brand-ink rounded-lg font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              Visa dina inbjudningar igen
+            </button>
           )}
         </div>
-
-        {/* Disclaimer placed right under description */}
-        <p className="text-[10px] text-brand-ink/50 italic pt-1 border-t border-brand-ink/5">
-          {t.disclaimerText}
-        </p>
       </div>
 
       {/* Admin Moderation Queue Banner (visible to admins when pending posts exist) */}
@@ -420,22 +393,6 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
                 ? "Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en avisering så fort en ny inbjudan läggs upp." 
                 : "Just nu finns inga aktiva inbjudningar i dina valda områden. Du ser nya inbjudningar här så fort de läggs upp."}
             </p>
-            <div className="pt-3 border-t border-brand-ink/5 space-y-3">
-              <p className="text-xs text-brand-ink/60 font-light">
-                {uiLanguage === "sv" 
-                  ? "Ska du ändå ta en fika, promenad eller fixa något i trädgården?"
-                  : "Are you having a coffee, going for a walk or working in the garden anyway?"}
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent("open-create-invitation"));
-                }}
-                className="w-full py-3.5 px-4 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>{uiLanguage === "sv" ? "➕ Skapa en snabb inbjudan för det du redan gör" : "➕ Create a quick invitation for what you are already doing"}</span>
-              </button>
-            </div>
           </div>
         ) : (
           filteredStream.map(item => (

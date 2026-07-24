@@ -553,10 +553,11 @@ export default function App() {
       {currentView === 'stream' && activeTab === 'stream' && !activeAlertId && (
         <button
           onClick={() => setActiveTab('create')}
-          className="fixed bottom-6 right-6 z-40 bg-brand-accent hover:bg-brand-accent/90 text-white rounded-full p-4 shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
-          title={TRANSLATIONS[uiLanguage || "sv"].tabCreateInvitation || "Skapa inbjudan"}
+          className="fixed bottom-6 right-6 z-40 bg-brand-accent hover:bg-brand-accent/90 text-white rounded-full px-5 py-3 shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer font-mono text-xs uppercase tracking-wider font-semibold"
+          title="Bjud in"
         >
-          <Plus size={24} />
+          <Plus size={18} />
+          <span>+ Bjud in</span>
         </button>
       )}
 

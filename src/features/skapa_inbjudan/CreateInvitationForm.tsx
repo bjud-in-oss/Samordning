@@ -1,7 +1,7 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Pure PWA Form with Dynamic Reglage & Personal Favorites
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Single Page Form with In-Place Dialogs & Named Favorites
 
 import React, { useState } from "react";
-import { Send, CheckCircle, Sparkles, ArrowLeft, Clock, MapPin, Users, Globe, Star, Trash2 } from "lucide-react";
+import { Send, CheckCircle, Sparkles, ArrowLeft, Clock, MapPin, Users, Globe, Star, Trash2, Check, AlertTriangle, ShieldCheck } from "lucide-react";
 import { UiLanguage } from "../mission_router/translations";
 import { GOTEBORG_AREAS } from "../anpassa/mapData";
 import { washAnnouncementText } from "../mission_router/domain/parser";
@@ -14,21 +14,63 @@ export interface CreateInvitationFormProps {
   onSuccess?: () => void;
 }
 
+const POI_LOCATIONS = [
+  "Tjörn & Stenungsund",
+  "Kungälv",
+  "Gråbo & Olofstorp",
+  "Angered & Hjällbo",
+  "Kortedala Norra",
+  "Bergsjön & Gärdsås",
+  "Kortedala & Bellevue",
+  "Utby & Utbynäs",
+  "Hisingen",
+  "Sävedalen / Partille Norra",
+  "Furulund / Partille Södra",
+  "Kålltorp / Olskroken & Bagaregården",
+  "Landvetter & Härryda"
+];
+
+const AUDIENCE_OPTIONS = [
+  "Alla målgrupper",
+  "Barn & Familj",
+  "Ungdom (12–17 år)",
+  "Unga Vuxna (18–35 år)",
+  "Kvinnor",
+  "Män"
+];
+
 const ORGANIZATIONS = [
-  "Kyrkoherde",
-  "Diakon/Rådgivare",
-  "Unga vuxna",
-  "Primärföreningen",
-  "Hjälpföreningen",
-  "Äldstes kvorum",
   "Enskild/Familj",
   "Missionärer",
+  "Primärföreningen",
+  "Hjälpföreningen",
+  "Äldstekvorum",
+  "Aktivitetskommitten",
   "Biskopsrådet",
   "Staven"
 ];
 
-const TIME_REGLAGE = ["Idag kl 18:00", "Ikväll kl 19:00", "Imorgon kl 15:00", "Lördag kl 10:00", "Söndag kl 11:00"];
-const AUDIENCE_REGLAGE = ["Alla", "Ungdomar", "Vuxna/Seniorer", "Barnfamiljer", "Enskild"];
+const QUICK_TIMES = [
+  "Idag kl 18:00",
+  "Ikväll kl 19:00",
+  "Imorgon kl 15:00",
+  "Lördag kl 10:00",
+  "Söndag kl 11:00"
+];
+
+interface FavoriteItem {
+  id: string;
+  name: string;
+  time: string;
+  location: string;
+  areas: string[];
+  audience: string[];
+  organization: string;
+  organizerName: string;
+  activity: string;
+  isRecurring: boolean;
+  reminderTime: string;
+}
 
 export default function CreateInvitationForm({
   uiLanguage,
@@ -37,234 +79,193 @@ export default function CreateInvitationForm({
   onBack,
   onSuccess
 }: CreateInvitationFormProps) {
-  // Favorites stored in localStorage
-  const [favorites, setFavorites] = useState<any[]>(() => {
+  // Favorites with custom names in localStorage
+  const [favorites, setFavorites] = useState<FavoriteItem[]>(() => {
     if (typeof localStorage !== "undefined") {
-      const stored = localStorage.getItem("mission_router_favorites");
+      const stored = localStorage.getItem("mission_router_named_favorites");
       return stored ? JSON.parse(stored) : [];
     }
     return [];
   });
 
-  const [usageCount, setUsageCount] = useState<number>(() => {
-    if (typeof localStorage !== "undefined") {
-      const stored = localStorage.getItem("mission_router_usage_count");
-      return stored ? parseInt(stored, 10) : 0;
-    }
-    return 0;
-  });
-  const [showHelpText, setShowHelpText] = useState<boolean>(usageCount < 3);
+  const [favModalOpen, setFavModalOpen] = useState(false);
+  const [newFavName, setNewFavName] = useState("");
 
-  const defaultAreaString = savedTags?.limitedAreas && savedTags.limitedAreas.length > 0 
-    ? savedTags.limitedAreas.join(", ") 
-    : (savedTags?.primaryArea || "Alla områden");
+  // Form State
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [locationName, setLocationName] = useState<string>("");
+  const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
+  const [selectedAudience, setSelectedAudience] = useState<string[]>(["Alla målgrupper"]);
+  const [activityText, setActivityText] = useState<string>("");
+  const [selectedOrganization, setSelectedOrganization] = useState<string>("");
+  const [organizerPersonName, setOrganizerPersonName] = useState<string>("");
 
-  const buildTemplate = (showHelp: boolean) => {
-    if (showHelp) {
-      return `Tid: (t.ex. Idag kl 18:00)\nMötesplats: (Var ses vi fysiskt, eller länk/telefon)\nAktivitet: (Vad ska vi göra? Write free text...)\nBjud in från områden: ${defaultAreaString}\nMålgrupp: Alla`;
-    }
-    return `Tid: \nMötesplats: \nAktivitet: \nBjud in från områden: ${defaultAreaString}\nMålgrupp: Alla`;
-  };
+  // Recurring & Reminder states
+  const [isRecurring, setIsRecurring] = useState<boolean>(false);
+  const [hasReminder, setHasReminder] = useState<boolean>(false);
+  const [reminderTime, setReminderTime] = useState<string>("1 timme innan");
 
-  const [announcementText, setAnnouncementText] = useState<string>(() => buildTemplate(usageCount < 3));
+  // Mandatory Privacy Consent Checkbox
+  const [consentConfirmed, setConsentConfirmed] = useState<boolean>(false);
+
+  // Active In-place Dialog
+  const [activeDialog, setActiveDialog] = useState<"time" | "location" | "activity" | "area" | "audience" | "organization" | null>(null);
+
+  // Temporary dialog buffers
+  const [tempAreas, setTempAreas] = useState<string[]>([]);
+  const [tempAudience, setTempAudience] = useState<string[]>([]);
+  const [tempOrg, setTempOrg] = useState<string>("");
+  const [tempActivity, setTempActivity] = useState<string>("");
+  const [tempTime, setTempTime] = useState<string>("");
+  const [showPersonNameModal, setShowPersonNameModal] = useState<boolean>(false);
+
+  // AI Moderation & Submission
   const [sending, setSending] = useState<boolean>(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  const [washing, setWashing] = useState<boolean>(false);
-  const [washResult, setWashResult] = useState<any | null>(null);
+  // AI Flag Modal State
+  const [aiFlagModal, setAiFlagModal] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
 
-  const [selectedArea, setSelectedArea] = useState<string>(savedTags?.primaryArea || GOTEBORG_AREAS[0]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("Inbjudan");
-  const [selectedTime, setSelectedTime] = useState<string>("Idag kl 18:00");
-  const [selectedOrganization, setSelectedOrganization] = useState<string>("Arrangör");
-  const [selectedAudience, setSelectedAudience] = useState<string>("Alla");
-  const [locationName, setLocationName] = useState<string>(savedTags?.primaryArea || GOTEBORG_AREAS[0]);
+  const gatewayNumber = "0736108997";
 
-  // Modal reglage toggles
-  const [activeReglage, setActiveReglage] = useState<"time" | "location" | "area" | "audience" | null>(null);
+  // Formatted Output Text
+  const formattedText = [
+    selectedTime ? `Tid: ${selectedTime}` : "",
+    locationName ? `Mötesplats: ${locationName}` : "",
+    selectedAreas.length > 0 ? `Bjud in från områden: ${selectedAreas.join(", ")}` : "",
+    selectedAudience.length > 0 ? `Målgrupp: ${selectedAudience.join(", ")}` : "",
+    selectedOrganization ? `Arrangör: ${selectedOrganization}${organizerPersonName ? ` (${organizerPersonName})` : ""}` : "",
+    activityText ? `Aktivitet: ${washAnnouncementText(activityText)}` : "",
+    hasReminder && reminderTime ? `Påminnelse: ${reminderTime}` : "",
+    isRecurring ? `Upprepas: Varje vecka` : ""
+  ].filter(Boolean).join("\n");
 
-  const saveAsFavorite = () => {
-    const newFav = {
+  const isFormValid =
+    Boolean(selectedTime.trim()) &&
+    Boolean(locationName.trim()) &&
+    Boolean(activityText.trim()) &&
+    Boolean(selectedOrganization.trim()) &&
+    selectedAudience.length > 0 &&
+    consentConfirmed;
+
+  // Favorites Handlers
+  const handleSaveFavorite = () => {
+    if (!newFavName.trim()) return;
+    const newFav: FavoriteItem = {
       id: Date.now().toString(),
-      label: `${selectedCategory} (${selectedTime || "18:00"})`,
-      category: selectedCategory,
-      area: selectedArea,
+      name: newFavName.trim(),
       time: selectedTime,
       location: locationName,
+      areas: selectedAreas,
       audience: selectedAudience,
       organization: selectedOrganization,
-      text: announcementText
+      organizerName: organizerPersonName,
+      activity: activityText,
+      isRecurring,
+      reminderTime: hasReminder ? reminderTime : ""
     };
     const updated = [newFav, ...favorites.slice(0, 9)];
     setFavorites(updated);
     if (typeof localStorage !== "undefined") {
-      localStorage.setItem("mission_router_favorites", JSON.stringify(updated));
+      localStorage.setItem("mission_router_named_favorites", JSON.stringify(updated));
     }
-    setToast("Inbjudan sparades som personlig favorit!");
+    setNewFavName("");
+    setFavModalOpen(false);
+    setToast(`Inbjudan sparades som favoriten "${newFav.name}"!`);
     setTimeout(() => setToast(null), 3000);
   };
 
-  const removeFavorite = (favId: string) => {
+  const handleApplyFavorite = (fav: FavoriteItem) => {
+    setSelectedTime(fav.time || "");
+    setLocationName(fav.location || "");
+    setSelectedAreas(fav.areas || []);
+    setSelectedAudience(fav.audience || ["Alla målgrupper"]);
+    setSelectedOrganization(fav.organization || "");
+    setOrganizerPersonName(fav.organizerName || "");
+    setActivityText(fav.activity || "");
+    setIsRecurring(!!fav.isRecurring);
+    if (fav.reminderTime) {
+      setHasReminder(true);
+      setReminderTime(fav.reminderTime);
+    } else {
+      setHasReminder(false);
+    }
+    setToast(`Laddade in favoriten "${fav.name}"`);
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleRemoveFavorite = (favId: string) => {
     const updated = favorites.filter(f => f.id !== favId);
     setFavorites(updated);
     if (typeof localStorage !== "undefined") {
-      localStorage.setItem("mission_router_favorites", JSON.stringify(updated));
+      localStorage.setItem("mission_router_named_favorites", JSON.stringify(updated));
     }
   };
 
-  const applyFavorite = (fav: any) => {
-    setSelectedCategory(fav.category || "Inbjudan");
-    setSelectedArea(fav.area || GOTEBORG_AREAS[0]);
-    setSelectedTime(fav.time || "Idag kl 18:00");
-    setLocationName(fav.location || fav.area || GOTEBORG_AREAS[0]);
-    setSelectedAudience(fav.audience || "Alla");
-    setSelectedOrganization(fav.organization || "Arrangör");
-    if (fav.text) setAnnouncementText(fav.text);
-  };
+  // Submission / AI Check
+  const handleAttemptPublish = async () => {
+    if (!isFormValid) return;
 
-  const updateTemplateField = (field: string, value: string) => {
-    setAnnouncementText(prev => {
-      const lines = prev.split("\n");
-      const fieldIndex = lines.findIndex(l => l.toLowerCase().startsWith(field.toLowerCase() + ":"));
-      if (fieldIndex !== -1) {
-        lines[fieldIndex] = `${field}: ${value}`;
-        return lines.join("\n");
-      }
-      return `${prev}\n${field}: ${value}`;
-    });
-  };
-
-  const toggleHelpText = () => {
-    const nextShow = !showHelpText;
-    setShowHelpText(nextShow);
-    setAnnouncementText(buildTemplate(nextShow));
-  };
-
-  const handleWash = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!announcementText.trim()) return;
-
-    setWashing(true);
+    setSending(true);
     try {
       const response = await fetch("/api/wash-announcement", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: announcementText })
+        body: JSON.stringify({ text: formattedText })
       });
       const data = await response.json();
-      if (data.success && data.result) {
-        setWashResult(data.result);
-        if (data.result.extractedMetadata?.category) {
-          setSelectedCategory(data.result.extractedMetadata.category);
-        }
-        if (data.result.extractedMetadata?.area) {
-          setSelectedArea(data.result.extractedMetadata.area);
-        }
-        if (data.result.extractedMetadata?.time) {
-          setSelectedTime(data.result.extractedMetadata.time);
-        }
-        if (data.result.extractedMetadata?.organization) {
-          setSelectedOrganization(data.result.extractedMetadata.organization);
-        }
-        if (data.result.extractedMetadata?.targetAudience) {
-          setSelectedAudience(data.result.extractedMetadata.targetAudience);
-        }
-        if (data.result.extractedMetadata?.locationName) {
-          setLocationName(data.result.extractedMetadata.locationName);
-        } else {
-          setLocationName(selectedArea);
-        }
-      } else {
-        const cleaned = washAnnouncementText(announcementText);
-        setWashResult({
-          cleanedText: cleaned,
-          extractedMetadata: {
-            category: selectedCategory || "Inbjudan",
-            area: savedTags?.primaryArea || GOTEBORG_AREAS[0],
-            time: selectedTime || "18:00",
-            organization: "Arrangör",
-            targetAudience: "Alla"
-          }
+
+      if (data.result?.hasPrivacyRisk || data.result?.hasInappropriateContent) {
+        setAiFlagModal({
+          open: true,
+          message: data.result.reason || "Inbjudan innehåller information som kan vara känslig eller behöver granskas extra noga."
         });
-        setLocationName(selectedArea);
+        setSending(false);
+        return;
       }
-      setCurrentStep(2);
+
+      await executePublish();
     } catch (err) {
-      console.error("AI Wash error:", err);
-      const cleaned = washAnnouncementText(announcementText);
-      setWashResult({
-        cleanedText: cleaned,
-        extractedMetadata: {
-          category: selectedCategory || "Inbjudan",
-          area: savedTags?.primaryArea || GOTEBORG_AREAS[0],
-          time: selectedTime || "18:00",
-          organization: "Arrangör",
-          targetAudience: "Alla"
-        }
-      });
-      setLocationName(selectedArea);
-      setCurrentStep(2);
-    } finally {
-      setWashing(false);
+      console.error("AI Check error:", err);
+      await executePublish();
     }
   };
 
-  const handlePostInvitation = async () => {
+  const executePublish = async () => {
     setSending(true);
     try {
-      const cleanBody = washAnnouncementText(announcementText);
-
       const response = await fetch("/api/sim/sms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           from: "0700000000",
-          body: `#WEBB\nKategori: ${selectedCategory}\nTid: ${selectedTime || "18:00"}\nMötesplats: ${locationName || selectedArea}\nBjud in från områden: ${selectedArea}\nMålgrupp: ${selectedAudience}\nAvsändare: ${selectedOrganization}\nAktivitet: ${cleanBody}`
+          body: `#WEBB\n${formattedText}`
         })
       });
 
       if (response.ok) {
-        const newUsage = usageCount + 1;
-        setUsageCount(newUsage);
-        localStorage.setItem("mission_router_usage_count", newUsage.toString());
-
-        setToast("Inbjudan har publicerats på anslagstavlan!");
+        setToast("Din inbjudan har skickats in för granskning och publicering!");
         setTimeout(() => setToast(null), 4000);
-
-        setAnnouncementText(buildTemplate(newUsage < 3));
-        setCurrentStep(1);
-        setWashResult(null);
-
         if (onSuccess) onSuccess();
       } else {
-        alert("Kunde inte skapa inbjudan. Försök igen.");
+        alert("Kunde inte publicera inbjudan. Försök igen.");
       }
     } catch (err) {
-      console.error("Failed to post invitation:", err);
-      alert("Nätverksfel vid skapande av inbjudan.");
+      console.error("Publish error:", err);
+      alert("Nätverksfel vid publicering.");
     } finally {
       setSending(false);
+      setAiFlagModal({ open: false, message: "" });
     }
   };
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  const cleanedBody = washAnnouncementText(announcementText);
-  const smsPayload = `#WEBB
-Kategori: ${selectedCategory}
-Tid: ${selectedTime || "18:00"}
-Mötesplats: ${locationName || selectedArea}
-Bjud in från områden: ${selectedArea}
-Målgrupp: ${selectedAudience}
-Avsändare: ${selectedOrganization || "Arrangör"}
-Aktivitet: ${cleanedBody}`;
-
-  const gatewayNumber = "0736108997";
+  const smsPayload = `#WEBB\n${formattedText}`;
   const smsHref = `sms:${gatewayNumber}?body=${encodeURIComponent(smsPayload)}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(smsHref)}`;
 
   return (
-    <div className="space-y-6 w-full max-w-2xl mx-auto">
+    <div className="space-y-6 w-full max-w-2xl mx-auto text-left">
       {onBack && (
         <button
           type="button"
@@ -272,411 +273,725 @@ Aktivitet: ${cleanedBody}`;
           className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-brand-ink/60 hover:text-brand-ink transition-colors cursor-pointer"
         >
           <ArrowLeft size={16} />
-          <span>Tillbaka</span>
+          <span>Visa dina inbjudningar igen</span>
         </button>
       )}
 
       {toast && (
-        <div id="toast-success-message" className="p-4 bg-brand-accent/5 border border-brand-accent/10 text-brand-accent text-xs font-mono uppercase tracking-wider rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-3 duration-200">
-          <CheckCircle size={14} className="text-brand-accent shrink-0" />
+        <div className="p-4 bg-brand-accent/10 border border-brand-accent/20 text-brand-accent text-xs font-mono uppercase tracking-wider rounded-2xl flex items-center gap-3 animate-in fade-in duration-200">
+          <CheckCircle size={16} className="text-brand-accent shrink-0" />
           <span>{toast}</span>
         </div>
       )}
 
-      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-brand-ink/5 space-y-6 text-left">
-        <div className="space-y-1">
-          <span className="font-mono text-[9px] uppercase tracking-widest text-brand-accent font-semibold">
-            {uiLanguage === "sv" ? "Mottagare & Anslagstavla" : "Recipients & Noticeboard"}
-          </span>
-          <h2 className="font-serif italic text-2xl font-medium text-brand-ink">
-            {uiLanguage === "sv" ? "Bjud in andra" : "Invite others"}
+      {/* Main Card */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-brand-ink/5 space-y-6">
+        <div>
+          <h2 className="font-serif italic text-2xl sm:text-3xl font-medium text-brand-ink">
+            Bjud in andra
           </h2>
-          <p className="text-brand-ink/70 text-xs leading-relaxed font-light">
-            {uiLanguage === "sv" 
-              ? "Skapa en inbjudan till en gemensam samling, fika, samtal eller aktivitet. Vår AI extraherar automatiskt tid, plats och taggar."
-              : "Create an invitation to a gathering, fika, discussion or activity. Our AI automatically extracts time, location and tags."}
+          <p className="text-brand-ink/80 text-xs sm:text-sm leading-relaxed font-light mt-1">
+            Bjud in andra att vara en vän, hämta näring i Guds ord eller hjälpa andra
           </p>
         </div>
 
-        {currentStep === 1 ? (
-          <form onSubmit={handleWash} className="space-y-5">
-            {/* Saved Personal Favorites */}
-            {favorites.length > 0 && (
-              <div className="space-y-2 p-3 bg-amber-50/60 rounded-xl border border-amber-200/60">
-                <label className="font-mono text-[9px] uppercase tracking-wider text-amber-900 font-semibold block">
-                  ⭐ Mina sparade favoriter ({favorites.length})
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {favorites.map((fav) => (
-                    <div key={fav.id} className="inline-flex items-center gap-1 bg-white border border-amber-200 rounded-lg px-2.5 py-1 text-xs font-mono">
-                      <button
-                        type="button"
-                        onClick={() => applyFavorite(fav)}
-                        className="text-amber-950 hover:text-brand-accent transition-colors text-left"
-                      >
-                        <span>{fav.label}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeFavorite(fav.id)}
-                        className="text-amber-700/50 hover:text-rose-600 ml-1 text-[10px]"
-                        title="Ta bort favorit"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Reglageknappar för snabbval */}
-            <div className="space-y-2">
-              <label className="font-mono text-[9px] uppercase tracking-wider text-brand-ink/60 block">
-                {uiLanguage === "sv" ? "Snabb-reglage (Tid, Mötesplats, Område, Målgrupp)" : "Quick Reglage (Time, Location, Area, Audience)"}
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveReglage(activeReglage === "time" ? null : "time")}
-                  className={`px-3 py-1.5 border rounded-lg text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
-                    activeReglage === "time" ? "bg-brand-accent text-white border-brand-accent" : "bg-brand-paper hover:bg-brand-accent/10 border-brand-ink/10 text-brand-ink"
-                  }`}
-                >
-                  <Clock size={13} />
-                  <span>Tid: {selectedTime}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveReglage(activeReglage === "location" ? null : "location")}
-                  className={`px-3 py-1.5 border rounded-lg text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
-                    activeReglage === "location" ? "bg-brand-accent text-white border-brand-accent" : "bg-brand-paper hover:bg-brand-accent/10 border-brand-ink/10 text-brand-ink"
-                  }`}
-                >
-                  <MapPin size={13} />
-                  <span>Plats: {locationName}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveReglage(activeReglage === "area" ? null : "area")}
-                  className={`px-3 py-1.5 border rounded-lg text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
-                    activeReglage === "area" ? "bg-brand-accent text-white border-brand-accent" : "bg-brand-paper hover:bg-brand-accent/10 border-brand-ink/10 text-brand-ink"
-                  }`}
-                >
-                  <Globe size={13} />
-                  <span>Område: {selectedArea}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveReglage(activeReglage === "audience" ? null : "audience")}
-                  className={`px-3 py-1.5 border rounded-lg text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
-                    activeReglage === "audience" ? "bg-brand-accent text-white border-brand-accent" : "bg-brand-paper hover:bg-brand-accent/10 border-brand-ink/10 text-brand-ink"
-                  }`}
-                >
-                  <Users size={13} />
-                  <span>Målgrupp: {selectedAudience}</span>
-                </button>
-              </div>
-
-              {/* Reglage Modal / Expanders */}
-              {activeReglage === "time" && (
-                <div className="p-3 bg-brand-paper/40 rounded-xl border border-brand-ink/10 space-y-2 animate-in fade-in duration-150">
-                  <span className="font-mono text-[10px] text-brand-accent uppercase font-semibold block">Välj Tid:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {TIME_REGLAGE.map(t => (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => {
-                          setSelectedTime(t);
-                          updateTemplateField("Tid", t);
-                          setActiveReglage(null);
-                        }}
-                        className="px-2.5 py-1 bg-white border border-brand-ink/10 rounded text-xs font-mono text-brand-ink hover:border-brand-accent transition-colors"
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeReglage === "location" && (
-                <div className="p-3 bg-brand-paper/40 rounded-xl border border-brand-ink/10 space-y-2 animate-in fade-in duration-150">
-                  <span className="font-mono text-[10px] text-brand-accent uppercase font-semibold block">Välj Mötesplats / Kartmatchning:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {["Utby kyrka", "Härlanda Tjärn", "Skatås motionscentrum", "Kortedala torg", "Munkebäckstorget", "Online/Telefon"].map(loc => (
-                      <button
-                        key={loc}
-                        type="button"
-                        onClick={() => {
-                          setLocationName(loc);
-                          updateTemplateField("Mötesplats", loc);
-                          setActiveReglage(null);
-                        }}
-                        className="px-2.5 py-1 bg-white border border-brand-ink/10 rounded text-xs font-mono text-brand-ink hover:border-brand-accent transition-colors"
-                      >
-                        {loc}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeReglage === "area" && (
-                <div className="p-3 bg-brand-paper/40 rounded-xl border border-brand-ink/10 space-y-2 animate-in fade-in duration-150">
-                  <span className="font-mono text-[10px] text-brand-accent uppercase font-semibold block">Välj Område (samma som i Anpassa):</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {GOTEBORG_AREAS.map(area => (
-                      <button
-                        key={area}
-                        type="button"
-                        onClick={() => {
-                          setSelectedArea(area);
-                          updateTemplateField("Bjud in från områden", area);
-                          setActiveReglage(null);
-                        }}
-                        className="px-2.5 py-1 bg-white border border-brand-ink/10 rounded text-xs font-mono text-brand-ink hover:border-brand-accent transition-colors"
-                      >
-                        {area}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeReglage === "audience" && (
-                <div className="p-3 bg-brand-paper/40 rounded-xl border border-brand-ink/10 space-y-2 animate-in fade-in duration-150">
-                  <span className="font-mono text-[10px] text-brand-accent uppercase font-semibold block">Välj Målgrupp:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {AUDIENCE_REGLAGE.map(aud => (
-                      <button
-                        key={aud}
-                        type="button"
-                        onClick={() => {
-                          setSelectedAudience(aud);
-                          updateTemplateField("Målgrupp", aud);
-                          setActiveReglage(null);
-                        }}
-                        className="px-2.5 py-1 bg-white border border-brand-ink/10 rounded text-xs font-mono text-brand-ink hover:border-brand-accent transition-colors"
-                      >
-                        {aud}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="font-mono text-[9px] uppercase tracking-wider text-brand-accent">
-                  {uiLanguage === "sv" ? "Skapa inbjudan (Universell 5-raders mall)" : "Create invitation (Universal 5-line template)"}
-                </label>
-                <button
-                  type="button"
-                  onClick={toggleHelpText}
-                  className="font-mono text-[10px] uppercase tracking-wider text-brand-accent hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <span>{showHelpText ? "Dölj hjälp ( .? )" : "Visa hjälp ( .? )"}</span>
-                </button>
-              </div>
-              <textarea
-                required
-                rows={6}
-                value={announcementText}
-                onChange={(e) => setAnnouncementText(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-brand-ink/10 focus:border-brand-accent rounded-xl text-brand-ink text-xs focus:outline-none transition-all placeholder-brand-ink/30 resize-none leading-relaxed font-mono"
-              />
-              <span className="font-mono text-[9px] text-brand-accent/70 block mt-1 leading-normal uppercase">
-                {uiLanguage === "sv" 
-                  ? "Tips: Instruktioner inom parentes ( ... ) rensas automatiskt bort när inbjudan skickas ut." 
-                  : "Tip: Instructions inside parentheses ( ... ) are automatically cleaned up when sending."}
-              </span>
-            </div>
-
-            <button
-              type="submit"
-              disabled={washing || !announcementText.trim()}
-              className="w-full py-3.5 bg-brand-ink hover:bg-brand-ink/90 text-white font-mono text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              {washing ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  <span>{uiLanguage === "sv" ? "Analyserar inbjudan..." : "Analyzing invitation..."}</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles size={14} className="text-brand-paper" />
-                  <span>{uiLanguage === "sv" ? "Granska & generera QR/SMS" : "Review & generate QR/SMS"}</span>
-                </>
-              )}
-            </button>
-          </form>
-        ) : (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <div className="p-4 bg-brand-paper/40 rounded-xl border border-brand-ink/5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-brand-accent font-semibold">
-                  {uiLanguage === "sv" ? "Inställningar för Tid, Plats, Målgrupp & Kategori" : "Settings for Time, Location, Audience & Category"}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(1)}
-                  className="font-mono text-[9px] uppercase tracking-wider text-brand-ink/60 hover:text-brand-ink underline cursor-pointer"
-                >
-                  {uiLanguage === "sv" ? "Redigera text" : "Edit text"}
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <div className="space-y-1">
-                  <label className="font-mono text-[9px] uppercase text-brand-ink/60">Kategori</label>
-                  <input
-                    type="text"
-                    value={selectedCategory}
-                    onChange={e => setSelectedCategory(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-white border border-brand-ink/10 rounded-lg text-xs font-mono"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-mono text-[9px] uppercase text-brand-ink/60">Område</label>
-                  <select
-                    value={selectedArea}
-                    onChange={e => setSelectedArea(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-white border border-brand-ink/10 rounded-lg text-xs font-mono"
+        {/* Saved Favorites Pills */}
+        {favorites.length > 0 && (
+          <div className="p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200/80 space-y-2">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-amber-900 font-semibold flex items-center gap-1">
+              <Star size={12} className="text-amber-600 fill-amber-500" />
+              Mina sparade favoriter
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {favorites.map((fav) => (
+                <div key={fav.id} className="inline-flex items-center gap-1.5 bg-white border border-amber-200/90 rounded-xl px-3 py-1.5 text-xs font-mono shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => handleApplyFavorite(fav)}
+                    className="text-brand-ink hover:text-brand-accent transition-colors font-medium text-left"
                   >
-                    {GOTEBORG_AREAS.map(a => (
-                      <option key={a} value={a}>{a}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-mono text-[9px] uppercase text-brand-ink/60">Tid / Dag</label>
-                  <input
-                    type="text"
-                    value={selectedTime}
-                    onChange={e => setSelectedTime(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-white border border-brand-ink/10 rounded-lg text-xs font-mono"
-                    placeholder="t.ex. Idag kl 18:00"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-mono text-[9px] uppercase text-brand-ink/60">Plats / Mötesplats</label>
-                  <input
-                    type="text"
-                    value={locationName}
-                    onChange={e => setLocationName(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-white border border-brand-ink/10 rounded-lg text-xs font-mono"
-                    placeholder="Mötesplats"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-mono text-[9px] uppercase text-brand-ink/60">Målgrupp</label>
-                  <input
-                    type="text"
-                    value={selectedAudience}
-                    onChange={e => setSelectedAudience(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-white border border-brand-ink/10 rounded-lg text-xs font-mono"
-                    placeholder="Alla"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-mono text-[9px] uppercase text-brand-ink/60">Arrangör / Avsändare</label>
-                  <select
-                    value={selectedOrganization}
-                    onChange={e => setSelectedOrganization(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-white border border-brand-ink/10 rounded-lg text-xs font-mono"
+                    ⭐ {fav.name}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFavorite(fav.id)}
+                    className="text-brand-ink/40 hover:text-rose-600 ml-1 p-0.5"
+                    title="Ta bort favorit"
                   >
-                    {ORGANIZATIONS.map(org => (
-                      <option key={org} value={org}>{org}</option>
-                    ))}
-                  </select>
+                    <Trash2 size={12} />
+                  </button>
                 </div>
-              </div>
-
-              {/* Save as favorite button */}
-              <div className="pt-2 flex justify-end">
-                <button
-                  type="button"
-                  onClick={saveAsFavorite}
-                  className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300/60 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer flex items-center gap-1.5"
-                >
-                  <span>⭐ Spara som min personliga favorit</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="p-4 bg-brand-paper/20 rounded-xl border border-brand-ink/5 space-y-2">
-              <span className="font-mono text-[9px] uppercase tracking-wider text-brand-accent font-semibold">
-                {uiLanguage === "sv" ? "Aktivitet & Rensad text (Anonymiserad)" : "Activity & Cleaned text (Anonymized)"}
-              </span>
-              <p className="text-xs font-mono text-brand-ink/80 whitespace-pre-wrap leading-relaxed">
-                {cleanedBody}
-              </p>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              <button
-                type="button"
-                onClick={handlePostInvitation}
-                disabled={sending}
-                className="w-full py-4 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {sending ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Publicerar...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send size={14} className="text-white" />
-                    <span>Publicera direkt på anslagstavlan</span>
-                  </>
-                )}
-              </button>
-
-              <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-brand-ink/10"></div>
-                <span className="flex-shrink mx-3 font-mono text-[9px] text-brand-ink/40 uppercase font-semibold">Eller skicka via SMS / QR (Gateway 0736108997)</span>
-                <div className="flex-grow border-t border-brand-ink/10"></div>
-              </div>
-
-              {isMobile ? (
-                <a
-                  href={smsHref}
-                  className="w-full py-3.5 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/10 text-brand-ink font-mono text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 text-center"
-                >
-                  <Send size={14} className="text-brand-accent" />
-                  <span>Öppna SMS-app för insändning till {gatewayNumber}</span>
-                </a>
-              ) : (
-                <div className="p-4 bg-brand-bg rounded-xl border border-brand-ink/5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-                  <img src={qrUrl} alt="SMS QR Code" className="w-24 h-24 rounded-lg border border-brand-ink/10 shrink-0" />
-                  <div className="space-y-1">
-                    <span className="font-mono text-[10px] uppercase font-semibold text-brand-ink">
-                      Skanna med din mobiltelefon
-                    </span>
-                    <p className="text-[11px] text-brand-ink/70 leading-relaxed font-light">
-                      Koden öppnar din SMS-app med den rensade inbjudan färdig att skicka till modererings-gatewayen ({gatewayNumber}).
-                    </p>
-                  </div>
-                </div>
-              )}
+              ))}
             </div>
           </div>
         )}
+
+        {/* Section Title */}
+        <div className="space-y-3 pt-1">
+          <label className="font-mono text-[10px] uppercase tracking-wider text-brand-accent font-semibold block">
+            Beskriv din inbjudan i knapparna nedan:
+          </label>
+
+          {/* IN-PLACE DIALOG CONTAINER OR BUTTON BAR */}
+          {activeDialog === null ? (
+            /* MAIN BUTTON BAR */
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setTempTime(selectedTime);
+                  setActiveDialog("time");
+                }}
+                className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
+                  selectedTime
+                    ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
+                    : "bg-brand-paper/50 hover:bg-brand-paper border-brand-ink/10 text-brand-ink"
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate mr-1">
+                  <Clock size={15} className={selectedTime ? "text-emerald-700" : "text-brand-accent"} />
+                  <span className="truncate">{selectedTime ? `Tid: ${selectedTime}` : "Tid"}</span>
+                </div>
+                {selectedTime && <Check size={14} className="text-emerald-700 shrink-0" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveDialog("location")}
+                className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
+                  locationName
+                    ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
+                    : "bg-brand-paper/50 hover:bg-brand-paper border-brand-ink/10 text-brand-ink"
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate mr-1">
+                  <MapPin size={15} className={locationName ? "text-emerald-700" : "text-brand-accent"} />
+                  <span className="truncate">{locationName ? `Plats: ${locationName}` : "Plats"}</span>
+                </div>
+                {locationName && <Check size={14} className="text-emerald-700 shrink-0" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setTempActivity(activityText);
+                  setActiveDialog("activity");
+                }}
+                className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
+                  activityText
+                    ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
+                    : "bg-brand-paper/50 hover:bg-brand-paper border-brand-ink/10 text-brand-ink"
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate mr-1">
+                  <Sparkles size={15} className={activityText ? "text-emerald-700" : "text-brand-accent"} />
+                  <span className="truncate">{activityText ? "Aktivitet ✓" : "Aktivitet"}</span>
+                </div>
+                {activityText && <Check size={14} className="text-emerald-700 shrink-0" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setTempAreas(selectedAreas);
+                  setActiveDialog("area");
+                }}
+                className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
+                  selectedAreas.length > 0
+                    ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
+                    : "bg-brand-paper/50 hover:bg-brand-paper border-brand-ink/10 text-brand-ink"
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate mr-1">
+                  <Globe size={15} className={selectedAreas.length > 0 ? "text-emerald-700" : "text-brand-accent"} />
+                  <span className="truncate">
+                    {selectedAreas.length > 0 ? `Område (${selectedAreas.length})` : "Område"}
+                  </span>
+                </div>
+                {selectedAreas.length > 0 && <Check size={14} className="text-emerald-700 shrink-0" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setTempAudience(selectedAudience);
+                  setActiveDialog("audience");
+                }}
+                className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
+                  selectedAudience.length > 0
+                    ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
+                    : "bg-brand-paper/50 hover:bg-brand-paper border-brand-ink/10 text-brand-ink"
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate mr-1">
+                  <Users size={15} className={selectedAudience.length > 0 ? "text-emerald-700" : "text-brand-accent"} />
+                  <span className="truncate">
+                    {selectedAudience.length > 0 ? `Målgrupp: ${selectedAudience[0]}` : "Målgrupp"}
+                  </span>
+                </div>
+                {selectedAudience.length > 0 && <Check size={14} className="text-emerald-700 shrink-0" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setTempOrg(selectedOrganization);
+                  setActiveDialog("organization");
+                }}
+                className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
+                  selectedOrganization
+                    ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
+                    : "bg-brand-paper/50 hover:bg-brand-paper border-brand-ink/10 text-brand-ink"
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate mr-1">
+                  <Users size={15} className={selectedOrganization ? "text-emerald-700" : "text-brand-accent"} />
+                  <span className="truncate">
+                    {selectedOrganization ? `Arrangör: ${selectedOrganization}` : "Arrangör"}
+                  </span>
+                </div>
+                {selectedOrganization && <Check size={14} className="text-emerald-700 shrink-0" />}
+              </button>
+            </div>
+          ) : (
+            /* IN-PLACE DIALOG BOXES */
+            <div className="p-5 bg-brand-paper/60 rounded-3xl border border-brand-ink/10 space-y-4 animate-in fade-in duration-200">
+              
+              {/* DIALOG 1: TID */}
+              {activeDialog === "time" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-brand-ink/10 pb-2">
+                    <span className="font-serif italic text-lg font-medium text-brand-ink">
+                      Tid: (När träffas vi?)
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="font-mono text-[10px] uppercase text-brand-ink/60 block">Snabbval datum & dag:</label>
+                    <div className="flex flex-wrap gap-2">
+                      {QUICK_TIMES.map(qt => (
+                        <button
+                          key={qt}
+                          type="button"
+                          onClick={() => setTempTime(qt)}
+                          className={`px-3 py-1.5 rounded-xl border font-mono text-xs cursor-pointer transition-all ${
+                            tempTime === qt
+                              ? "bg-brand-accent text-white border-brand-accent font-semibold"
+                              : "bg-white border-brand-ink/10 text-brand-ink hover:border-brand-accent"
+                          }`}
+                        >
+                          {qt}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="pt-2">
+                      <label className="font-mono text-[10px] uppercase text-brand-ink/60 block mb-1">Eller skriv egen tid / datum:</label>
+                      <input
+                        type="text"
+                        value={tempTime}
+                        onChange={e => setTempTime(e.target.value)}
+                        placeholder="t.ex. Lördag 15 mars kl 14:00"
+                        className="w-full px-4 py-2.5 bg-white border border-brand-ink/15 rounded-xl font-mono text-xs text-brand-ink focus:outline-none focus:border-brand-accent"
+                      />
+                    </div>
+
+                    {/* Recurring & Reminder checkboxes */}
+                    <div className="pt-2 space-y-2 border-t border-brand-ink/10">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isRecurring}
+                          onChange={e => setIsRecurring(e.target.checked)}
+                          className="rounded border-brand-ink/30 text-brand-accent focus:ring-0"
+                        />
+                        <span className="font-mono text-xs text-brand-ink">Upprepad avisering / regelbunden tid (Varje vecka)</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={hasReminder}
+                          onChange={e => setHasReminder(e.target.checked)}
+                          className="rounded border-brand-ink/30 text-brand-accent focus:ring-0"
+                        />
+                        <span className="font-mono text-xs text-brand-ink">Skicka extra påminnelse</span>
+                      </label>
+
+                      {hasReminder && (
+                        <div className="pl-6 pt-1">
+                          <input
+                            type="text"
+                            value={reminderTime}
+                            onChange={e => setReminderTime(e.target.value)}
+                            placeholder="t.ex. 1 timme innan"
+                            className="px-3 py-1.5 bg-white border border-brand-ink/15 rounded-lg font-mono text-xs text-brand-ink"
+                          />
+                        </div>
+                      )}
+
+                      <p className="text-[10px] font-mono text-brand-ink/50 italic pt-1">
+                        Schemalagda och upprepade aktiviteter skall kunna ändras eller tas bort av skaparen eller administratörer.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-ink/10">
+                    <button
+                      type="button"
+                      onClick={() => setActiveDialog(null)}
+                      className="px-4 py-2 bg-white border border-brand-ink/15 text-brand-ink rounded-xl font-mono text-xs uppercase"
+                    >
+                      Ångra
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTime(tempTime);
+                        setActiveDialog(null);
+                      }}
+                      className="px-5 py-2 bg-brand-accent text-white rounded-xl font-mono text-xs uppercase font-semibold"
+                    >
+                      Klar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* DIALOG 2: MÖTESPLATS (Enkelval - stängs direkt) */}
+              {activeDialog === "location" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-brand-ink/10 pb-2">
+                    <span className="font-serif italic text-lg font-medium text-brand-ink">
+                      Mötesplats: (Var ses vi?)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveDialog(null)}
+                      className="font-mono text-xs text-brand-ink/50 hover:text-brand-ink"
+                    >
+                      ✕ Stäng
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {POI_LOCATIONS.map(poi => (
+                      <button
+                        key={poi}
+                        type="button"
+                        onClick={() => {
+                          setLocationName(poi);
+                          setActiveDialog(null);
+                        }}
+                        className={`p-3 rounded-2xl border font-mono text-xs text-left transition-all cursor-pointer flex items-center justify-between ${
+                          locationName === poi
+                            ? "bg-brand-accent text-white border-brand-accent font-semibold"
+                            : "bg-white border-brand-ink/10 text-brand-ink hover:border-brand-accent/50"
+                        }`}
+                      >
+                        <span>{poi}</span>
+                        {locationName === poi && <Check size={14} className="text-white shrink-0" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* DIALOG 3: AKTIVITET */}
+              {activeDialog === "activity" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-brand-ink/10 pb-2">
+                    <span className="font-serif italic text-lg font-medium text-brand-ink">
+                      Aktivitet: (Beskriv aktiviteten)
+                    </span>
+                  </div>
+
+                  <textarea
+                    rows={4}
+                    value={tempActivity}
+                    onChange={e => setTempActivity(e.target.value)}
+                    placeholder="Beskriv vad ni ska göra, t.ex. 'Vi dricker fika och pratar om söndagens läsningar', eller 'Promenad runt sjön'..."
+                    className="w-full p-3.5 bg-white border border-brand-ink/15 focus:border-brand-accent rounded-2xl font-mono text-xs text-brand-ink focus:outline-none resize-none leading-relaxed"
+                  />
+
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setActiveDialog(null)}
+                      className="px-4 py-2 bg-white border border-brand-ink/15 text-brand-ink rounded-xl font-mono text-xs uppercase"
+                    >
+                      Avbryt
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActivityText(tempActivity);
+                        setActiveDialog(null);
+                      }}
+                      className="px-5 py-2 bg-brand-accent text-white rounded-xl font-mono text-xs uppercase font-semibold"
+                    >
+                      Klar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* DIALOG 4: OMRÅDEN (Flerval, valfritt) */}
+              {activeDialog === "area" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-brand-ink/10 pb-2">
+                    <span className="font-serif italic text-lg font-medium text-brand-ink">
+                      Bjud in från områden: (Vilka närområden bjuder du in från?)
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pb-1">
+                    <button
+                      type="button"
+                      onClick={() => setTempAreas([...POI_LOCATIONS])}
+                      className="px-3 py-1.5 bg-white border border-brand-ink/10 text-brand-ink font-mono text-[11px] uppercase rounded-xl"
+                    >
+                      ⚡ Markera alla
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTempAreas([])}
+                      className="px-3 py-1.5 bg-white border border-brand-ink/10 text-brand-ink/60 font-mono text-[11px] uppercase rounded-xl"
+                    >
+                      ✕ Rensa alla
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
+                    {POI_LOCATIONS.map(area => {
+                      const selected = tempAreas.includes(area);
+                      return (
+                        <button
+                          key={area}
+                          type="button"
+                          onClick={() => {
+                            setTempAreas(prev =>
+                              selected ? prev.filter(a => a !== area) : [...prev, area]
+                            );
+                          }}
+                          className={`p-3 rounded-2xl border font-mono text-xs text-left transition-all cursor-pointer flex items-center justify-between ${
+                            selected
+                              ? "bg-brand-accent text-white border-brand-accent font-semibold"
+                              : "bg-white border-brand-ink/10 text-brand-ink hover:border-brand-accent/50"
+                          }`}
+                        >
+                          <span>{area}</span>
+                          {selected && <Check size={14} className="text-white shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-ink/10">
+                    <button
+                      type="button"
+                      onClick={() => setActiveDialog(null)}
+                      className="px-4 py-2 bg-white border border-brand-ink/15 text-brand-ink rounded-xl font-mono text-xs uppercase"
+                    >
+                      Ångra
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedAreas(tempAreas);
+                        setActiveDialog(null);
+                      }}
+                      className="px-5 py-2 bg-brand-accent text-white rounded-xl font-mono text-xs uppercase font-semibold"
+                    >
+                      Välj
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* DIALOG 5: MÅLGRUPP (Flerval) */}
+              {activeDialog === "audience" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-brand-ink/10 pb-2">
+                    <span className="font-serif italic text-lg font-medium text-brand-ink">
+                      Målgrupp: (Vilka målgrupper berörs?)
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {AUDIENCE_OPTIONS.map(aud => {
+                      const selected = tempAudience.includes(aud);
+                      return (
+                        <button
+                          key={aud}
+                          type="button"
+                          onClick={() => {
+                            setTempAudience(prev =>
+                              selected ? prev.filter(a => a !== aud) : [...prev, aud]
+                            );
+                          }}
+                          className={`p-3 rounded-2xl border font-mono text-xs text-left transition-all cursor-pointer flex items-center justify-between ${
+                            selected
+                              ? "bg-brand-accent text-white border-brand-accent font-semibold"
+                              : "bg-white border-brand-ink/10 text-brand-ink hover:border-brand-accent/50"
+                          }`}
+                        >
+                          <span>{aud}</span>
+                          {selected && <Check size={14} className="text-white shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-ink/10">
+                    <button
+                      type="button"
+                      onClick={() => setActiveDialog(null)}
+                      className="px-4 py-2 bg-white border border-brand-ink/15 text-brand-ink rounded-xl font-mono text-xs uppercase"
+                    >
+                      Ångra
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedAudience(tempAudience.length > 0 ? tempAudience : ["Alla målgrupper"]);
+                        setActiveDialog(null);
+                      }}
+                      className="px-5 py-2 bg-brand-accent text-white rounded-xl font-mono text-xs uppercase font-semibold"
+                    >
+                      Välj
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* DIALOG 6: ARRANGÖR */}
+              {activeDialog === "organization" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-brand-ink/10 pb-2">
+                    <span className="font-serif italic text-lg font-medium text-brand-ink">
+                      Arrangör: (Vem håller i aktiviteten?)
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {ORGANIZATIONS.map(org => {
+                      const selected = tempOrg === org;
+                      return (
+                        <button
+                          key={org}
+                          type="button"
+                          onClick={() => setTempOrg(org)}
+                          className={`p-3 rounded-2xl border font-mono text-xs text-left transition-all cursor-pointer flex items-center justify-between ${
+                            selected
+                              ? "bg-brand-accent text-white border-brand-accent font-semibold"
+                              : "bg-white border-brand-ink/10 text-brand-ink hover:border-brand-accent/50"
+                          }`}
+                        >
+                          <span>{org}</span>
+                          {selected && <Check size={14} className="text-white shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {tempOrg === "Enskild/Familj" && (
+                    <div className="p-3 bg-white rounded-2xl border border-brand-ink/10 space-y-2">
+                      <label className="font-mono text-[10px] uppercase text-brand-ink/70 block font-semibold">
+                        Förtydliga med namn (Valfritt):
+                      </label>
+                      <input
+                        type="text"
+                        value={organizerPersonName}
+                        onChange={e => setOrganizerPersonName(e.target.value)}
+                        placeholder="t.ex. Familjen Svensson eller Broder Andersson"
+                        className="w-full px-3 py-2 bg-brand-paper/50 border border-brand-ink/15 rounded-xl font-mono text-xs text-brand-ink"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-ink/10">
+                    <button
+                      type="button"
+                      onClick={() => setActiveDialog(null)}
+                      className="px-4 py-2 bg-white border border-brand-ink/15 text-brand-ink rounded-xl font-mono text-xs uppercase"
+                    >
+                      Ångra
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedOrganization(tempOrg);
+                        setActiveDialog(null);
+                      }}
+                      className="px-5 py-2 bg-brand-accent text-white rounded-xl font-mono text-xs uppercase font-semibold"
+                    >
+                      Välj
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* NON-EDITABLE LIVE PREVIEW CARD */}
+        <div className="space-y-2 pt-2">
+          <label className="font-mono text-[10px] uppercase tracking-wider text-brand-accent font-semibold block">
+            Förhandsgranskning av inbjudan:
+          </label>
+
+          <div className="p-5 bg-brand-paper/40 rounded-2xl border border-brand-ink/10 space-y-2 select-text">
+            <p className="font-serif italic text-base sm:text-lg text-brand-ink leading-relaxed whitespace-pre-wrap">
+              {formattedText || "Inga uppgifter ifyllda ännu. Tryck på knapparna ovan för att fylla i inbjudan."}
+            </p>
+          </div>
+        </div>
+
+        {/* SAVE FAVORITE BUTTON */}
+        <div className="flex justify-end pt-1">
+          {favModalOpen ? (
+            <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded-2xl w-full sm:w-auto">
+              <input
+                type="text"
+                value={newFavName}
+                onChange={e => setNewFavName(e.target.value)}
+                placeholder="Namnge din favorit..."
+                className="px-3 py-1.5 bg-white border border-amber-300 rounded-xl font-mono text-xs text-brand-ink flex-1"
+              />
+              <button
+                type="button"
+                onClick={handleSaveFavorite}
+                className="px-3 py-1.5 bg-amber-600 text-white font-mono text-xs uppercase rounded-xl font-semibold shrink-0"
+              >
+                Spara
+              </button>
+              <button
+                type="button"
+                onClick={() => setFavModalOpen(false)}
+                className="px-2.5 py-1.5 text-brand-ink/50 hover:text-brand-ink font-mono text-xs shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setNewFavName(activityText ? `${activityText.slice(0, 20)}...` : "Min favorit");
+                setFavModalOpen(true);
+              }}
+              className="px-3.5 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300/80 rounded-xl text-xs font-mono font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <Star size={13} className="text-amber-700 fill-amber-500" />
+              <span>Spara som personlig favorit</span>
+            </button>
+          )}
+        </div>
+
+        {/* MANDATORY CONSENT CHECKBOX */}
+        <div className="pt-3 border-t border-brand-ink/10">
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={consentConfirmed}
+              onChange={e => setConsentConfirmed(e.target.checked)}
+              className="mt-0.5 rounded border-brand-ink/30 text-brand-accent focus:ring-0 w-4 h-4 cursor-pointer shrink-0"
+            />
+            <span className="text-xs text-brand-ink/80 font-light leading-relaxed group-hover:text-brand-ink">
+              Jag bekräftar att jag inte delar andras personuppgifter (som namn, kontaktinfo, etc) i inbjudan utan deras uttryckliga godkännande. Jag förstår att min inbjudan granskas innan publicering.
+            </span>
+          </label>
+        </div>
+
+        {/* PUBLISH BUTTON */}
+        <button
+          type="button"
+          onClick={handleAttemptPublish}
+          disabled={!isFormValid || sending}
+          className="w-full py-4 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase tracking-wider rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed font-semibold"
+        >
+          {sending ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              <span>Publicerar på anslagstavlan...</span>
+            </>
+          ) : (
+            <>
+              <Send size={16} className="text-white" />
+              <span>Publicera på anslagstavlan</span>
+            </>
+          )}
+        </button>
+
+        {/* SMS / QR GATEWAY SECTION (EXACT 3 LINES REQUIRED) */}
+        <div className="pt-6 border-t border-brand-ink/10 space-y-4 text-center">
+          <p className="font-mono text-xs uppercase font-semibold text-brand-ink">
+            Eller skicka via SMS / QR (Gateway {gatewayNumber})
+          </p>
+
+          {isMobile ? (
+            <a
+              href={smsHref}
+              className="w-full py-3.5 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/10 text-brand-ink font-mono text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2"
+            >
+              <Send size={14} className="text-brand-accent" />
+              <span>Öppna SMS-app för insändning till {gatewayNumber}</span>
+            </a>
+          ) : (
+            <div className="p-4 bg-brand-paper/30 rounded-2xl border border-brand-ink/5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+              <img src={qrUrl} alt="SMS QR Code" className="w-28 h-28 rounded-xl border border-brand-ink/10 shrink-0 bg-white p-1" />
+              <div className="space-y-1.5">
+                <span className="font-mono text-xs uppercase font-semibold text-brand-ink block">
+                  Skanna med din mobiltelefon
+                </span>
+                <p className="text-xs text-brand-ink/75 leading-relaxed font-light">
+                  QR-Koden öppnar din SMS-app med din inbjudan i ett färdigt SMS till numret {gatewayNumber}. När du skickar detta SMS kommer din inbjudan kunna granskas manuellt och sen publiceras.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* AI FLAGGED CONTENT MODAL */}
+      {aiFlagModal.open && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-5 border border-brand-ink/10 shadow-2xl animate-in zoom-in-95 duration-200 text-left">
+            <div className="flex items-center gap-3 text-amber-600">
+              <AlertTriangle size={24} className="shrink-0" />
+              <h3 className="font-serif italic text-xl font-medium text-brand-ink">
+                Granskning av inbjudan
+              </h3>
+            </div>
+
+            <p className="text-xs text-brand-ink/80 leading-relaxed font-light">
+              {aiFlagModal.message}
+            </p>
+
+            <p className="text-xs text-brand-ink/60 italic">
+              Vill du justera din inbjudan innan den skickas vidare till en mänsklig granskare?
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setAiFlagModal({ open: false, message: "" })}
+                className="w-full sm:flex-1 py-3 bg-brand-paper hover:bg-brand-ink/10 text-brand-ink font-mono text-xs uppercase tracking-wider rounded-xl transition-colors font-semibold"
+              >
+                Justera inbjudan
+              </button>
+              <button
+                type="button"
+                onClick={executePublish}
+                className="w-full sm:flex-1 py-3 bg-amber-600 hover:bg-amber-700 text-white font-mono text-xs uppercase tracking-wider rounded-xl transition-colors font-semibold"
+              >
+                Skicka till granskning ändå
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

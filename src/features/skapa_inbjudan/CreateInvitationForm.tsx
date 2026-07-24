@@ -112,12 +112,14 @@ export default function CreateInvitationForm({
   const [activeDialog, setActiveDialog] = useState<"time" | "location" | "activity" | "area" | "audience" | "organization" | null>(null);
 
   // Temporary dialog buffers
+  const [tempLocation, setTempLocation] = useState<string>("");
   const [tempAreas, setTempAreas] = useState<string[]>([]);
   const [tempAudience, setTempAudience] = useState<string[]>([]);
   const [tempOrg, setTempOrg] = useState<string>("");
   const [tempActivity, setTempActivity] = useState<string>("");
   const [tempTime, setTempTime] = useState<string>("");
   const [showPersonNameModal, setShowPersonNameModal] = useState<boolean>(false);
+  const [showQrSection, setShowQrSection] = useState<boolean>(false);
 
   // AI Moderation & Submission
   const [sending, setSending] = useState<boolean>(false);
@@ -357,7 +359,10 @@ export default function CreateInvitationForm({
 
               <button
                 type="button"
-                onClick={() => setActiveDialog("location")}
+                onClick={() => {
+                  setTempLocation(locationName);
+                  setActiveDialog("location");
+                }}
                 className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
                   locationName
                     ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
@@ -558,41 +563,86 @@ export default function CreateInvitationForm({
                 </div>
               )}
 
-              {/* DIALOG 2: MÖTESPLATS (Enkelval - stängs direkt) */}
+              {/* DIALOG 2: MÖTESPLATS (Fritext med KML/POI-matchning) */}
               {activeDialog === "location" && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-brand-ink/10 pb-2">
                     <span className="font-serif italic text-lg font-medium text-brand-ink">
                       Mötesplats: (Var ses vi?)
                     </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="font-mono text-[10px] uppercase text-brand-ink/60 block mb-1">
+                        Skriv fri adress, platsnamn eller lokal:
+                      </label>
+                      <input
+                        type="text"
+                        value={tempLocation}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setTempLocation(val);
+                          // Auto match against POI districts if selectedAreas is empty
+                          const matchedPoi = POI_LOCATIONS.find(poi => 
+                            val.toLowerCase().includes(poi.split(" ")[0].toLowerCase())
+                          );
+                          if (matchedPoi && selectedAreas.length === 0) {
+                            setSelectedAreas([matchedPoi]);
+                          }
+                        }}
+                        placeholder="t.ex. Utby kyrka, Utbyvägen 10 eller Slottsskogen"
+                        className="w-full px-4 py-2.5 bg-white border border-brand-ink/15 rounded-xl font-mono text-xs text-brand-ink focus:outline-none focus:border-brand-accent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-mono text-[10px] uppercase text-brand-ink/60 block mb-2">
+                        Eller välj snabbt bland kända område/platser (KML POI):
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                        {POI_LOCATIONS.map(poi => (
+                          <button
+                            key={poi}
+                            type="button"
+                            onClick={() => {
+                              setTempLocation(poi);
+                              if (selectedAreas.length === 0) {
+                                setSelectedAreas([poi]);
+                              }
+                            }}
+                            className={`p-2.5 rounded-xl border font-mono text-xs text-left transition-all cursor-pointer flex items-center justify-between ${
+                              tempLocation === poi
+                                ? "bg-brand-accent text-white border-brand-accent font-semibold"
+                                : "bg-white border-brand-ink/10 text-brand-ink hover:border-brand-accent/50"
+                            }`}
+                          >
+                            <span>{poi}</span>
+                            {tempLocation === poi && <Check size={14} className="text-white shrink-0" />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-ink/10">
                     <button
                       type="button"
                       onClick={() => setActiveDialog(null)}
-                      className="font-mono text-xs text-brand-ink/50 hover:text-brand-ink"
+                      className="px-4 py-2 bg-white border border-brand-ink/15 text-brand-ink rounded-xl font-mono text-xs uppercase"
                     >
-                      ✕ Stäng
+                      Ångra
                     </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {POI_LOCATIONS.map(poi => (
-                      <button
-                        key={poi}
-                        type="button"
-                        onClick={() => {
-                          setLocationName(poi);
-                          setActiveDialog(null);
-                        }}
-                        className={`p-3 rounded-2xl border font-mono text-xs text-left transition-all cursor-pointer flex items-center justify-between ${
-                          locationName === poi
-                            ? "bg-brand-accent text-white border-brand-accent font-semibold"
-                            : "bg-white border-brand-ink/10 text-brand-ink hover:border-brand-accent/50"
-                        }`}
-                      >
-                        <span>{poi}</span>
-                        {locationName === poi && <Check size={14} className="text-white shrink-0" />}
-                      </button>
-                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLocationName(tempLocation);
+                        setActiveDialog(null);
+                      }}
+                      className="px-5 py-2 bg-brand-accent text-white rounded-xl font-mono text-xs uppercase font-semibold"
+                    >
+                      Klar
+                    </button>
                   </div>
                 </div>
               )}
@@ -774,6 +824,10 @@ export default function CreateInvitationForm({
                     </span>
                   </div>
 
+                  <p className="text-xs text-brand-ink/80 leading-relaxed font-light p-3.5 bg-amber-50/90 border border-amber-200/80 rounded-2xl">
+                    Aktiviteten skickas som ett förslag till de ansvariga ledarna för den valda gruppen. Du behöver inte vara orolig om du klickar på en organisation – de granskar förslaget, godkänner det och hör av sig om det finns några frågor.
+                  </p>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {ORGANIZATIONS.map(org => {
                       const selected = tempOrg === org;
@@ -925,30 +979,43 @@ export default function CreateInvitationForm({
         </button>
 
         {/* SMS / QR GATEWAY SECTION (EXACT 3 LINES REQUIRED) */}
-        <div className="pt-6 border-t border-brand-ink/10 space-y-4 text-center">
-          <p className="font-mono text-xs uppercase font-semibold text-brand-ink">
-            Eller skicka via SMS / QR (Gateway {gatewayNumber})
-          </p>
-
-          {isMobile ? (
-            <a
-              href={smsHref}
-              className="w-full py-3.5 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/10 text-brand-ink font-mono text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2"
+        <div className="pt-6 border-t border-brand-ink/10 space-y-3 text-center">
+          <div className="flex items-center justify-between">
+            <p className="font-mono text-xs uppercase font-semibold text-brand-ink">
+              Eller skicka via SMS / QR (Gateway {gatewayNumber})
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowQrSection(!showQrSection)}
+              className="text-xs font-mono text-brand-accent hover:underline cursor-pointer font-medium"
             >
-              <Send size={14} className="text-brand-accent" />
-              <span>Öppna SMS-app för insändning till {gatewayNumber}</span>
-            </a>
-          ) : (
-            <div className="p-4 bg-brand-paper/30 rounded-2xl border border-brand-ink/5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-              <img src={qrUrl} alt="SMS QR Code" className="w-28 h-28 rounded-xl border border-brand-ink/10 shrink-0 bg-white p-1" />
-              <div className="space-y-1.5">
-                <span className="font-mono text-xs uppercase font-semibold text-brand-ink block">
-                  Skanna med din mobiltelefon
-                </span>
-                <p className="text-xs text-brand-ink/75 leading-relaxed font-light">
-                  QR-Koden öppnar din SMS-app med din inbjudan i ett färdigt SMS till numret {gatewayNumber}. När du skickar detta SMS kommer din inbjudan kunna granskas manuellt och sen publiceras.
-                </p>
-              </div>
+              {showQrSection || isFormValid ? "Dölj QR/SMS-väg" : "Visa QR/SMS-väg"}
+            </button>
+          </div>
+
+          {(isFormValid || showQrSection) && (
+            <div className="pt-2 animate-in fade-in duration-200">
+              {isMobile ? (
+                <a
+                  href={smsHref}
+                  className="w-full py-3.5 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/10 text-brand-ink font-mono text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2"
+                >
+                  <Send size={14} className="text-brand-accent" />
+                  <span>Öppna SMS-app för insändning till {gatewayNumber}</span>
+                </a>
+              ) : (
+                <div className="p-4 bg-brand-paper/30 rounded-2xl border border-brand-ink/5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                  <img src={qrUrl} alt="SMS QR Code" className="w-28 h-28 rounded-xl border border-brand-ink/10 shrink-0 bg-white p-1" />
+                  <div className="space-y-1.5">
+                    <span className="font-mono text-xs uppercase font-semibold text-brand-ink block">
+                      Skanna med din mobiltelefon
+                    </span>
+                    <p className="text-xs text-brand-ink/75 leading-relaxed font-light">
+                      QR-Koden öppnar din SMS-app med din inbjudan i ett färdigt SMS till numret {gatewayNumber}. När du skickar detta SMS kommer din inbjudan kunna granskas manuellt och sen publiceras.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

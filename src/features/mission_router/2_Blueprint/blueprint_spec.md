@@ -1,34 +1,22 @@
-# Blueprint Specification - ETAPP UI/UX Cleaning, In-Place Dialogs & PWA Form
+# Blueprint Specification - ETAPP 3 UI/UX Enhancements & Reassurance
 
 ## 1. Overview & Architecture
-This blueprint details the transformation of the PWA Invitation Flow (`ActiveStream.tsx` & `CreateInvitationForm.tsx`), enforcing frictionless in-place dialogs, pure custom named favorites, single-page instant preview, mandatory consent verification, AI background moderation check, and explicit gateway instructions.
+This blueprint updates the PWA invitation form and stream floating button layout to improve user reassurance, location entry flexibility, and clean positioning.
 
-## 2. ActiveStream Cleaning
-- Heading: "Inbjudan till dig" (without "PWA Stream" badge).
-- Cleaned top section without redundant disclaimer or hero paragraphs.
-- "Tillbaka" button renamed to "Visa dina inbjudningar igen".
-- Floating Action Button updated to single "+ Bjud in" button anchored bottom-right.
+## 2. Floating Action Button (FAB) Positioning
+- Button text: "Bjud in" with single icon (avoiding double `++` plus sign).
+- Anchor: Positioned floating on the bottom-right edge of the centered `max-w-2xl` content column (`fixed bottom-6 inset-x-0 max-w-2xl mx-auto px-4 flex justify-end pointer-events-none`).
 
-## 3. CreateInvitationForm In-Place Dialog System
-- Headline: "Bjud in andra"
-- Subtitle: "Bjud in andra att vara en vän, hämta näring i Guds ord eller hjälpa andra"
-- Prompt label: "Beskriv din inbjudan i knapparna nedan:"
-- Interactive Reglage Buttons:
-  1. **Tid**: Opens in-place date/time picker, recurring schedule options, and reminder checkbox (`Påminnelse: <time>`).
-  2. **Plats**: Single-choice POI selector with exact district mapping (closes on select).
-  3. **Aktivitet**: Free text input dialog for custom activity description.
-  4. **Område**: Multi-choice area picker (optional) with "⚡ Markera alla" / "✕ Rensa alla".
-  5. **Målgrupp**: Multi-choice target audience selector.
-  6. **Arrangör**: Organization selector limited to valid groups, plus "Förtydliga med namn" modal when "Enskild/Familj" is selected.
-- In-place Dialog Mechanics:
-  - Single Choice: Closes immediately on click.
-  - Multi-Choice / Text: Requires "Välj" / "Klar" or "Ångra" / "Avbryt" to apply and close.
-  - Checked state on button bar showing current filled values with checkmarks.
+## 3. Location Input with Free-Text & Map Matching
+- Dialog 2: "Mötesplats: (Var ses vi?)"
+- Features open text input field allowing any custom address or place name.
+- Preserves quick POI pill buttons for instant selection.
+- Automatic geocode / area matching against Göteborg district map data (`mapData.ts`).
 
-## 4. Single-Page Preview, Publishing & Favorites
-- Non-editable live preview card displaying formatted invitation text in clear, enlarged serif typography.
-- Custom Named Favorites: Users can name and save their configurations to `localStorage`.
-- Mandatory Privacy Consent Checkbox before publish.
-- AI Appropriateness Screening: Polite advisory modal if potential flags are detected prior to human moderation.
-- Primary Action: "Publicera på anslagstavlan".
-- Gateway SMS/QR Section with exact 3-line notice pointing to 0736108997.
+## 4. Organizer Reassurance & Guidance
+- Dialog 6: "Arrangör: (Vem håller i aktiviteten?)"
+- Reassurance notice: "Aktiviteten skickas som ett förslag till de ansvariga ledarna för den valda gruppen. Du behöver inte vara orolig om du klickar på en organisation – de granskar förslaget, godkänner det och hör av sig om det finns några frågor."
+
+## 5. Conditional QR Code & Gateway Reveal
+- QR code and SMS-gateway instructions are hidden by default until all mandatory fields are completed OR when the user toggles "Visa QR/SMS-väg".
+- Preserves exact 3-line required notice pointing to Gateway `0736108997`.

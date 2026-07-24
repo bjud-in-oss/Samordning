@@ -549,16 +549,18 @@ export default function App() {
         )}
       </main>
 
-      {/* Floating Action Button (FAB) for creating invitations */}
+      {/* Floating Action Button (FAB) for creating invitations - Anchored on center column */}
       {currentView === 'stream' && activeTab === 'stream' && !activeAlertId && (
-        <button
-          onClick={() => setActiveTab('create')}
-          className="fixed bottom-6 right-6 z-40 bg-brand-accent hover:bg-brand-accent/90 text-white rounded-full px-5 py-3 shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer font-mono text-xs uppercase tracking-wider font-semibold"
-          title="Bjud in"
-        >
-          <Plus size={18} />
-          <span>+ Bjud in</span>
-        </button>
+        <div className="fixed bottom-6 inset-x-0 z-40 pointer-events-none max-w-2xl mx-auto px-4 sm:px-6 flex justify-end">
+          <button
+            onClick={() => setActiveTab('create')}
+            className="pointer-events-auto bg-brand-accent hover:bg-brand-accent/90 text-white rounded-full px-5 py-3 shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer font-mono text-xs uppercase tracking-wider font-semibold"
+            title="Bjud in"
+          >
+            <Plus size={18} />
+            <span>Bjud in</span>
+          </button>
+        </div>
       )}
 
       {/* Centered Foot Disclaimer */}

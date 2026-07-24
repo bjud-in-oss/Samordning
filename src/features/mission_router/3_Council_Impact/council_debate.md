@@ -1,12 +1,10 @@
-# Dialectical Council Debate & Architectural Impact Analysis
+# Dialectical Council Debate & Architectural Impact Analysis - Etapp 3
 
 ## Council Perspectives
-- **The Innovator (Att förändra)**: Advocates for replacing cumbersome multi-step wizards with instant in-place dialogs and custom named favorites, providing maximum speed for PWA users.
-- **The Reflector (Att vända)**: Emphasizes strict privacy compliance and moderation integrity. Ensures that user consent is explicitly checked and unapproved data cannot bypass the moderation queue.
-- **The Mediator (Att förlika)**: Harmonizes in-place simplicity with AI background checks, combining smooth single-page UX with robust backend moderation.
+- **The Innovator (Att förändra)**: Advocates for open text location entry with automatic map district matching, allowing users to type specific street addresses while automatically tagging the relevant district.
+- **The Reflector (Att vända)**: Emphasizes user psychological safety when picking organizations, ensuring clear reassurance copy that submitting a proposal does not bind or overwhelm leaders.
+- **The Mediator (Att förlika)**: Balances layout precision by anchoring floating controls directly to the center content column, keeping mobile and desktop UX perfectly symmetric.
 
 ## Architectural Synchronization & Impact Analysis
-- `src/features/inbjudningar/ActiveStream.tsx`: Cleaned header typography, removed obsolete subtext, unified floating action button ("+ Bjud in").
-- `src/features/skapa_inbjudan/CreateInvitationForm.tsx`: Rebuilt form into single-page layout with 6 in-place dialog controls, custom named favorites, non-editable enlarged preview, mandatory privacy checkbox, AI appropriateness check modal, and explicit 3-line gateway footer.
-- `src/features/mission_router/translations.ts`: Updated language dictionaries for new dialog headings, consent text, and gateway notices.
-- `server.ts`: Added reminder scheduling support in moderation endpoints and active alert model.
+- `src/App.tsx`: Updated floating button position to anchor on `max-w-2xl` center layout container and cleaned text to "Bjud in".
+- `src/features/skapa_inbjudan/CreateInvitationForm.tsx`: Restored free-text location input with POI suggestions & auto area matching, added organizer reassurance copy, conditionalized QR code display until form validity or manual toggle.

@@ -170,9 +170,29 @@ export function useInvitationForm(onSuccess?: () => void) {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        const newProposal = {
+          id: data.id || `prop-${Date.now()}`,
+          category: selectedAudience[0] || "Vara en vän",
+          area: selectedAreas.join(", ") || locationName || "Göteborg",
+          locationName,
+          time: selectedTime,
+          scrubbedText: washAnnouncementText(activityText),
+          responsibleParty: selectedOrganization + (organizerPersonName ? ` (${organizerPersonName})` : ""),
+          createdAt: new Date().toISOString(),
+          status: "pending"
+        };
+        if (typeof localStorage !== "undefined") {
+          const stored = localStorage.getItem("my_pending_proposals");
+          const list = stored ? JSON.parse(stored) : [];
+          localStorage.setItem("my_pending_proposals", JSON.stringify([newProposal, ...list.filter((p: any) => p.id !== newProposal.id)]));
+        }
+
         setToast("Din inbjudan har skickats in för granskning och publicering!");
-        setTimeout(() => setToast(null), 4000);
-        if (onSuccess) onSuccess();
+        setTimeout(() => {
+          setToast(null);
+          if (onSuccess) onSuccess();
+        }, 1200);
       } else {
         alert("Kunde inte publicera inbjudan. Försök igen.");
       }

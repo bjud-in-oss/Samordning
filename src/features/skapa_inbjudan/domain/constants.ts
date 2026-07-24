@@ -28,12 +28,12 @@ export const AUDIENCE_OPTIONS = [
 export const ORGANIZATIONS = [
   "Enskild/Familj",
   "Missionärer",
-  "Primärföreningen",
-  "Hjälpföreningen",
-  "Äldstekvorum",
-  "Aktivitetskommitten",
-  "Biskopsrådet",
-  "Staven"
+  "Primärföreningen (barn)",
+  "Hjälpföreningen (kvinnor)",
+  "Äldstekvorum (män)",
+  "Unga Män",
+  "Unga Kvinnor",
+  "Aktivitetskommitten (alla)"
 ];
 
 export const QUICK_TIMES = [

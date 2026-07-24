@@ -1,6 +1,6 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Calendar, Languages, ShieldCheck, Phone, Check } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Languages, ShieldCheck, Phone, Check, QrCode } from "lucide-react";
 import { TRANSLATIONS, UiLanguage } from "../mission_router/translations";
 
 interface AlertDetailProps {
@@ -15,6 +15,7 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
   const [error, setError] = useState<string | null>(null);
   const [responseText, setResponseText] = useState<string>("");
   const [showContact, setShowContact] = useState<boolean>(false);
+  const [showQrRsvp, setShowQrRsvp] = useState<boolean>(false);
 
   const t = TRANSLATIONS[uiLanguage];
 
@@ -268,6 +269,41 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
               <Check size={16} />
               {t.sendResponseBtn}
             </button>
+
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={() => setShowQrRsvp(!showQrRsvp)}
+                className="font-mono text-xs text-brand-accent hover:underline flex items-center justify-center gap-1.5 mx-auto cursor-pointer font-medium"
+              >
+                <QrCode size={14} />
+                <span>{showQrRsvp ? "Dölj QR-kod" : "Tacka Ja via annan enhet"}</span>
+              </button>
+
+              {showQrRsvp && (
+                <div className="mt-4 p-4 bg-brand-paper/40 rounded-2xl border border-brand-ink/10 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left animate-in fade-in duration-200">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`sms:0736108997?body=${encodeURIComponent(`JA på inbjudan #${alert.id}`)}`)}`}
+                    alt="OSA QR Code"
+                    className="w-28 h-28 rounded-xl border border-brand-ink/10 shrink-0 bg-white p-1"
+                  />
+                  <div className="space-y-1.5 text-xs text-brand-ink/80 font-light leading-relaxed">
+                    <span className="font-mono text-xs uppercase font-semibold text-brand-ink block">
+                      Tacka Ja via mobil (SMS-Gateway)
+                    </span>
+                    <p>
+                      Skanna QR-koden med din mobiltelefon för att öppna ett färdigt SMS med texten:
+                    </p>
+                    <p className="font-mono text-[11px] font-semibold text-brand-accent bg-white px-2.5 py-1 rounded border border-brand-ink/10 inline-block">
+                      JA på inbjudan #{alert.id}
+                    </p>
+                    <p>
+                      SMS:et skickas direkt till mottagarnumret 0736108997.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <p className="text-[10px] font-mono text-brand-accent uppercase tracking-wider text-center leading-relaxed">
               {t.footerNotice}

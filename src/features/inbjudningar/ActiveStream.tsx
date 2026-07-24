@@ -47,6 +47,15 @@ export default function ActiveStream({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // User's own submitted proposals from localStorage
+  const [myProposals, setMyProposals] = useState<any[]>(() => {
+    if (typeof localStorage !== "undefined") {
+      const stored = localStorage.getItem("my_pending_proposals");
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
+
   // Usage count & adaptive help state
   const [usageCount, setUsageCount] = useState<number>(() => {
     if (typeof localStorage !== "undefined") {
@@ -373,6 +382,39 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
 
       {/* Feed list */}
       <div className="space-y-4 text-left">
+
+        {/* User's own submitted pending proposals */}
+        {myProposals.length > 0 && (
+          <div className="space-y-3">
+            {myProposals.map(prop => (
+              <div
+                key={prop.id}
+                className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-5 shadow-2xs space-y-2 text-left"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded bg-amber-100 text-amber-900 font-bold">
+                    Ditt förslag • Väntar på granskning
+                  </span>
+                  <span className="font-mono text-[10px] text-amber-800/70 font-light">
+                    {prop.time || "Fast tid ej angiven"}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-serif italic text-lg text-brand-ink font-medium">
+                    Inbjudan • {prop.area}
+                  </h3>
+                  <p className="text-xs text-brand-ink/80 font-light line-clamp-2 mt-1 leading-relaxed">
+                    {prop.scrubbedText || prop.activityText}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-amber-200/60 text-[10px] font-mono text-amber-900/70 uppercase tracking-wider">
+                  <span>{prop.responsibleParty}</span>
+                  <span className="italic font-sans text-amber-800">Granskas av ansvariga ledare</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {loading ? (
           <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-3">

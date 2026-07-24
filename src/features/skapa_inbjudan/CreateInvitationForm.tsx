@@ -329,7 +329,7 @@ export default function CreateInvitationForm({
             className="mt-0.5 rounded border-brand-ink/30 text-brand-accent focus:ring-brand-accent shrink-0"
           />
           <span className="text-xs text-brand-ink/80 leading-relaxed font-light">
-            Jag bekräftar att inbjudan följer staven/församlingens riktlinjer och inte innehåller känsliga personuppgifter.
+            Jag bekräftar att jag inte delar andras personuppgifter (som namn, kontaktinfo, etc) i inbjudan utan deras uttryckliga godkännande. Jag förstår att min inbjudan granskas innan publicering.
           </span>
         </label>
       </div>

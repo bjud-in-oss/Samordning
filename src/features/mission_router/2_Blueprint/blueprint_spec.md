@@ -1,22 +1,27 @@
-# Blueprint Specification - ETAPP 3 UI/UX Enhancements & Reassurance
+# Blueprint Specification - ETAPP 4 Organisatörer, QR Gateway, Sekretess & OSA via annan enhet
 
 ## 1. Overview & Architecture
-This blueprint updates the PWA invitation form and stream floating button layout to improve user reassurance, location entry flexibility, and clean positioning.
+This specification updates the invitation submission workflow and RSVP interactions to enhance privacy compliance, multi-device accessibility, and pending proposal tracking.
 
-## 2. Floating Action Button (FAB) Positioning
-- Button text: "Bjud in" with single icon (avoiding double `++` plus sign).
-- Anchor: Positioned floating on the bottom-right edge of the centered `max-w-2xl` content column (`fixed bottom-6 inset-x-0 max-w-2xl mx-auto px-4 flex justify-end pointer-events-none`).
+## 2. Updated Organizations Array
+Exact allowed values:
+`["Enskild/Familj", "Missionärer", "Primärföreningen (barn)", "Hjälpföreningen (kvinnor)", "Äldstekvorum (män)", "Unga Män", "Unga Kvinnor", "Aktivitetskommitten (alla)"]`
 
-## 3. Location Input with Free-Text & Map Matching
-- Dialog 2: "Mötesplats: (Var ses vi?)"
-- Features open text input field allowing any custom address or place name.
-- Preserves quick POI pill buttons for instant selection.
-- Automatic geocode / area matching against Göteborg district map data (`mapData.ts`).
+## 3. QR / Gateway Publishing Button
+- Button text: "Publicera på anslagstavlan via annan enhet".
+- Button state: Disabled until all mandatory form fields are completed (`isFormValid`).
+- Expands QR code and SMS instructions with 3 exact instruction lines.
 
-## 4. Organizer Reassurance & Guidance
-- Dialog 6: "Arrangör: (Vem håller i aktiviteten?)"
-- Reassurance notice: "Aktiviteten skickas som ett förslag till de ansvariga ledarna för den valda gruppen. Du behöver inte vara orolig om du klickar på en organisation – de granskar förslaget, godkänner det och hör av sig om det finns några frågor."
+## 4. Privacy Consent Checkbox
+Exact label wording:
+"Jag bekräftar att jag inte delar andras personuppgifter (som namn, kontaktinfo, etc) i inbjudan utan deras uttryckliga godkännande. Jag förstår att min inbjudan granskas innan publicering."
 
-## 5. Conditional QR Code & Gateway Reveal
-- QR code and SMS-gateway instructions are hidden by default until all mandatory fields are completed OR when the user toggles "Visa QR/SMS-väg".
-- Preserves exact 3-line required notice pointing to Gateway `0736108997`.
+## 5. Automatic Navigation & Pending Proposals Feed
+- On successful publish, save the proposal to `my_pending_proposals` in `localStorage`.
+- Automatically navigate back to "Inbjudan till dig" (ActiveStream).
+- Display user's own pending proposals at top of ActiveStream with badge: "Ditt förslag • Väntar på granskning".
+
+## 6. RSVP / Tacka Ja via Annan Enhet (QR Code)
+- In `AlertDetail.tsx`, add clickable button/link: "Tacka Ja via annan enhet".
+- Displays expanded QR code with `sms:0736108997` link prefilled with "JA på inbjudan #[ID]".
+

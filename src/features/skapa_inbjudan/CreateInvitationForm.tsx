@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Single Page Form Orchestrator
 
 import React from "react";
-import { ArrowLeft, Clock, MapPin, Globe, Users, ShieldCheck, CheckCircle, Sparkles, Send } from "lucide-react";
+import { ArrowLeft, CheckCircle, Send } from "lucide-react";
 import { CreateInvitationFormProps } from "./domain/types";
 import { useInvitationForm } from "./hooks/useInvitationForm";
 import { FavoritesBar } from "./components/FavoritesBar";
@@ -69,152 +69,20 @@ export default function CreateInvitationForm({
         onRemoveFavorite={form.handleRemoveFavorite}
       />
 
-      {/* Dialog Selection Buttons */}
-      <div className="space-y-3 pt-2">
-        <span className="font-mono text-xs uppercase font-semibold text-brand-ink/70 block">
-          Formulärfält:
-        </span>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Field 1: Time */}
-          <button
-            type="button"
-            onClick={() => {
-              form.setTempTime(form.selectedTime);
-              form.setActiveDialog("time");
-            }}
-            className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
-              form.selectedTime
-                ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
-                : "bg-white border-brand-ink/15 text-brand-ink hover:border-brand-accent/50"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Clock size={16} className="text-brand-accent shrink-0" />
-              <div className="truncate">
-                <span className="text-[10px] uppercase text-brand-ink/40 block">1. Tid & Datum</span>
-                <span className="truncate block">{form.selectedTime || "Välj tid & datum..."}</span>
-              </div>
-            </div>
-          </button>
-
-          {/* Field 2: Location */}
-          <button
-            type="button"
-            onClick={() => {
-              form.setTempLocation(form.locationName);
-              form.setActiveDialog("location");
-            }}
-            className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
-              form.locationName
-                ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
-                : "bg-white border-brand-ink/15 text-brand-ink hover:border-brand-accent/50"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <MapPin size={16} className="text-brand-accent shrink-0" />
-              <div className="truncate">
-                <span className="text-[10px] uppercase text-brand-ink/40 block">2. Mötesplats</span>
-                <span className="truncate block">{form.locationName || "Välj var ni ses..."}</span>
-              </div>
-            </div>
-          </button>
-
-          {/* Field 3: Activity */}
-          <button
-            type="button"
-            onClick={() => {
-              form.setTempActivity(form.activityText);
-              form.setActiveDialog("activity");
-            }}
-            className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
-              form.activityText
-                ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
-                : "bg-white border-brand-ink/15 text-brand-ink hover:border-brand-accent/50"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Sparkles size={16} className="text-brand-accent shrink-0" />
-              <div className="truncate">
-                <span className="text-[10px] uppercase text-brand-ink/40 block">3. Aktivitet</span>
-                <span className="truncate block">{form.activityText || "Vad ska göras..."}</span>
-              </div>
-            </div>
-          </button>
-
-          {/* Field 4: Area */}
-          <button
-            type="button"
-            onClick={() => {
-              form.setTempAreas(form.selectedAreas);
-              form.setActiveDialog("area");
-            }}
-            className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
-              form.selectedAreas.length > 0
-                ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
-                : "bg-white border-brand-ink/15 text-brand-ink hover:border-brand-accent/50"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Globe size={16} className="text-brand-accent shrink-0" />
-              <div className="truncate">
-                <span className="text-[10px] uppercase text-brand-ink/40 block">4. Områden</span>
-                <span className="truncate block">
-                  {form.selectedAreas.length > 0 ? form.selectedAreas.join(", ") : "Vilka bjuds in..."}
-                </span>
-              </div>
-            </div>
-          </button>
-
-          {/* Field 5: Audience */}
-          <button
-            type="button"
-            onClick={() => {
-              form.setTempAudience(form.selectedAudience);
-              form.setActiveDialog("audience");
-            }}
-            className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
-              form.selectedAudience.length > 0
-                ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
-                : "bg-white border-brand-ink/15 text-brand-ink hover:border-brand-accent/50"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Users size={16} className="text-brand-accent shrink-0" />
-              <div className="truncate">
-                <span className="text-[10px] uppercase text-brand-ink/40 block">5. Målgrupp</span>
-                <span className="truncate block">{form.selectedAudience.join(", ")}</span>
-              </div>
-            </div>
-          </button>
-
-          {/* Field 6: Organization */}
-          <button
-            type="button"
-            onClick={() => {
-              form.setTempOrg(form.selectedOrganization);
-              form.setActiveDialog("organization");
-            }}
-            className={`p-3.5 border rounded-2xl text-xs font-mono text-left flex items-center justify-between transition-all cursor-pointer ${
-              form.selectedOrganization
-                ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-semibold"
-                : "bg-white border-brand-ink/15 text-brand-ink hover:border-brand-accent/50"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck size={16} className="text-brand-accent shrink-0" />
-              <div className="truncate">
-                <span className="text-[10px] uppercase text-brand-ink/40 block">6. Arrangör</span>
-                <span className="truncate block">
-                  {form.selectedOrganization
-                    ? `${form.selectedOrganization}${form.organizerPersonName ? ` (${form.organizerPersonName})` : ""}`
-                    : "Vem arrangerar..."}
-                </span>
-              </div>
-            </div>
-          </button>
-        </div>
-      </div>
+      {/* Live Interactive Preview Card */}
+      <PreviewCard
+        selectedTime={form.selectedTime}
+        locationName={form.locationName}
+        selectedAreas={form.selectedAreas}
+        selectedAudience={form.selectedAudience}
+        selectedOrganization={form.selectedOrganization}
+        organizerPersonName={form.organizerPersonName}
+        activityText={form.activityText}
+        isRecurring={form.isRecurring}
+        hasReminder={form.hasReminder}
+        reminderTime={form.reminderTime}
+        onOpenDialog={form.openDialog}
+      />
 
       {/* In-place Dialog Render Area */}
       {form.activeDialog && (
@@ -293,8 +161,8 @@ export default function CreateInvitationForm({
               setTempOrg={form.setTempOrg}
               organizerPersonName={form.organizerPersonName}
               setOrganizerPersonName={form.setOrganizerPersonName}
-              showPersonNameModal={false}
-              setShowPersonNameModal={() => {}}
+              showPersonNameModal={form.showPersonNameModal}
+              setShowPersonNameModal={form.setShowPersonNameModal}
               onClose={() => form.setActiveDialog(null)}
               onSave={org => {
                 form.setSelectedOrganization(org);
@@ -305,19 +173,6 @@ export default function CreateInvitationForm({
         </div>
       )}
 
-      {/* Live Preview Card */}
-      <PreviewCard
-        selectedTime={form.selectedTime}
-        locationName={form.locationName}
-        selectedAreas={form.selectedAreas}
-        selectedAudience={form.selectedAudience}
-        selectedOrganization={form.selectedOrganization}
-        organizerPersonName={form.organizerPersonName}
-        activityText={form.activityText}
-        isRecurring={form.isRecurring}
-        hasReminder={form.hasReminder}
-        reminderTime={form.reminderTime}
-      />
 
       {/* Privacy Consent Checkbox */}
       <div className="pt-2 border-t border-brand-ink/10">

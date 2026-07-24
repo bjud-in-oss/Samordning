@@ -45,7 +45,19 @@ export function useInvitationForm(onSuccess?: () => void) {
   const [tempOrg, setTempOrg] = useState<string>("");
   const [tempActivity, setTempActivity] = useState<string>("");
   const [tempTime, setTempTime] = useState<string>("");
+  const [showPersonNameModal, setShowPersonNameModal] = useState<boolean>(false);
   const [showQrSection, setShowQrSection] = useState<boolean>(false);
+
+  // Helper to open a dialog with initialized buffer
+  const openDialog = (dialog: ActiveDialogType) => {
+    if (dialog === "time") setTempTime(selectedTime);
+    if (dialog === "location") setTempLocation(locationName);
+    if (dialog === "activity") setTempActivity(activityText);
+    if (dialog === "area") setTempAreas(selectedAreas);
+    if (dialog === "audience") setTempAudience(selectedAudience);
+    if (dialog === "organization") setTempOrg(selectedOrganization);
+    setActiveDialog(dialog);
+  };
 
   // AI Moderation & Submission
   const [sending, setSending] = useState<boolean>(false);
@@ -247,6 +259,9 @@ export function useInvitationForm(onSuccess?: () => void) {
     setTempActivity,
     tempTime,
     setTempTime,
+    showPersonNameModal,
+    setShowPersonNameModal,
+    openDialog,
     showQrSection,
     setShowQrSection,
     sending,

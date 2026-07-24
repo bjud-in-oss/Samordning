@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Live Invitation Preview Card Component
 
 import React from "react";
-import { Clock, MapPin, Users, Globe, ShieldCheck, Sparkles, Edit3 } from "lucide-react";
+import { Clock, MapPin, Users, Globe, ShieldCheck, Sparkles } from "lucide-react";
 import { washAnnouncementText } from "../../mission_router/domain/parser";
 import { ActiveDialogType } from "../domain/types";
 
@@ -44,47 +44,44 @@ export function PreviewCard({
       </div>
 
       <div className="bg-white rounded-3xl p-6 border-2 border-brand-accent/20 shadow-md space-y-4 relative overflow-hidden">
-        <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-bl-xl flex items-center gap-1">
-          <Edit3 size={10} />
-          <span>LIVECARD</span>
+        <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-bl-xl">
+          LIVECARD
         </div>
 
         {/* Title / Activity - Clickable */}
         <button
           type="button"
           onClick={() => onOpenDialog?.("activity")}
-          className="w-full text-left p-2 -m-2 rounded-2xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 group cursor-pointer space-y-1"
+          className="w-full text-left p-2 -m-2 rounded-2xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 group cursor-pointer flex items-start gap-3"
         >
-          <span className="font-mono text-[10px] uppercase text-brand-ink/40 tracking-wider block">
-            Beskriv din inbjudan...
-          </span>
-          <div className="flex items-start gap-2">
-            <Sparkles size={16} className="text-brand-accent shrink-0 mt-1" />
-            <h3 className={`text-lg sm:text-xl font-serif font-semibold leading-tight break-words whitespace-pre-wrap ${activityText ? "text-brand-ink" : "text-brand-ink/40 italic font-normal"}`}>
-              {activityText ? washAnnouncementText(activityText) : "Ingen aktivitet angiven än...*"}
+          <Sparkles size={18} className="text-brand-accent shrink-0 mt-1" />
+          <div className="flex-1 min-w-0 space-y-0.5">
+            <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
+              {activityText ? "AKTIVITET" : "Beskriv din inbjudan"}
+            </span>
+            <h3 className="text-lg sm:text-xl font-serif font-semibold leading-tight text-brand-ink break-words whitespace-pre-wrap">
+              {activityText ? washAnnouncementText(activityText) : "Ingen aktivitet angiven än"}
             </h3>
           </div>
         </button>
 
         {/* Info Grid - Clickable Fields */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-brand-ink/10 font-mono text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-brand-ink/10 font-mono text-xs">
           {/* Time & Date */}
           <button
             type="button"
             onClick={() => onOpenDialog?.("time")}
-            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col gap-1 cursor-pointer"
+            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-3 cursor-pointer"
           >
-            <span className="font-mono text-[10px] uppercase text-brand-ink/40 tracking-wider block">
-              Välj tid & datum...
-            </span>
-            <div className="flex items-start gap-2">
-              <Clock size={16} className="text-brand-accent shrink-0 mt-0.5" />
-              <div className="break-words whitespace-pre-wrap">
-                <span className={`block font-semibold ${selectedTime ? "text-brand-ink" : "text-brand-ink/40 italic font-normal"}`}>
-                  {selectedTime || "Ej vald*"}
-                </span>
-                {isRecurring && <span className="text-[10px] text-brand-accent block">(Upprepas varje vecka)</span>}
-                {hasReminder && <span className="text-[10px] text-amber-700 block">(Påminnelse: {reminderTime})</span>}
+            <Clock size={18} className="text-brand-accent shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0 space-y-0.5">
+              <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
+                {selectedTime ? "TID & DATUM" : "Välj tid & datum"}
+              </span>
+              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink">
+                <span>{selectedTime || "Ej vald"}</span>
+                {isRecurring && <span className="text-[10px] text-brand-accent block font-normal">(Upprepas varje vecka)</span>}
+                {hasReminder && <span className="text-[10px] text-amber-700 block font-normal">(Påminnelse: {reminderTime})</span>}
               </div>
             </div>
           </button>
@@ -93,17 +90,15 @@ export function PreviewCard({
           <button
             type="button"
             onClick={() => onOpenDialog?.("location")}
-            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col gap-1 cursor-pointer"
+            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-3 cursor-pointer"
           >
-            <span className="font-mono text-[10px] uppercase text-brand-ink/40 tracking-wider block">
-              Välj var ni ses...
-            </span>
-            <div className="flex items-start gap-2">
-              <MapPin size={16} className="text-brand-accent shrink-0 mt-0.5" />
-              <div className="break-words whitespace-pre-wrap">
-                <span className={`block font-semibold ${locationName ? "text-brand-ink" : "text-brand-ink/40 italic font-normal"}`}>
-                  {locationName || "Ej vald*"}
-                </span>
+            <MapPin size={18} className="text-brand-accent shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0 space-y-0.5">
+              <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
+                {locationName ? "MÖTESPLATS" : "Var ses ni?"}
+              </span>
+              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink">
+                <span>{locationName || "Ej vald"}</span>
               </div>
             </div>
           </button>
@@ -112,17 +107,15 @@ export function PreviewCard({
           <button
             type="button"
             onClick={() => onOpenDialog?.("area")}
-            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col gap-1 cursor-pointer"
+            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-3 cursor-pointer"
           >
-            <span className="font-mono text-[10px] uppercase text-brand-ink/40 tracking-wider block">
-              Välj närområden du bjuder in från...
-            </span>
-            <div className="flex items-start gap-2">
-              <Globe size={16} className="text-brand-accent shrink-0 mt-0.5" />
-              <div className="break-words whitespace-pre-wrap">
-                <span className={`block font-semibold ${selectedAreas.length > 0 ? "text-brand-ink" : "text-brand-ink/40 italic font-normal"}`}>
-                  {selectedAreas.length > 0 ? selectedAreas.join(", ") : "Inga valda"}
-                </span>
+            <Globe size={18} className="text-brand-accent shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0 space-y-0.5">
+              <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
+                {selectedAreas.length > 0 ? "BJUD IN FRÅN" : "Varifrån bjuder du in?"}
+              </span>
+              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink">
+                <span>{selectedAreas.length > 0 ? selectedAreas.join(", ") : "Inga valda"}</span>
               </div>
             </div>
           </button>
@@ -131,17 +124,15 @@ export function PreviewCard({
           <button
             type="button"
             onClick={() => onOpenDialog?.("audience")}
-            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col gap-1 cursor-pointer"
+            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-3 cursor-pointer"
           >
-            <span className="font-mono text-[10px] uppercase text-brand-ink/40 tracking-wider block">
-              Välj vem inbjudan är till för...
-            </span>
-            <div className="flex items-start gap-2">
-              <Users size={16} className="text-brand-accent shrink-0 mt-0.5" />
-              <div className="break-words whitespace-pre-wrap">
-                <span className={`block font-semibold ${selectedAudience.length > 0 ? "text-brand-ink" : "text-brand-ink/40 italic font-normal"}`}>
-                  {selectedAudience.length > 0 ? selectedAudience.join(", ") : "Inga valda*"}
-                </span>
+            <Users size={18} className="text-brand-accent shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0 space-y-0.5">
+              <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
+                {selectedAudience.length > 0 ? "MÅLGRUPP" : "Vilka grupper bjuds in?"}
+              </span>
+              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink">
+                <span>{selectedAudience.length > 0 ? selectedAudience.join(", ") : "Inga valda"}</span>
               </div>
             </div>
           </button>
@@ -152,25 +143,24 @@ export function PreviewCard({
           <button
             type="button"
             onClick={() => onOpenDialog?.("organization")}
-            className="w-full text-left p-2 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col gap-1.5 cursor-pointer"
+            className="w-full text-left p-2 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-3 cursor-pointer"
           >
-            <span className="font-mono text-[10px] uppercase text-brand-ink/40 tracking-wider block">
-              Beskriv vem som håller i det...
-            </span>
-            <div className="flex items-center gap-1.5 bg-brand-paper px-3 py-1.5 rounded-full border border-brand-ink/10 text-brand-ink font-medium w-fit max-w-full">
-              <ShieldCheck size={14} className="text-emerald-700 shrink-0" />
-              <span className={`break-words ${selectedOrganization ? "text-brand-ink" : "text-brand-ink/40 italic font-normal"}`}>
-                {selectedOrganization ? `${selectedOrganization}${organizerPersonName ? ` (${organizerPersonName})` : ""}` : "Ej angiven*"}
+            <ShieldCheck size={18} className="text-emerald-700 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0 space-y-0.5">
+              <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
+                {selectedOrganization ? "ARRANGÖR" : "Vem håller i det?"}
               </span>
+              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink">
+                <span>
+                  {selectedOrganization ? `${selectedOrganization}${organizerPersonName ? ` (${organizerPersonName})` : ""}` : "Ej angiven"}
+                </span>
+              </div>
             </div>
           </button>
         </div>
       </div>
-
-      <span className="font-mono text-[10px] text-brand-ink/50 block text-right">
-        * = obligatorisk uppgift
-      </span>
     </div>
   );
 }
+
 

@@ -8,6 +8,7 @@ import { FavoritesBar } from "./components/FavoritesBar";
 import { PreviewCard } from "./components/PreviewCard";
 import { GatewayQrModal } from "./components/GatewayQrModal";
 import { AiFlagModal } from "./components/AiFlagModal";
+import { AiReviewModal } from "./components/AiReviewModal";
 import { TimeDialog } from "./components/dialogs/TimeDialog";
 import { LocationDialog } from "./components/dialogs/LocationDialog";
 import { ActivityDialog } from "./components/dialogs/ActivityDialog";
@@ -173,7 +174,6 @@ export default function CreateInvitationForm({
         </div>
       )}
 
-
       {/* Privacy Consent Checkbox */}
       <div className="pt-2 border-t border-brand-ink/10">
         <label className="flex items-start gap-3 cursor-pointer p-3 bg-brand-paper/50 rounded-2xl border border-brand-ink/5">
@@ -189,15 +189,15 @@ export default function CreateInvitationForm({
         </label>
       </div>
 
-      {/* Direct Web Publish Button */}
+      {/* Always-clickable Direct Web Publish Button */}
       <button
         type="button"
         onClick={form.handleAttemptPublish}
-        disabled={!form.isFormValid || form.sending}
-        className="w-full py-4 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-40 disabled:hover:bg-brand-accent text-white font-mono text-sm uppercase font-bold tracking-wider rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+        disabled={form.sending}
+        className="w-full py-4 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-sm uppercase font-bold tracking-wider rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
       >
         <Send size={18} />
-        <span>{form.sending ? "Granskar & skickar..." : "Publicera Inbjudan Direkt"}</span>
+        <span>{form.sending ? "Granskar & skickar..." : "Publicera på anslagstavlan"}</span>
       </button>
 
       {/* Gateway QR / SMS Fallback Section */}
@@ -208,13 +208,17 @@ export default function CreateInvitationForm({
         formattedText={form.formattedText}
       />
 
-      {/* AI Moderation Flag Modal */}
-      <AiFlagModal
-        open={form.aiFlagModal.open}
-        message={form.aiFlagModal.message}
-        onClose={() => form.setAiFlagModal({ open: false, message: "" })}
-        onConfirmOverride={form.executePublish}
-      />
+      {/* Smart AI Pre-flight Review Modal */}
+      {form.aiReviewModal.open && (
+        <AiReviewModal
+          proposal={form.aiReviewModal.proposal}
+          onClose={() => form.setAiReviewModal({ open: false, proposal: { missingFields: [] } })}
+          onAutoFill={form.handleAutoFillExtracted}
+          onPublishAnyway={form.executePublish}
+          sending={form.sending}
+        />
+      )}
     </div>
   );
 }
+

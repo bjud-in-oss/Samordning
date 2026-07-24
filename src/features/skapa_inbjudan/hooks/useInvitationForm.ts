@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Form State & Logic Hook
 
 import { useState } from "react";
-import { FavoriteItem, ActiveDialogType } from "../domain/types";
+import { FavoriteItem, ActiveDialogType, AiReviewProposal } from "../domain/types";
 import { GATEWAY_NUMBER } from "../domain/constants";
 import { washAnnouncementText } from "../../mission_router/domain/parser";
 
@@ -63,8 +63,11 @@ export function useInvitationForm(onSuccess?: () => void) {
   const [sending, setSending] = useState<boolean>(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // AI Flag Modal State
-  const [aiFlagModal, setAiFlagModal] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+  // Smart AI Review Modal State
+  const [aiReviewModal, setAiReviewModal] = useState<{ open: boolean; proposal: AiReviewProposal }>({
+    open: false,
+    proposal: { missingFields: [] }
+  });
 
   // Formatted Output Text
   const formattedText = [
@@ -140,33 +143,74 @@ export function useInvitationForm(onSuccess?: () => void) {
     }
   };
 
-  // Submission / AI Check
+  // Smart Pre-flight Submission Check
   const handleAttemptPublish = async () => {
-    if (!isFormValid) return;
+    // 1. Check missing fields
+    const missingFields: string[] = [];
+    if (!activityText.trim()) missingFields.push("Beskrivning av aktivitet");
+    if (!selectedTime.trim()) missingFields.push("Tid & datum");
+    if (!locationName.trim()) missingFields.push("Mötesplats");
+    if (!selectedOrganization.trim()) missingFields.push("Arrangör");
+    if (!consentConfirmed) missingFields.push("Bekräftelse av personuppgiftsansvar");
+
+    // 2. Check text for extractable details
+    const extractedFromText: { time?: string; location?: string } = {};
+    if (activityText) {
+      const timeMatch = activityText.match(/(kl\.?\s*\d{1,2}(:\d{2})?|\d{1,2}:\d{2}|idag\s+kl\s*\d{1,2}|imorgon\s+kl\s*\d{1,2})/i);
+      if (timeMatch && !selectedTime.trim()) {
+        extractedFromText.time = timeMatch[0];
+      }
+      const locMatch = activityText.match(/(i\s+[A-ZÅÄÖa-zåäö]{3,}|på\s+[A-ZÅÄÖa-zåäö]{3,}|kapellet|kyrkan|slottsskogen)/i);
+      if (locMatch && !locationName.trim()) {
+        extractedFromText.location = locMatch[0];
+      }
+    }
 
     setSending(true);
-    try {
-      const response = await fetch("/api/wash-announcement", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: formattedText })
-      });
-      const data = await response.json();
+    let reasonCopy = "";
+    let hasPrivacyFlag = false;
 
-      if (data.result?.hasPrivacyRisk || data.result?.hasInappropriateContent) {
-        setAiFlagModal({
-          open: true,
-          message: data.result.reason || "Inbjudan innehåller information som kan vara känslig eller behöver granskas extra noga."
+    // Run AI check if activityText is present
+    if (activityText.trim()) {
+      try {
+        const response = await fetch("/api/wash-announcement", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: formattedText })
         });
-        setSending(false);
-        return;
+        const data = await response.json();
+        if (data.result?.hasPrivacyRisk || data.result?.hasInappropriateContent) {
+          hasPrivacyFlag = true;
+          reasonCopy = data.result.reason || "Inbjudan innehåller information som kan vara känslig eller behöver extra granskning.";
+        }
+      } catch (err) {
+        console.error("AI Check error:", err);
       }
-
-      await executePublish();
-    } catch (err) {
-      console.error("AI Check error:", err);
-      await executePublish();
     }
+    setSending(false);
+
+    // If missing fields or privacy flags or extracted info exists -> show Smart AI Review Modal
+    if (missingFields.length > 0 || hasPrivacyFlag || extractedFromText.time || extractedFromText.location) {
+      setAiReviewModal({
+        open: true,
+        proposal: {
+          missingFields,
+          extractedFromText: (extractedFromText.time || extractedFromText.location) ? extractedFromText : undefined,
+          reasonCopy,
+          hasPrivacyFlag
+        }
+      });
+      return;
+    }
+
+    // All clean & complete -> publish directly
+    await executePublish();
+  };
+
+  const handleAutoFillExtracted = (extracted: { time?: string; location?: string }) => {
+    if (extracted.time && !selectedTime) setSelectedTime(extracted.time);
+    if (extracted.location && !locationName) setLocationName(extracted.location);
+    setAiReviewModal({ open: false, proposal: { missingFields: [] } });
   };
 
   const executePublish = async () => {
@@ -213,7 +257,7 @@ export function useInvitationForm(onSuccess?: () => void) {
       alert("Nätverksfel vid publicering.");
     } finally {
       setSending(false);
-      setAiFlagModal({ open: false, message: "" });
+      setAiReviewModal({ open: false, proposal: { missingFields: [] } });
     }
   };
 
@@ -266,8 +310,9 @@ export function useInvitationForm(onSuccess?: () => void) {
     setShowQrSection,
     sending,
     toast,
-    aiFlagModal,
-    setAiFlagModal,
+    aiReviewModal,
+    setAiReviewModal,
+    handleAutoFillExtracted,
     formattedText,
     isFormValid,
     handleSaveFavorite,
@@ -277,3 +322,4 @@ export function useInvitationForm(onSuccess?: () => void) {
     executePublish
   };
 }
+

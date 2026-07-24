@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Live Invitation Preview Card Component
 
 import React from "react";
-import { Clock, MapPin, Users, Globe, ShieldCheck, Sparkles } from "lucide-react";
+import { Clock, MapPin, Users, Globe, ShieldCheck } from "lucide-react";
 import { washAnnouncementText } from "../../mission_router/domain/parser";
 import { ActiveDialogType } from "../domain/types";
 
@@ -52,10 +52,9 @@ export function PreviewCard({
         <button
           type="button"
           onClick={() => onOpenDialog?.("activity")}
-          className="w-full text-left p-2 -m-2 rounded-2xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 group cursor-pointer flex items-start gap-3"
+          className="w-full text-left p-2 -m-2 rounded-2xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 group cursor-pointer"
         >
-          <Sparkles size={18} className="text-brand-accent shrink-0 mt-1" />
-          <div className="flex-1 min-w-0 space-y-0.5">
+          <div className="space-y-0.5">
             <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
               {activityText ? "AKTIVITET" : "Beskriv din inbjudan"}
             </span>
@@ -112,7 +111,7 @@ export function PreviewCard({
             <Globe size={18} className="text-brand-accent shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0 space-y-0.5">
               <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
-                {selectedAreas.length > 0 ? "BJUD IN FRÅN" : "Varifrån bjuder du in?"}
+                {selectedAreas.length > 0 ? "BJUD IN FRÅN" : "Var hör deltagarna hemma?"}
               </span>
               <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink">
                 <span>{selectedAreas.length > 0 ? selectedAreas.join(", ") : "Inga valda"}</span>

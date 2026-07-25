@@ -197,7 +197,7 @@ export default function CreateInvitationForm({
         className="w-full py-4 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-sm uppercase font-bold tracking-wider rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
       >
         <Send size={18} />
-        <span>{form.sending ? "Granskar & skickar..." : "Publicera på anslagstavlan"}</span>
+        <span>{form.sending ? "Granskar & skickar..." : "Publicera"}</span>
       </button>
 
       {/* Gateway QR / SMS Fallback Section */}

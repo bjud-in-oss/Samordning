@@ -27,16 +27,15 @@ export function GatewayQrModal({
       <div className="flex flex-col items-center gap-2">
         <button
           type="button"
-          disabled={!isFormValid}
           onClick={() => setShowQrSection(!showQrSection)}
-          className="w-full py-3.5 px-4 bg-brand-paper hover:bg-brand-paper/80 disabled:opacity-40 disabled:cursor-not-allowed border border-brand-ink/10 text-brand-ink font-mono text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer font-semibold"
+          className="w-full py-3.5 px-4 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/10 text-brand-ink font-mono text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer font-semibold"
         >
           <QrCode size={16} className="text-brand-accent shrink-0" />
-          <span>{showQrSection ? "Dölj QR/SMS-väg" : "Publicera på anslagstavlan via annan enhet"}</span>
+          <span>{showQrSection ? "Dölj QR/SMS-väg" : "Publicera från annan enhet"}</span>
         </button>
       </div>
 
-      {showQrSection && isFormValid && (
+      {showQrSection && (
         <div className="pt-2 animate-in fade-in duration-200">
           {isMobile ? (
             <a

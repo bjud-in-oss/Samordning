@@ -36,7 +36,7 @@ This specification restores the exact clean left-aligned UI layout of the LiveCa
   - LIVECARD badge: Clean dark pill with text "LIVECARD" (no edit pencil icon).
 
 ## 3. Always-Clickable Publish Button & AI Pre-flight Logic
-- **Always Clickable**: "Publicera på anslagstavlan" button is never disabled (except during active network submission).
+- **Always Clickable Buttons**: "Publicera" and "Publicera från annan enhet" are always clickable simultaneously.
 - **Types Contract**: `AiReviewProposal` added in `types.ts` with `missingFields`, `extractedFromText`, `reasonCopy`, `hasPrivacyFlag`.
 - **Smart AI Review Modal (`AiReviewModal.tsx`)**:
   - Opens when mandatory fields are missing or text contains potential details/privacy flags.

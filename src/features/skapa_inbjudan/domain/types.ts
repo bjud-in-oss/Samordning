@@ -10,6 +10,7 @@ export interface AiReviewProposal {
     time?: string;
     location?: string;
   };
+  organizerNotice?: string;
   reasonCopy?: string;
   hasPrivacyFlag?: boolean;
 }

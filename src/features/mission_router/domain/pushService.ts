@@ -107,23 +107,31 @@ export async function triggerPushAlert(alert: ActiveAlert): Promise<number> {
   const alertLang = alert.language.toLowerCase();
   const normAlert = normalize(alertLang);
 
+  const alertAreas = (alert.area || "").split(",").map(a => a.trim()).filter(Boolean);
+
   for (const s of subscriptions) {
     let hasMatch = false;
+
+    const matchesPrimaryArea = alertAreas.some(a => a.toLowerCase() === (s.tags.primaryArea || "").toLowerCase());
+    const monitorsArea = alertAreas.length === 0 || alertAreas.some(a => 
+      s.tags.primaryArea?.toLowerCase() === a.toLowerCase() ||
+      (s.tags.areas || []).some(subA => subA.toLowerCase() === a.toLowerCase()) ||
+      !s.tags.limitAreas || 
+      (s.tags.limitedAreas || []).some(subA => subA.toLowerCase() === a.toLowerCase())
+    );
 
     if (isCommon || alert.escalationLevel === 3) {
       // Scenario 1 & Nivå 3 Kaskadnotis: Skicka till ALLA aktiva prenumeranter
       hasMatch = true;
     } else if (alert.escalationLevel === 1) {
-      // Scenario 2: Lokalt Stöd - Nivå 1 - ENBART prenumeranter vars valda stödområde (Sektion A) matchar stadsdelen
-      hasMatch = s.tags.primaryArea === alert.area;
+      // Scenario 2: Lokalt Stöd - Nivå 1 - ENBART prenumeranter vars valda stödområde matchar någon av stadsdelarna
+      hasMatch = matchesPrimaryArea;
     } else if (alert.escalationLevel === 2) {
-      // Scenario 3: Lokalt Stöd - Nivå 2 / #EXPANDERA - samtliga resterande prenumeranter som bevakar området
-      const isRemaining = s.tags.primaryArea !== alert.area;
-      const monitorsArea = !s.tags.limitAreas || (s.tags.limitedAreas || []).includes(alert.area);
+      // Scenario 3: Lokalt Stöd - Nivå 2 / #EXPANDERA - samtliga resterande prenumeranter som bevakar något av områdena
+      const isRemaining = !matchesPrimaryArea;
       hasMatch = isRemaining && monitorsArea;
     } else {
       // Standard filtering for non-escalation / default alerts
-      const monitorsArea = s.tags.primaryArea === alert.area || !s.tags.limitAreas || (s.tags.limitedAreas || []).includes(alert.area);
       const matchesOrg = !s.tags.limitOrganizations || (s.tags.limitedOrganizations || []).includes(alert.responsibleParty);
       hasMatch = monitorsArea && matchesOrg;
     }

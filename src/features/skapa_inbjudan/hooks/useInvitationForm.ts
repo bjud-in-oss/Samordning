@@ -166,6 +166,25 @@ export function useInvitationForm(onSuccess?: () => void) {
       }
     }
 
+    // 3. Organizer clarity & trust checks
+    let organizerNotice = "";
+    const isIndividualOrg = selectedOrganization.toLowerCase().includes("enskild") || selectedOrganization.toLowerCase().includes("familj");
+    if (isIndividualOrg && !organizerPersonName.trim()) {
+      organizerNotice = "När arrangören är satt till Enskild/Familj är det viktigt att det framgår vem som håller i aktiviteten (fyll gärna i personnamn eller familjenamn under Arrangör) för att arrangemanget ska kännas tryggt och kunna publiceras.";
+    }
+
+    if (activityText) {
+      const phoneMatch = activityText.match(/(?:07\d[\d\s-]{6,10}|\+46\d[\d\s-]{6,10})/);
+      const emailMatch = activityText.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/);
+      const contactNameMatch = activityText.match(/(?:kontakt|ring|smsa|hos|med|ansvarig|frågor till|fråga|arrangör)\s+([A-ZÅÄÖa-zåäö]{2,}(?:\s+[A-ZÅÄÖa-zåäö]{2,})?)/i);
+
+      if (phoneMatch || emailMatch || contactNameMatch) {
+        const detectedDetail = phoneMatch?.[0] || emailMatch?.[0] || contactNameMatch?.[0];
+        const contactMsg = `Kontaktuppgifter eller ett personnamn upptäcktes i beskrivningen ("${detectedDetail}"). Är denna person egentligen arrangör för aktiviteten? Tänk på att detta även behöver framgå under fältet Arrangör och inte enbart i beskrivningstexten.`;
+        organizerNotice = organizerNotice ? `${organizerNotice}\n\n${contactMsg}` : contactMsg;
+      }
+    }
+
     setSending(true);
     let reasonCopy = "";
     let hasPrivacyFlag = false;
@@ -189,13 +208,14 @@ export function useInvitationForm(onSuccess?: () => void) {
     }
     setSending(false);
 
-    // If missing fields or privacy flags or extracted info exists -> show Smart AI Review Modal
-    if (missingFields.length > 0 || hasPrivacyFlag || extractedFromText.time || extractedFromText.location) {
+    // If missing fields or privacy flags or extracted info or organizer notice exists -> show Smart Review Modal
+    if (missingFields.length > 0 || hasPrivacyFlag || extractedFromText.time || extractedFromText.location || Boolean(organizerNotice)) {
       setAiReviewModal({
         open: true,
         proposal: {
           missingFields,
           extractedFromText: (extractedFromText.time || extractedFromText.location) ? extractedFromText : undefined,
+          organizerNotice: organizerNotice || undefined,
           reasonCopy,
           hasPrivacyFlag
         }

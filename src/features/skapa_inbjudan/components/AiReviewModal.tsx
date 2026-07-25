@@ -1,7 +1,7 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Smart AI Pre-flight Review Modal
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Smart Pre-flight Review Modal
 
 import React from "react";
-import { Sparkles, AlertTriangle, CheckCircle2, ArrowRight, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ArrowRight, X, FileText, UserCheck } from "lucide-react";
 import { AiReviewProposal } from "../domain/types";
 
 interface AiReviewModalProps {
@@ -19,7 +19,7 @@ export function AiReviewModal({
   onPublishAnyway,
   sending
 }: AiReviewModalProps) {
-  const { missingFields, extractedFromText, reasonCopy, hasPrivacyFlag } = proposal;
+  const { missingFields, extractedFromText, organizerNotice, reasonCopy, hasPrivacyFlag } = proposal;
 
   const hasExtracted = Boolean(extractedFromText?.time || extractedFromText?.location);
 
@@ -36,14 +36,14 @@ export function AiReviewModal({
 
         <div className="flex items-center gap-3">
           <div className={`p-3 rounded-2xl ${hasPrivacyFlag ? "bg-amber-100 text-amber-800" : "bg-brand-accent/10 text-brand-accent"}`}>
-            {hasPrivacyFlag ? <AlertTriangle size={24} /> : <Sparkles size={24} />}
+            {hasPrivacyFlag ? <AlertTriangle size={24} /> : <FileText size={24} />}
           </div>
           <div>
             <h3 className="font-serif text-lg font-bold text-brand-ink leading-tight">
-              {hasPrivacyFlag ? "Granskning innan publicering" : "Tips för en komplett inbjudan"}
+              {hasPrivacyFlag ? "Granskning innan utskick" : "Tips för en komplett inbjudan"}
             </h3>
             <span className="font-mono text-[11px] text-brand-ink/50 uppercase block">
-              AI Pre-flight Assistant
+              Skrivassistans
             </span>
           </div>
         </div>
@@ -69,6 +69,17 @@ export function AiReviewModal({
           </div>
         )}
 
+        {/* Organizer / Contact Notice */}
+        {organizerNotice && (
+          <div className="bg-sky-50 rounded-2xl p-3.5 border border-sky-200 text-xs text-sky-900 space-y-1.5">
+            <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase font-semibold text-sky-800">
+              <UserCheck size={14} className="text-sky-700 shrink-0" />
+              <span>Arrangör & Trygghet</span>
+            </div>
+            <p className="leading-relaxed font-light">{organizerNotice}</p>
+          </div>
+        )}
+
         {/* Extracted Auto-fill Recommendation */}
         {hasExtracted && onAutoFill && (
           <div className="bg-emerald-50 rounded-2xl p-3.5 border border-emerald-200 text-xs font-mono space-y-2">
@@ -91,7 +102,7 @@ export function AiReviewModal({
           </div>
         )}
 
-        {/* Privacy / AI Flag Explanation */}
+        {/* Privacy / Content Note */}
         {reasonCopy && (
           <div className="bg-amber-50 rounded-2xl p-3.5 border border-amber-200 text-xs text-amber-900 space-y-1">
             <span className="font-mono text-[10px] uppercase font-semibold block text-amber-800">
@@ -117,10 +128,11 @@ export function AiReviewModal({
             onClick={onPublishAnyway}
             className="w-full py-3 px-4 bg-brand-paper hover:bg-brand-ink/5 text-brand-ink border border-brand-ink/15 rounded-2xl font-mono text-xs font-medium cursor-pointer transition-colors text-center disabled:opacity-50"
           >
-            {sending ? "Publicerar..." : "Publicera ändå"}
+            {sending ? "Sänder..." : "Sänd ändå"}
           </button>
         </div>
       </div>
     </div>
   );
 }
+

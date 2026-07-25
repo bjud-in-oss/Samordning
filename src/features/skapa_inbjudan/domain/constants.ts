@@ -17,7 +17,6 @@ export const POI_LOCATIONS = [
 ];
 
 export const AUDIENCE_OPTIONS = [
-  "Alla målgrupper",
   "Barn & Familj",
   "Ungdom (12–17 år)",
   "Unga Vuxna (18–35 år)",

@@ -22,7 +22,7 @@ export function useInvitationForm(onSuccess?: () => void) {
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [locationName, setLocationName] = useState<string>("");
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
-  const [selectedAudience, setSelectedAudience] = useState<string[]>(["Alla målgrupper"]);
+  const [selectedAudience, setSelectedAudience] = useState<string[]>([]);
   const [activityText, setActivityText] = useState<string>("");
   const [selectedOrganization, setSelectedOrganization] = useState<string>("");
   const [organizerPersonName, setOrganizerPersonName] = useState<string>("");
@@ -120,7 +120,7 @@ export function useInvitationForm(onSuccess?: () => void) {
     setSelectedTime(fav.time || "");
     setLocationName(fav.location || "");
     setSelectedAreas(fav.areas || []);
-    setSelectedAudience(fav.audience || ["Alla målgrupper"]);
+    setSelectedAudience(fav.audience || []);
     setSelectedOrganization(fav.organization || "");
     setOrganizerPersonName(fav.organizerName || "");
     setActivityText(fav.activity || "");

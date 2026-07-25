@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Single Page Form Orchestrator
 
 import React from "react";
-import { ArrowLeft, CheckCircle, Send } from "lucide-react";
+import { ArrowLeft, CheckCircle, Send, QrCode } from "lucide-react";
 import { CreateInvitationFormProps } from "./domain/types";
 import { useInvitationForm } from "./hooks/useInvitationForm";
 import { FavoritesBar } from "./components/FavoritesBar";
@@ -25,6 +25,14 @@ export default function CreateInvitationForm({
 }: CreateInvitationFormProps) {
   const form = useInvitationForm(onSuccess);
 
+  const handlePrimarySendClick = () => {
+    const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768 && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isDesktop) {
+      form.setShowQrSection(true);
+    }
+    form.handleAttemptPublish();
+  };
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       {/* Toast Notification */}
@@ -36,7 +44,7 @@ export default function CreateInvitationForm({
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-brand-ink/10 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-brand-ink/10 pb-4 gap-3">
         <div className="flex items-center gap-3">
           {onBack && (
             <button
@@ -55,6 +63,28 @@ export default function CreateInvitationForm({
               Inbjudan publiceras direkt i det gemensamma flödet
             </p>
           </div>
+        </div>
+
+        {/* Header Corner Action Buttons */}
+        <div className="flex items-center gap-2 self-start sm:self-center">
+          <button
+            type="button"
+            onClick={() => form.setShowQrSection(!form.showQrSection)}
+            className="px-3.5 py-2 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/15 text-brand-ink font-mono text-xs uppercase font-semibold tracking-wider rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+          >
+            <QrCode size={14} className="text-brand-accent shrink-0" />
+            <span>{form.showQrSection ? "Dölj QR" : "Sänd från mobilen"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handlePrimarySendClick}
+            disabled={form.sending}
+            className="px-4 py-2 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+          >
+            <Send size={14} />
+            <span>{form.sending ? "Sänder..." : "Sänd"}</span>
+          </button>
         </div>
       </div>
 
@@ -189,16 +219,27 @@ export default function CreateInvitationForm({
         </label>
       </div>
 
-      {/* Always-clickable Direct Web Publish Button */}
-      <button
-        type="button"
-        onClick={form.handleAttemptPublish}
-        disabled={form.sending}
-        className="w-full py-4 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-sm uppercase font-bold tracking-wider rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-      >
-        <Send size={18} />
-        <span>{form.sending ? "Granskar & skickar..." : "Publicera"}</span>
-      </button>
+      {/* Bottom Actions Row (Side-by-side) */}
+      <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
+        <button
+          type="button"
+          onClick={() => form.setShowQrSection(!form.showQrSection)}
+          className="px-4 py-2.5 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/15 text-brand-ink font-mono text-xs uppercase font-semibold tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <QrCode size={15} className="text-brand-accent shrink-0" />
+          <span>{form.showQrSection ? "Dölj mobil-QR" : "Sänd från mobilen"}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handlePrimarySendClick}
+          disabled={form.sending}
+          className="px-5 py-2.5 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <Send size={15} />
+          <span>{form.sending ? "Granskar & skickar..." : "Sänd"}</span>
+        </button>
+      </div>
 
       {/* Gateway QR / SMS Fallback Section */}
       <GatewayQrModal

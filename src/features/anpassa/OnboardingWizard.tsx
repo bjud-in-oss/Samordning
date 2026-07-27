@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MapPin, Users, PhoneCall, Globe, Check, X, Smartphone, Sparkles, Shield, Settings } from "lucide-react";
 import { GOTEBORG_AREAS } from "./mapData";
-import { TRANSLATIONS, UiLanguage } from "../mission_router/translations";
+import { TRANSLATIONS, UiLanguage } from "../mission_router";
 import Step1Geography from "./Step1Geography";
 
 const TARGET_GROUPS = [

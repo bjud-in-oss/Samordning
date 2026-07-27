@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Check, Info } from "lucide-react";
-import { TRANSLATIONS, UiLanguage } from "../mission_router/translations";
+import { TRANSLATIONS, UiLanguage } from "../mission_router";
 
 export const ORGANIZATIONS = [
   "Missionärerna",

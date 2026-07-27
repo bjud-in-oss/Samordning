@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Check } from "lucide-react";
-import { TRANSLATIONS, UiLanguage } from "../mission_router/translations";
+import { TRANSLATIONS, UiLanguage } from "../mission_router";
 
 interface Step4FormatsProps {
   formats: ("physical" | "telephone")[];

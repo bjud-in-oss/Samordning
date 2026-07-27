@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, MapPin, Calendar, Languages, ShieldCheck, Phone, Check, QrCode } from "lucide-react";
-import { TRANSLATIONS, UiLanguage } from "../mission_router/translations";
+import { TRANSLATIONS, UiLanguage } from "../mission_router";
 
 interface AlertDetailProps {
   alertId: string;

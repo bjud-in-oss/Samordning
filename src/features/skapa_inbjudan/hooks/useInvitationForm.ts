@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FavoriteItem } from "../domain/types";
-import { washAnnouncementText } from "../../mission_router/domain/parser";
+import { washAnnouncementText } from "../../mission_router";
 import { useInvitationFavorites } from "./subhooks/useInvitationFavorites";
 import { useInvitationDialogs } from "./subhooks/useInvitationDialogs";
 import { useInvitationPublishing } from "./subhooks/useInvitationPublishing";

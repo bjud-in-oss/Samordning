@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Check } from "lucide-react";
-import { TRANSLATIONS, UiLanguage } from "../mission_router/translations";
+import { TRANSLATIONS, UiLanguage } from "../mission_router";
 
 const LANGUAGE_OPTIONS = [
   { code: "Svenska", label: "Svenska / Swedish" },

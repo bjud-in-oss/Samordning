@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AiReviewProposal } from "../../domain/types";
-import { washAnnouncementText } from "../../../mission_router/domain/parser";
+import { washAnnouncementText } from "../../../mission_router";
 
 interface UseInvitationPublishingParams {
   activityText: string;

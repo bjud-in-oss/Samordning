@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
 import React from "react";
-import { UiLanguage, TRANSLATIONS } from "../mission_router/translations";
+import { UiLanguage, TRANSLATIONS } from "../mission_router";
 
 interface DisclaimerProps {
   uiLanguage: UiLanguage;

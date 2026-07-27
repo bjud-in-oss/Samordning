@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { ExternalLink, Send, CheckCircle, Sparkles, ShieldAlert, ArrowLeft } from "lucide-react";
-import { ActiveAlert } from "../mission_router/types";
-import { TRANSLATIONS, UiLanguage } from "../mission_router/translations";
-import { GOTEBORG_AREAS } from "../anpassa/mapData";
-import { washAnnouncementText } from "../mission_router/domain/parser";
+import { ActiveAlert, TRANSLATIONS, UiLanguage, washAnnouncementText } from "../mission_router";
+import { GOTEBORG_AREAS } from "../anpassa";
 import { CreateInvitationForm } from "../skapa_inbjudan";
 import { subscribeToFirestoreAlerts } from "../../main/config/firebaseClient";
 

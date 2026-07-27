@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Check, MapPin, X } from "lucide-react";
 import { GOTEBORG_AREAS, MAP_DISTRICTS, AREA_TO_DISTRICT_MAP, DISTRICT_NAME_MAPPING } from "./mapData";
-import { UiLanguage } from "../mission_router/translations";
+import { UiLanguage } from "../mission_router";
 
 interface Step1GeographyProps {
   primaryArea?: string;

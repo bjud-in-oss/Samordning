@@ -2,14 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { ShieldAlert, Languages, X, Smartphone, Settings, Plus } from "lucide-react";
-import SettingsTicker from "./features/anpassa/SettingsTicker";
-import OnboardingWizard from "./features/anpassa/OnboardingWizard";
-import AlertDetail from "./features/inbjudningar/AlertDetail";
-import ActiveStream from "./features/inbjudningar/ActiveStream";
-import Disclaimer from "./features/inbjudningar/Disclaimer";
-import { TRANSLATIONS, UiLanguage } from "./features/mission_router/translations";
-import AdminConsole from "./features/sms_assistant/components/AdminConsole";
-import { subscribeUserToPush, pingRenderBackend } from "./features/mobile_pwa_app/pwaService";
+import { SettingsTicker, OnboardingWizard } from "./features/anpassa";
+import { AlertDetail, ActiveStream, Disclaimer } from "./features/inbjudningar";
+import { TRANSLATIONS, UiLanguage } from "./features/mission_router";
+import { AdminConsole } from "./features/sms_assistant";
+import { subscribeUserToPush, pingRenderBackend } from "./features/mobile_pwa_app";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);

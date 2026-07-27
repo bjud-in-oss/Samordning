@@ -33,20 +33,36 @@ export default function App() {
 
   const [showIosModal, setShowIosModal] = useState<boolean>(false);
   const [uiLanguage, setUiLanguage] = useState<UiLanguage | null>(() => {
-    return localStorage.getItem("mission_router_ui_language") as UiLanguage | null;
+    try {
+      const stored = localStorage.getItem("mission_router_ui_language") as UiLanguage | null;
+      if (stored && ["sv", "en", "es", "sw", "vi"].includes(stored)) {
+        return stored;
+      }
+    } catch (e) {
+      // Ignore
+    }
+    return null;
   });
   const [hasAcceptedIntro, setHasAcceptedIntro] = useState<boolean>(() => {
-    return localStorage.getItem("mission_router_has_accepted_intro") === "true";
+    try {
+      return localStorage.getItem("mission_router_has_accepted_intro") === "true";
+    } catch (e) {
+      return false;
+    }
   });
   
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    return localStorage.getItem("isAdmin") === "true";
+    try {
+      return localStorage.getItem("isAdmin") === "true";
+    } catch (e) {
+      return false;
+    }
   });
 
   const handleAdminAuth = () => {
     const password = prompt("Ange administratörskod:");
     if (password === "utby2026") {
-      localStorage.setItem("isAdmin", "true");
+      try { localStorage.setItem("isAdmin", "true"); } catch(e) {}
       setIsAdmin(true);
       alert("Du är nu inloggad som administratör.");
     } else if (password !== null) {
@@ -57,11 +73,20 @@ export default function App() {
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
 
   const [subscriptionId, setSubscriptionId] = useState<string | null>(() => {
-    return localStorage.getItem("mission_router_sub_id");
+    try {
+      return localStorage.getItem("mission_router_sub_id");
+    } catch (e) {
+      return null;
+    }
   });
   const [savedTags, setSavedTags] = useState<any>(() => {
-    const data = localStorage.getItem("mission_router_tags");
-    return data ? JSON.parse(data) : null;
+    try {
+      const data = localStorage.getItem("mission_router_tags");
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      console.warn("Could not parse mission_router_tags from localStorage", e);
+      return null;
+    }
   });
 
   const [pushEnabled, setPushEnabled] = useState<boolean>(false);

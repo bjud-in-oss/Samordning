@@ -34,8 +34,13 @@ export function useInvitationFavorites({
 }: UseInvitationFavoritesParams) {
   const [favorites, setFavorites] = useState<FavoriteItem[]>(() => {
     if (typeof localStorage !== "undefined") {
-      const stored = localStorage.getItem("mission_router_named_favorites");
-      return stored ? JSON.parse(stored) : [];
+      try {
+        const stored = localStorage.getItem("mission_router_named_favorites");
+        return stored ? JSON.parse(stored) : [];
+      } catch (err) {
+        console.warn("Could not parse favorites from localStorage", err);
+        return [];
+      }
     }
     return [];
   });

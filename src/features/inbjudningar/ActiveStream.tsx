@@ -48,8 +48,13 @@ export default function ActiveStream({
   // User's own submitted proposals from localStorage
   const [myProposals, setMyProposals] = useState<any[]>(() => {
     if (typeof localStorage !== "undefined") {
-      const stored = localStorage.getItem("my_pending_proposals");
-      return stored ? JSON.parse(stored) : [];
+      try {
+        const stored = localStorage.getItem("my_pending_proposals");
+        return stored ? JSON.parse(stored) : [];
+      } catch (err) {
+        console.warn("Could not parse my_pending_proposals from localStorage", err);
+        return [];
+      }
     }
     return [];
   });
@@ -57,8 +62,12 @@ export default function ActiveStream({
   // Usage count & adaptive help state
   const [usageCount, setUsageCount] = useState<number>(() => {
     if (typeof localStorage !== "undefined") {
-      const stored = localStorage.getItem("mission_router_usage_count");
-      return stored ? parseInt(stored, 10) : 0;
+      try {
+        const stored = localStorage.getItem("mission_router_usage_count");
+        return stored ? parseInt(stored, 10) || 0 : 0;
+      } catch (err) {
+        return 0;
+      }
     }
     return 0;
   });

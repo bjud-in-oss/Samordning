@@ -1,6 +1,6 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Single Page Form Orchestrator
 
-import React from "react";
+import React, { useState } from "react";
 import { ArrowLeft, CheckCircle, Send, QrCode } from "lucide-react";
 import { CreateInvitationFormProps } from "./domain/types";
 import { useInvitationForm } from "./hooks/useInvitationForm";
@@ -9,6 +9,7 @@ import { PreviewCard } from "./components/PreviewCard";
 import { GatewayQrModal } from "./components/GatewayQrModal";
 import { AiFlagModal } from "./components/AiFlagModal";
 import { AiReviewModal } from "./components/AiReviewModal";
+import { PostSubmissionSteps } from "./components/PostSubmissionSteps";
 import { TimeDialog } from "./components/dialogs/TimeDialog";
 import { LocationDialog } from "./components/dialogs/LocationDialog";
 import { ActivityDialog } from "./components/dialogs/ActivityDialog";
@@ -24,13 +25,11 @@ export default function CreateInvitationForm({
   onSuccess
 }: CreateInvitationFormProps) {
   const form = useInvitationForm(onSuccess);
+  const [showPostSubmissionSteps, setShowPostSubmissionSteps] = useState<boolean>(false);
 
   const handlePrimarySendClick = () => {
-    const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768 && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isDesktop) {
-      form.setShowQrSection(true);
-    }
-    form.handleAttemptPublish();
+    // Open post-submission steps
+    setShowPostSubmissionSteps(true);
   };
 
   return (
@@ -112,6 +111,7 @@ export default function CreateInvitationForm({
         isRecurring={form.isRecurring}
         hasReminder={form.hasReminder}
         reminderTime={form.reminderTime}
+        activeDialog={form.activeDialog}
         onOpenDialog={form.openDialog}
       />
 
@@ -258,6 +258,27 @@ export default function CreateInvitationForm({
           onPublishAnyway={form.executePublish}
           sending={form.sending}
         />
+      )}
+
+      {/* Post-Submission Sequential Cards Modal */}
+      {showPostSubmissionSteps && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <PostSubmissionSteps
+            formattedText={form.formattedText}
+            selectedTime={form.selectedTime}
+            locationName={form.locationName}
+            selectedOrganization={form.selectedOrganization}
+            organizerPersonName={form.organizerPersonName}
+            activityText={form.activityText}
+            selectedAreas={form.selectedAreas}
+            selectedAudience={form.selectedAudience}
+            onFinished={() => {
+              setShowPostSubmissionSteps(false);
+              if (onSuccess) onSuccess();
+            }}
+            onCancel={() => setShowPostSubmissionSteps(false)}
+          />
+        </div>
       )}
     </div>
   );

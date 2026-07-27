@@ -16,6 +16,7 @@ interface PreviewCardProps {
   isRecurring: boolean;
   hasReminder: boolean;
   reminderTime: string;
+  activeDialog?: ActiveDialogType;
   onOpenDialog?: (dialog: ActiveDialogType) => void;
 }
 
@@ -30,8 +31,11 @@ export function PreviewCard({
   isRecurring,
   hasReminder,
   reminderTime,
+  activeDialog,
   onOpenDialog
 }: PreviewCardProps) {
+  const isEditing = activeDialog !== null && activeDialog !== undefined;
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -39,11 +43,13 @@ export function PreviewCard({
           Klicka på fälten i kortet för att komponera din inbjudan:
         </span>
         <span className="font-mono text-[10px] text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-full font-medium shrink-0">
-          Direktredigering
+          {isEditing ? "Fokuseditering pågår..." : "Direktredigering"}
         </span>
       </div>
 
-      <div className="bg-white rounded-3xl p-6 border-2 border-brand-accent/20 shadow-md space-y-4 relative overflow-hidden">
+      <div className={`bg-white rounded-3xl p-6 border-2 border-brand-accent/20 shadow-md space-y-4 relative overflow-hidden transition-all duration-300 ${
+        isEditing ? "opacity-30 blur-[1px] scale-[0.99] pointer-events-none" : "opacity-100 blur-none scale-100"
+      }`}>
         <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-bl-xl">
           LIVECARD
         </div>

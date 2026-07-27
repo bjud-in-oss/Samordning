@@ -20,7 +20,7 @@ import { ActiveAlert } from "./src/shared/types";
 interface SmsDraft {
   rawText: string;
   extractedMetadata: {
-    category: "Vara en vän" | "Få näring av Guds ord" | "Hjälpa andra";
+    category: "Vara en vän" | "Läsa skrifterna" | "Få näring av Guds ord" | "Hjälpa andra";
     area: string | null;
     time: string | null;
     audience: "Alla" | "Enbart missionärerna";

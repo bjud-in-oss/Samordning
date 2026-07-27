@@ -21,3 +21,11 @@
 - **Status**: Accepted & Enforced
 - **Context**: Ensuring 100% type safety and high test confidence during builds.
 - **Decision**: Type checking (`tsc --noEmit`) and linting must pass before cycle completion. All domain interfaces must be frozen in `domain/types.ts`.
+
+## ADR-004: FSD Layer Separation & Shared Infrastructure
+- **Status**: Accepted & Enforced
+- **Context**: Non-UI infrastructure, shared map data, i18n dictionaries, and Node-only services were previously mixed inside feature directories.
+- **Decision**: Established a strict 3-tier FSD hierarchy:
+  1. `src/shared/`: Client-safe shared domain types, map data, i18n dictionaries, and PWA utilities behind `src/shared/index.ts`.
+  2. `src/main/services/`: Server-only infrastructure services (`pushService.ts`, `parser.ts`) encapsulated for backend execution only.
+  3. `src/features/`: Pure UI feature slices exposing public capabilities strictly via `index.ts`.

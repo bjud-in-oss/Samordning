@@ -3,7 +3,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
-import { runAiWash, runGeminiWash, getCoordsForArea, isApprovedSender, STODDISTRIKT, calculateSecondsUntilTime, washAnnouncementText } from "./src/features/mission_router/domain/parser";
+import { runAiWash, runGeminiWash, getCoordsForArea, isApprovedSender, STODDISTRIKT, calculateSecondsUntilTime, washAnnouncementText } from "./src/main/services/parser";
 import { runSupportAgent } from "./src/features/sms_assistant/domain/supportAgent";
 import { 
   subscriptions, 
@@ -14,8 +14,8 @@ import {
   broadcastCancelPush, 
   initWebPush, 
   getVapidPublicKey 
-} from "./src/features/mission_router/domain/pushService";
-import { ActiveAlert } from "./src/features/mission_router/types";
+} from "./src/main/services/pushService";
+import { ActiveAlert } from "./src/shared/types";
 
 interface SmsDraft {
   rawText: string;

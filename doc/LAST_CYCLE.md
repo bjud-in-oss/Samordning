@@ -29,9 +29,12 @@ A full Feature-Sliced Design (FSD) refactoring has been executed across the repo
 ---
 
 ## 2. Verification & Pre-Commit Gate Results
-- **Vitest Unit Test Suite (`npm test`)**: PASSED (8 tests across 3 test files in 1.49s).
+- **Vitest Unit Test Suite (`npm test`)**: PASSED (15 tests across 6 test files in 2.75s).
   - `src/main/services/__tests__/parser.test.ts`: PASSED (6 tests)
   - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationFavorites.test.ts`: PASSED (1 test)
+  - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationDialogs.test.ts`: PASSED (2 tests)
+  - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationPublishing.test.ts`: PASSED (3 tests)
+  - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationForm.test.ts`: PASSED (2 tests)
   - `src/features/sms_assistant/domain/__tests__/supportAgent.test.ts`: PASSED (1 test)
 - **TypeScript Typecheck (`tsc --noEmit`)**: PASSED (0 errors).
 - **Vite Application Build (`compile_applet`)**: PASSED cleanly.

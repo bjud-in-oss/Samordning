@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Clock, MapPin, Users, Globe, ShieldCheck } from "lucide-react";
-import { washAnnouncementText } from "../../mission_router/domain/parser";
+import { washAnnouncementText } from "../../mission_router";
 import { ActiveDialogType } from "../domain/types";
 
 interface PreviewCardProps {

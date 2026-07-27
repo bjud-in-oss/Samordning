@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Check, CheckSquare, XCircle } from "lucide-react";
-import { GOTEBORG_AREAS } from "../../../anpassa/mapData";
+import { GOTEBORG_AREAS } from "../../../anpassa";
 
 interface AreaDialogProps {
   tempAreas: string[];

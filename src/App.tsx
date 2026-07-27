@@ -541,25 +541,13 @@ export default function App() {
                 </div>
               )}
 
-              {currentView === 'stream' && activeTab === "stream" && (
+              {currentView === 'stream' && (
                 <ActiveStream
                   onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
                   uiLanguage={uiLanguage || "sv"}
                   savedTags={savedTags}
                   onStreamCountChange={handleStreamCountChange}
-                  inlineCreate={false}
-                  isAdmin={isAdmin}
-                  pushEnabled={pushEnabled}
-                />
-              )}
-
-              {currentView === 'stream' && activeTab === "create" && (
-                <ActiveStream
-                  onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
-                  uiLanguage={uiLanguage || "sv"}
-                  savedTags={savedTags}
-                  onStreamCountChange={handleStreamCountChange}
-                  inlineCreate={true}
+                  inlineCreate={activeTab === "create"}
                   isAdmin={isAdmin}
                   pushEnabled={pushEnabled}
                   onBack={() => setActiveTab("stream")}
@@ -570,20 +558,6 @@ export default function App() {
           </div>
         )}
       </main>
-
-      {/* Floating Action Button (FAB) for creating invitations - Anchored on center column */}
-      {currentView === 'stream' && activeTab === 'stream' && !activeAlertId && (
-        <div className="fixed bottom-6 inset-x-0 z-40 pointer-events-none max-w-2xl mx-auto px-4 sm:px-6 flex justify-end">
-          <button
-            onClick={() => setActiveTab('create')}
-            className="pointer-events-auto bg-brand-accent hover:bg-brand-accent/90 text-white rounded-full px-5 py-3 shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer font-mono text-xs uppercase tracking-wider font-semibold"
-            title="Bjud in"
-          >
-            <Plus size={18} />
-            <span>Bjud in</span>
-          </button>
-        </div>
-      )}
 
       {/* Centered Foot Disclaimer */}
       <Disclaimer 

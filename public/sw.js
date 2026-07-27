@@ -1,26 +1,54 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
 
-const CACHE_NAME = 'inbjudan-pwa-v1';
+const CACHE_NAME = 'inbjudan-pwa-v2';
 
 self.addEventListener('install', function(event) {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', function(event) {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    caches.keys().then(function(cacheNames) {
+      return Promise.all(
+        cacheNames
+          .filter(function(name) {
+            return name !== CACHE_NAME;
+          })
+          .map(function(name) {
+            return caches.delete(name);
+          })
+      );
+    }).then(function() {
+      return clients.claim();
+    })
+  );
 });
 
 self.addEventListener('fetch', function(event) {
+  if (event.request.method !== 'GET') return;
+
   // Pass through API & dynamic requests to network directly
   if (event.request.url.includes('/api/')) {
     return;
   }
+
+  // Network-First strategy: fetch fresh assets from network, fallback to cache if offline
   event.respondWith(
-    caches.match(event.request).then(function(response) {
-      return response || fetch(event.request);
-    }).catch(function() {
-      return caches.match('/');
-    })
+    fetch(event.request)
+      .then(function(networkResponse) {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then(function(cache) {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(function() {
+        return caches.match(event.request).then(function(cachedResponse) {
+          return cachedResponse || caches.match('/');
+        });
+      })
   );
 });
 

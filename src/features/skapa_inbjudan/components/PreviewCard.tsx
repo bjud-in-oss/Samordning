@@ -39,10 +39,15 @@ export function PreviewCard({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="font-mono text-xs uppercase font-semibold text-brand-ink/80">
-          Klicka på fälten i kortet för att komponera din inbjudan:
-        </span>
-        <span className="font-mono text-[10px] text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-full font-medium shrink-0">
+        <div>
+          <h2 className="font-serif font-bold text-xl text-brand-ink">
+            Skapa din inbjudan
+          </h2>
+          <p className="font-mono text-[11px] text-brand-ink/60">
+            Klicka på fälten i kortet för att komponera direkt
+          </p>
+        </div>
+        <span className="font-mono text-[10px] text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-full font-medium shrink-0">
           {isEditing ? "Fokuseditering pågår..." : "Direktredigering"}
         </span>
       </div>

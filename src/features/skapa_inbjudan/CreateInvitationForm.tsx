@@ -33,7 +33,7 @@ export default function CreateInvitationForm({
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+    <div className="w-full space-y-4">
       {/* Toast Notification */}
       {form.toast && (
         <div className="fixed top-4 right-4 z-50 bg-emerald-900 text-white font-mono text-xs px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
@@ -42,62 +42,18 @@ export default function CreateInvitationForm({
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-brand-ink/10 pb-4 gap-3">
-        <div className="flex items-center gap-3">
-          {onBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="p-2 bg-brand-paper hover:bg-brand-paper/80 rounded-xl border border-brand-ink/10 text-brand-ink transition-all cursor-pointer"
-            >
-              <ArrowLeft size={18} />
-            </button>
-          )}
-          <div>
-            <h1 className="text-2xl font-serif font-bold text-brand-ink">
-              Skapa ny Inbjudan
-            </h1>
-            <p className="font-mono text-xs text-brand-ink/60">
-              Inbjudan publiceras direkt i det gemensamma flödet
-            </p>
-          </div>
-        </div>
-
-        {/* Header Corner Action Buttons */}
-        <div className="flex items-center gap-2 self-start sm:self-center">
+      {/* Optional Close Link if onBack provided */}
+      {onBack && (
+        <div className="flex justify-end">
           <button
             type="button"
-            onClick={() => form.setShowQrSection(!form.showQrSection)}
-            className="px-3.5 py-2 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/15 text-brand-ink font-mono text-xs uppercase font-semibold tracking-wider rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+            onClick={onBack}
+            className="text-xs font-mono text-brand-ink/60 hover:text-brand-ink underline transition-colors cursor-pointer"
           >
-            <QrCode size={14} className="text-brand-accent shrink-0" />
-            <span>{form.showQrSection ? "Dölj QR" : "Sänd från mobilen"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handlePrimarySendClick}
-            disabled={form.sending}
-            className="px-4 py-2 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
-          >
-            <Send size={14} />
-            <span>{form.sending ? "Sänder..." : "Sänd"}</span>
+            Dölj skaparkort
           </button>
         </div>
-      </div>
-
-      {/* Favorites Bar */}
-      <FavoritesBar
-        favorites={form.favorites}
-        favModalOpen={form.favModalOpen}
-        setFavModalOpen={form.setFavModalOpen}
-        newFavName={form.newFavName}
-        setNewFavName={form.setNewFavName}
-        onSaveFavorite={form.handleSaveFavorite}
-        onApplyFavorite={form.handleApplyFavorite}
-        onRemoveFavorite={form.handleRemoveFavorite}
-      />
+      )}
 
       {/* Live Interactive Preview Card */}
       <PreviewCard

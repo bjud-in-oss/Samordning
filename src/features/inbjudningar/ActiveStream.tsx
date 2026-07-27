@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/4_Produce] - ActiveStream Firestore Connected Verified Saved
 
 import React, { useState, useEffect } from "react";
-import { ExternalLink, Send, CheckCircle, Sparkles, ShieldAlert, ArrowLeft } from "lucide-react";
+import { ExternalLink, Send, CheckCircle, Sparkles, ShieldAlert, ArrowLeft, Plus } from "lucide-react";
 import { ActiveAlert, TRANSLATIONS, UiLanguage, washAnnouncementText } from "../mission_router";
 import { GOTEBORG_AREAS } from "../anpassa";
 import { CreateInvitationForm } from "../skapa_inbjudan";
@@ -44,6 +44,12 @@ export default function ActiveStream({
   const [stream, setStream] = useState<ActiveAlert[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [showCreateCard, setShowCreateCard] = useState<boolean>(inlineCreate);
+
+  useEffect(() => {
+    setShowCreateCard(inlineCreate);
+  }, [inlineCreate]);
 
   // User's own submitted proposals from localStorage
   const [myProposals, setMyProposals] = useState<any[]>(() => {
@@ -283,37 +289,46 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
   const smsHref = `sms:0736108997?body=${encodeURIComponent(smsPayload)}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(smsHref)}`;
 
-  if (inlineCreate) {
-    return (
-      <CreateInvitationForm
-        uiLanguage={uiLanguage}
-        savedTags={savedTags}
-        isAdmin={isAdmin}
-        onBack={onBack}
-        onSuccess={fetchStream}
-      />
-    );
-  }
-
   return (
     <div className="space-y-6 w-full max-w-2xl mx-auto">
-      {/* Top Header Card */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-brand-ink/5 shadow-xs text-left">
-        <div className="flex items-center justify-between">
-          <h2 className="font-serif italic text-2xl sm:text-3xl font-medium text-brand-ink">
-            {t.introHeading || "Inbjudan till dig"}
-          </h2>
-          {onBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-3 py-1.5 bg-brand-paper hover:bg-brand-ink/10 text-brand-ink rounded-lg font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
-            >
-              Visa dina inbjudningar igen
-            </button>
-          )}
+      {/* Action Zone: + Skapa inbjudan */}
+      {!showCreateCard ? (
+        <div className="bg-white/90 border border-brand-accent/20 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs text-left hover:border-brand-accent/40 transition-all">
+          <div>
+            <h3 className="font-serif font-bold text-lg text-brand-ink">
+              Skapa din inbjudan
+            </h3>
+            <p className="font-mono text-xs text-brand-ink/60 mt-0.5">
+              Tänd LiveCardet direkt i flödet och komponera på sekunder
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowCreateCard(true)}
+            className="px-4 py-2.5 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer shrink-0"
+          >
+            <Plus size={16} />
+            <span>+ Skapa inbjudan</span>
+          </button>
         </div>
-      </div>
+      ) : (
+        <div className="animate-in fade-in zoom-in-95 duration-200 bg-white rounded-3xl p-4 sm:p-6 border-2 border-brand-accent/30 shadow-lg">
+          <CreateInvitationForm
+            uiLanguage={uiLanguage}
+            savedTags={savedTags}
+            isAdmin={isAdmin}
+            onBack={() => {
+              setShowCreateCard(false);
+              if (onBack) onBack();
+            }}
+            onSuccess={() => {
+              fetchStream();
+              setShowCreateCard(false);
+              if (onBack) onBack();
+            }}
+          />
+        </div>
+      )}
 
       {/* Admin Moderation Queue Banner (visible to admins when pending posts exist) */}
       {isAdmin && pendingAlerts.length > 0 && (

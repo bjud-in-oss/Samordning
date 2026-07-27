@@ -1,32 +1,21 @@
-[FEATURE: LiveCard & Moderering] | [CYCLE: Produce -> Completed] | [STAGE: Green/Verified] | [TURN: 1/1]
+[FEATURE: Flödesuppstädning & PWA-Cachning] | [CYCLE: Produce -> Completed] | [STAGE: Green/Verified] | [TURN: 1/1]
 
-# LiveCard & Moderering Implementation — Final Status Report
+# Flödesuppstädning & PWA-Cachning — Final Status Report
 
-## 1. Summary of Implemented Features (doc/UI_WORKFLOWS.md)
-1. **Tre Huvudkategorier (AI-kategorisering)**:
-   - Uppdaterat kategorisystemet i `parser.ts` och `server.ts` till tre pelare:
-     - **Vara en vän** (Samvaro, samtal, gemenskap, relationer)
-     - **Läsa skrifterna** (Guds ord, standardverken, Mormons bok, fördjupning)
-     - **Hjälpa andra** (Praktisk hjälp, stöd, tjänande, omtanke)
+## 1. Summary of Executed Fixes
+1. **Borttagen Dubblerad Rubrik i `ActiveStream.tsx`**:
+   - Det översta vita kortet med rubriken "Inbjudan till dig" och knappen "Visa dina inbjudningar igen" har tagits bort helt.
+   - Flödet av inbjudningskort startar nu direkt under den fasta toppmenyn och "+ Skapa inbjudan" Action Zone.
 
-2. **Fokuserat LiveCard-flöde**:
-   - `PreviewCard` har försetts med visuellt fokusediteringsläge. När ett fält redigeras tonas kortet ned med blur och fokusskala.
-   - När fältet fyllts i eller avslutats återgår kortet till 100% skärpa med direkt synliga uppdateringar.
-
-3. **Sekventiella Steg efter Insändning**:
-   - Skapat `PostSubmissionSteps.tsx` med 3 linjära steg:
-     1. **Integritet**: Mjuk bekräftelse av personuppgiftsansvar.
-     2. **SMS & Delning**: Direktlänk/knapp för enhetens SMS-app samt kopieringsfunktion.
-     3. **SMS-Retur & Kalender**: Bekräftelse om meddelandet skickades, automatisk lagring under "Mina anmälningar" i `localStorage`, samt generering av `.ics`-kalenderfil.
-
-4. **Moderering & Admin-godkännande**:
-   - Inbjudningar stämplas med `pending_review` och sparats för avsändarens session i `localStorage`.
-   - `AdminConsole.tsx` har utökats med en flik för moderering där administratörer kan granska alla väntande förslag och välja `Godkänn & Publicera` eller `Avböj`.
+2. **PWA & Service Worker Cachning i `sw.js` / `pwaService.ts`**:
+   - Uppdaterat cachenamnet till `inbjudan-pwa-v2` och infört automatisk rensning av föråldrade cacher vid `activate`-händelsen.
+   - Ändrat cachningsstrategi till **Network-First** för alla `GET`-förfrågningar, vilket säkerställer att nya JavaScript- och tillgångsfiler hämtas direkt från nätverket vid ny deployment, med lokal cache som fallback vid offlineläge.
+   - Tillagt `reg.update()` vid registrering i `pwaService.ts` för att säkerställa snabb upptäckt av nya service workers.
 
 ---
 
 ## 2. Verification & Pre-Commit Gate Results
-- **Vitest Unit Test Suite (`npm test`)**: PASSED (15 tests across 6 test files in 2.70s).
+- **Vitest Unit Test Suite (`npm test`)**: PASSED (15 tests across 6 test files).
 - **TypeScript Typecheck (`tsc --noEmit`)**: PASSED (0 errors).
 - **Vite Application Build (`compile_applet`)**: PASSED cleanly.
 

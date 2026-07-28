@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Live Invitation Preview Card Component
 
 import React from "react";
-import { Clock, MapPin, Users, Globe, ShieldCheck, Send } from "lucide-react";
+import { Clock, MapPin, Users, Globe, ShieldCheck } from "lucide-react";
 import { washAnnouncementText } from "../../mission_router";
 import { ActiveDialogType } from "../domain/types";
 
@@ -18,9 +18,6 @@ interface PreviewCardProps {
   reminderTime: string;
   activeDialog?: ActiveDialogType;
   onOpenDialog?: (dialog: ActiveDialogType) => void;
-  onBack?: () => void;
-  onSend?: () => void;
-  sending?: boolean;
 }
 
 export function PreviewCard({
@@ -35,10 +32,7 @@ export function PreviewCard({
   hasReminder,
   reminderTime,
   activeDialog,
-  onOpenDialog,
-  onBack,
-  onSend,
-  sending
+  onOpenDialog
 }: PreviewCardProps) {
   const isEditing = activeDialog !== null && activeDialog !== undefined;
 
@@ -47,7 +41,7 @@ export function PreviewCard({
       <div className={`bg-white rounded-3xl p-6 border-2 border-brand-accent/20 shadow-md space-y-4 relative overflow-hidden transition-all duration-300 ${
         isEditing ? "opacity-30 blur-[1px] scale-[0.99] pointer-events-none" : "opacity-100 blur-none scale-100"
       }`}>
-        <div className="absolute top-3 right-3 font-mono text-[9px] text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
+        <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-bl-xl">
           SKRIV INBJUDAN
         </div>
 
@@ -55,7 +49,7 @@ export function PreviewCard({
         <button
           type="button"
           onClick={() => onOpenDialog?.("activity")}
-          className="w-full text-left p-2 -m-2 rounded-2xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 group cursor-pointer pr-28"
+          className="w-full text-left p-2 -m-2 rounded-2xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 group cursor-pointer"
         >
           <div className="space-y-0.5">
             <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
@@ -158,26 +152,6 @@ export function PreviewCard({
                 </span>
               </div>
             </div>
-          </button>
-        </div>
-
-        {/* Bottom Actions Row directly INSIDE the Tile */}
-        <div className="flex items-center justify-between pt-3 border-t border-brand-ink/10">
-          <button
-            type="button"
-            onClick={onBack}
-            className="px-4 py-2 border border-brand-ink/15 hover:bg-brand-paper text-brand-ink/70 hover:text-brand-ink font-mono text-xs uppercase font-semibold rounded-xl transition-all cursor-pointer"
-          >
-            Avbryt
-          </button>
-          <button
-            type="button"
-            onClick={onSend}
-            disabled={sending}
-            className="px-5 py-2 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
-          >
-            <Send size={14} />
-            <span>{sending ? "Granskar..." : "Sänd"}</span>
           </button>
         </div>
       </div>

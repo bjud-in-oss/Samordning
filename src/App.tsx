@@ -108,6 +108,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<"stream" | "create">("stream");
   // Inline settings routing strategy to avoid clunky blocking modals
   const [currentView, setCurrentView] = useState<'stream' | 'settings'>('stream');
+  const [isCreating, setIsCreating] = useState<boolean>(false);
   const [isToggling, setIsToggling] = useState<boolean>(false);
 
   // Dynamic Header Ticker state
@@ -418,12 +419,15 @@ export default function App() {
     <div className="min-h-screen bg-brand-bg flex flex-col font-sans text-brand-ink selection:bg-brand-accent selection:text-white pb-12">
       
       {/* Top Header Bar */}
-      <div className="bg-white/95 border-b border-brand-ink/10 z-10 w-full shadow-xs">
+      <div className="bg-white/95 border-b border-brand-ink/10 z-10 w-full shadow-xs sticky top-0 backdrop-blur-md">
         <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between gap-3 select-none">
-          {/* Clickable text area / clock icon to open Settings (Anpassa) */}
+          {/* Clickable text area: Se dina inbjudningar */}
           <button
             type="button"
-            onClick={() => setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings')}
+            onClick={() => {
+              setCurrentView('stream');
+              setIsCreating(false);
+            }}
             className="flex items-center gap-2 text-left cursor-pointer group flex-1 min-w-0"
           >
             <Clock size={18} className="text-brand-accent shrink-0 group-hover:scale-110 transition-transform" />
@@ -432,8 +436,9 @@ export default function App() {
             </span>
           </button>
 
-          {/* Toggle Switch */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Right side control panel */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Toggle Switch */}
             <button
               type="button"
               disabled={isToggling}
@@ -464,6 +469,32 @@ export default function App() {
                   pushEnabled ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
+            </button>
+
+            {/* Discrete Gear Icon next to toggle switch */}
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings');
+              }}
+              className={`p-1.5 rounded-lg border border-brand-ink/10 hover:bg-brand-paper text-brand-ink/70 hover:text-brand-ink transition-all cursor-pointer ${
+                currentView === 'settings' ? 'bg-brand-paper text-brand-ink border-brand-ink/30' : 'bg-white'
+              }`}
+              title="Anpassa notiser & filter"
+            >
+              <Settings size={18} />
+            </button>
+
+            {/* Button "Bjud in" at far right */}
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentView('stream');
+                setIsCreating(true);
+              }}
+              className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-xs cursor-pointer shrink-0"
+            >
+              Bjud in
             </button>
           </div>
         </div>
@@ -516,10 +547,14 @@ export default function App() {
                   uiLanguage={uiLanguage || "sv"}
                   savedTags={savedTags}
                   onStreamCountChange={handleStreamCountChange}
-                  inlineCreate={activeTab === "create"}
+                  inlineCreate={isCreating || activeTab === "create"}
                   isAdmin={isAdmin}
                   pushEnabled={pushEnabled}
-                  onBack={() => setActiveTab("stream")}
+                  onOpenSettings={() => setCurrentView('settings')}
+                  onBack={() => {
+                    setActiveTab("stream");
+                    setIsCreating(false);
+                  }}
                 />
               )}
             </div>

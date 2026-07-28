@@ -15,6 +15,7 @@ interface ActiveStreamProps {
   inlineCreate?: boolean;
   isAdmin?: boolean;
   onBack?: () => void;
+  onOpenSettings?: () => void;
   pushEnabled?: boolean;
 }
 
@@ -39,6 +40,7 @@ export default function ActiveStream({
   inlineCreate = false,
   isAdmin = false,
   onBack,
+  onOpenSettings,
   pushEnabled = false
 }: ActiveStreamProps) {
   const [stream, setStream] = useState<ActiveAlert[]>([]);
@@ -291,19 +293,9 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
 
   return (
     <div className="space-y-6 w-full max-w-2xl mx-auto">
-      {/* Action Zone: Bjud in */}
-      {!showCreateCard ? (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => setShowCreateCard(true)}
-            className="px-5 py-2.5 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md cursor-pointer"
-          >
-            Bjud in
-          </button>
-        </div>
-      ) : (
-        <div className="animate-in fade-in zoom-in-95 duration-200 bg-white rounded-3xl p-4 sm:p-6 border-2 border-brand-accent/30 shadow-lg">
+      {/* Creation Mode */}
+      {showCreateCard && (
+        <div className="animate-in fade-in zoom-in-95 duration-200">
           <CreateInvitationForm
             uiLanguage={uiLanguage}
             savedTags={savedTags}
@@ -318,6 +310,29 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
               if (onBack) onBack();
             }}
           />
+        </div>
+      )}
+
+      {/* "Om ditt flöde"-tile with green badge in top right corner */}
+      {!showCreateCard && (
+        <div 
+          onClick={onOpenSettings}
+          className="bg-white rounded-3xl p-5 border border-brand-ink/10 hover:border-brand-accent/30 transition-all shadow-2xs cursor-pointer space-y-2 text-left group"
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="font-serif italic text-lg font-medium text-brand-ink group-hover:text-brand-accent transition-colors">
+              Om ditt flöde
+            </h3>
+            <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold shrink-0">
+              AKTIVT FILTER
+            </span>
+          </div>
+          <p className="text-xs text-brand-ink/80 font-mono leading-relaxed">
+            Valda filter: <span className="font-semibold text-brand-ink">{defaultAreaString}</span>
+          </p>
+          <p className="text-[10px] font-mono text-brand-ink/40 italic">
+            (Endast synligt för dig)
+          </p>
         </div>
       )}
 
@@ -394,97 +409,102 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
       )}
 
       {/* Feed list */}
-      <div className="space-y-4 text-left">
+      {!showCreateCard && (
+        <div className="space-y-4 text-left">
+          {/* User's own submitted pending proposals */}
+          {myProposals.length > 0 && (
+            <div className="space-y-3">
+              {myProposals.map(prop => (
+                <div
+                  key={prop.id}
+                  onClick={() => onSelectAlert(prop.id)}
+                  className="bg-white rounded-3xl p-5 border border-amber-300 shadow-2xs space-y-3 cursor-pointer group hover:border-amber-400 transition-all"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-serif italic text-xl text-brand-ink font-medium">
+                        {prop.area}
+                      </h3>
+                      <p className="text-xs text-brand-ink/80 font-light line-clamp-2 mt-1 leading-relaxed">
+                        {prop.scrubbedText || prop.activityText}
+                      </p>
+                    </div>
+                    <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold shrink-0">
+                      VÄNTAR GRANSKNING
+                    </span>
+                  </div>
 
-        {/* User's own submitted pending proposals */}
-        {myProposals.length > 0 && (
-          <div className="space-y-3">
-            {myProposals.map(prop => (
-              <div
-                key={prop.id}
-                className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-5 shadow-2xs space-y-2 text-left"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded bg-amber-100 text-amber-900 font-bold">
-                    Ditt förslag • Väntar på granskning
-                  </span>
-                  <span className="font-mono text-[10px] text-amber-800/70 font-light">
-                    {prop.time || "Fast tid ej angiven"}
-                  </span>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-brand-ink/10 font-mono text-xs text-brand-ink/70">
+                    <div>
+                      <span className="text-[9px] uppercase text-brand-ink/50 tracking-wider block font-medium">TID</span>
+                      <span className="font-semibold text-brand-ink text-xs">{prop.time || "Fast tid ej angiven"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] uppercase text-brand-ink/50 tracking-wider block font-medium">ARRANGÖR</span>
+                      <span className="font-semibold text-brand-ink text-xs">{prop.responsibleParty || "Arrangör"}</span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-serif italic text-lg text-brand-ink font-medium">
-                    {prop.area}
-                  </h3>
-                  <p className="text-xs text-brand-ink/80 font-light line-clamp-2 mt-1 leading-relaxed">
-                    {prop.scrubbedText || prop.activityText}
-                  </p>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-amber-200/60 text-[10px] font-mono text-amber-900/70 uppercase tracking-wider">
-                  <span>{prop.responsibleParty}</span>
-                  <span className="italic font-sans text-amber-800">Granskas av ansvariga ledare</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {loading ? (
-          <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-3">
-            <div className="w-8 h-8 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="font-mono text-[10px] uppercase tracking-wider text-brand-ink/60">
-              {uiLanguage === "sv" ? "Hämtar anslag..." : "Loading notices..."}
-            </p>
-          </div>
-        ) : error ? (
-          <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-2">
-            <ShieldAlert size={24} className="text-brand-error mx-auto opacity-80" />
-            <p className="text-xs font-mono text-brand-error uppercase tracking-wider">{error}</p>
-          </div>
-        ) : filteredStream.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 sm:p-10 border border-brand-ink/5 text-center space-y-4">
-            <p className="font-serif italic text-base sm:text-lg text-brand-ink/80 leading-relaxed">
-              {pushEnabled 
-                ? "Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en avisering så fort en ny inbjudan läggs upp." 
-                : "Just nu finns inga aktiva inbjudningar i dina valda områden. Du ser nya inbjudningar här så fort de läggs upp."}
-            </p>
-          </div>
-        ) : (
-          filteredStream.map(item => (
-            <div
-              key={item.id}
-              onClick={() => onSelectAlert(item.id)}
-              className="bg-white rounded-2xl p-6 border border-brand-ink/5 hover:border-brand-accent/30 transition-all shadow-xs hover:shadow-md cursor-pointer space-y-3 group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded bg-brand-paper text-brand-accent font-semibold">
-                  {item.category || "Vara en vän"}
-                </span>
-                <span className="font-mono text-[10px] text-brand-ink/50 font-light">
-                  {item.time || "Fast tid ej angiven"}
-                </span>
-              </div>
-
-              <div>
-                <h3 className="font-serif italic text-xl text-brand-ink font-medium group-hover:text-brand-accent transition-colors">
-                  {item.area}
-                </h3>
-                <p className="text-xs text-brand-ink/80 font-light line-clamp-2 mt-1 leading-relaxed">
-                  {item.scrubbedText || item.rawText}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-brand-ink/5 text-[10px] font-mono text-brand-ink/50 uppercase tracking-wider">
-                <span>{item.responsibleParty || "Arrangör"}</span>
-                <span className="group-hover:translate-x-1 transition-transform flex items-center gap-1 text-brand-accent font-semibold">
-                  <span>Visa detaljer</span>
-                  <ExternalLink size={12} />
-                </span>
-              </div>
+              ))}
             </div>
-          ))
-        )}
-      </div>
+          )}
+
+          {loading ? (
+            <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-3">
+              <div className="w-8 h-8 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="font-mono text-[10px] uppercase tracking-wider text-brand-ink/60">
+                {uiLanguage === "sv" ? "Hämtar anslag..." : "Loading notices..."}
+              </p>
+            </div>
+          ) : error ? (
+            <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-2">
+              <ShieldAlert size={24} className="text-brand-error mx-auto opacity-80" />
+              <p className="text-xs font-mono text-brand-error uppercase tracking-wider">{error}</p>
+            </div>
+          ) : filteredStream.length === 0 ? (
+            <div className="bg-white rounded-2xl p-8 sm:p-10 border border-brand-ink/5 text-center space-y-4">
+              <p className="font-serif italic text-base sm:text-lg text-brand-ink/80 leading-relaxed">
+                {pushEnabled 
+                  ? "Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en avisering så fort en ny inbjudan läggs upp." 
+                  : "Just nu finns inga aktiva inbjudningar i dina valda områden. Du ser nya inbjudningar här så fort de läggs upp."}
+              </p>
+            </div>
+          ) : (
+            filteredStream.map(item => (
+              <div
+                key={item.id}
+                onClick={() => onSelectAlert(item.id)}
+                className="bg-white rounded-3xl p-5 sm:p-6 border border-brand-ink/10 hover:border-brand-accent/30 transition-all shadow-2xs hover:shadow-md cursor-pointer space-y-3 group"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-serif italic text-xl text-brand-ink font-medium group-hover:text-brand-accent transition-colors">
+                      {item.area}
+                    </h3>
+                    <p className="text-xs text-brand-ink/80 font-light line-clamp-2 mt-1 leading-relaxed">
+                      {item.scrubbedText || item.rawText}
+                    </p>
+                  </div>
+                  <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold shrink-0">
+                    {item.category || "VARA EN VÄN"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-brand-ink/10 font-mono text-xs text-brand-ink/70">
+                  <div>
+                    <span className="text-[9px] uppercase text-brand-ink/50 tracking-wider block font-medium">TID</span>
+                    <span className="font-semibold text-brand-ink text-xs">{item.time || "Fast tid ej angiven"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase text-brand-ink/50 tracking-wider block font-medium">ARRANGÖR</span>
+                    <span className="font-semibold text-brand-ink text-xs">{item.responsibleParty || "Arrangör"}</span>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }

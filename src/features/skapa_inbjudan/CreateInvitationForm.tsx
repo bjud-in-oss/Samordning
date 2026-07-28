@@ -24,12 +24,14 @@ export default function CreateInvitationForm({
   onBack,
   onSuccess
 }: CreateInvitationFormProps) {
-  const form = useInvitationForm(onSuccess);
   const [showPostSubmissionSteps, setShowPostSubmissionSteps] = useState<boolean>(false);
 
-  const handlePrimarySendClick = () => {
-    // Open post-submission steps
+  const form = useInvitationForm(() => {
     setShowPostSubmissionSteps(true);
+  });
+
+  const handlePrimarySendClick = async () => {
+    await form.handleAttemptPublish();
   };
 
   return (
@@ -57,6 +59,9 @@ export default function CreateInvitationForm({
           reminderTime={form.reminderTime}
           activeDialog={form.activeDialog}
           onOpenDialog={form.openDialog}
+          onBack={onBack}
+          onSend={handlePrimarySendClick}
+          sending={form.sending}
         />
       )}
 
@@ -146,21 +151,6 @@ export default function CreateInvitationForm({
               }}
             />
           )}
-        </div>
-      )}
-
-      {/* Send Button in bottom right corner */}
-      {!form.activeDialog && (
-        <div className="flex justify-end pt-1">
-          <button
-            type="button"
-            onClick={handlePrimarySendClick}
-            disabled={form.sending}
-            className="px-6 py-2.5 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Send size={15} />
-            <span>{form.sending ? "Granskar & skickar..." : "Sänd"}</span>
-          </button>
         </div>
       )}
 

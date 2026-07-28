@@ -1,16 +1,15 @@
-[FEATURE: Flödesuppstädning & PWA-Cachning] | [CYCLE: Produce -> Completed] | [STAGE: Green/Verified] | [TURN: 1/1]
+[FEATURE: LiveCard Grid & Non-Sticky Header] | [CYCLE: Produce -> Completed] | [STAGE: Green/Verified] | [TURN: 1/1]
 
-# Flödesuppstädning & PWA-Cachning — Final Status Report
+# LiveCard Grid & Non-Sticky Header — Final Status Report
 
 ## 1. Summary of Executed Fixes
-1. **Borttagen Dubblerad Rubrik i `ActiveStream.tsx`**:
-   - Det översta vita kortet med rubriken "Inbjudan till dig" och knappen "Visa dina inbjudningar igen" har tagits bort helt.
-   - Flödet av inbjudningskort startar nu direkt under den fasta toppmenyn och "+ Skapa inbjudan" Action Zone.
+1. **Borttagen Sticky Överlappning i `App.tsx`**:
+   - `sticky top-0 z-50` har tagits bort från toppmenyn så att den inte överlappar eller skär igenom LiveCardet vid skrollning. Toppmenyn skrollar nu med sidan.
 
-2. **PWA & Service Worker Cachning i `sw.js` / `pwaService.ts`**:
-   - Uppdaterat cachenamnet till `inbjudan-pwa-v2` och infört automatisk rensning av föråldrade cacher vid `activate`-händelsen.
-   - Ändrat cachningsstrategi till **Network-First** för alla `GET`-förfrågningar, vilket säkerställer att nya JavaScript- och tillgångsfiler hämtas direkt från nätverket vid ny deployment, med lokal cache som fallback vid offlineläge.
-   - Tillagt `reg.update()` vid registrering i `pwaService.ts` för att säkerställa snabb upptäckt av nya service workers.
+2. **2-Kolumns Layout för LiveCard i `PreviewCard.tsx`**:
+   - Omstrukturerat infogridet i kortet från `grid-cols-1 sm:grid-cols-2` till `grid-cols-2` på alla skärmstorlekar.
+   - "VÄLJ TID & DATUM" och "VAR SES NI?" visas nu sida vid sida i kolumn 1 och 2, och "BJUD IN FRÅN" samt "MÅLGRUPP" visas sida vid sida i rad 2.
+
 
 ---
 

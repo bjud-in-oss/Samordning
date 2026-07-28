@@ -38,25 +38,11 @@ export function PreviewCard({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-serif font-bold text-xl text-brand-ink">
-            Skapa din inbjudan
-          </h2>
-          <p className="font-mono text-[11px] text-brand-ink/60">
-            Klicka på fälten i kortet för att komponera direkt
-          </p>
-        </div>
-        <span className="font-mono text-[10px] text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-full font-medium shrink-0">
-          {isEditing ? "Fokuseditering pågår..." : "Direktredigering"}
-        </span>
-      </div>
-
       <div className={`bg-white rounded-3xl p-6 border-2 border-brand-accent/20 shadow-md space-y-4 relative overflow-hidden transition-all duration-300 ${
         isEditing ? "opacity-30 blur-[1px] scale-[0.99] pointer-events-none" : "opacity-100 blur-none scale-100"
       }`}>
         <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-bl-xl">
-          LIVECARD
+          SKRIV INBJUDAN
         </div>
 
         {/* Title / Activity - Clickable */}
@@ -76,19 +62,19 @@ export function PreviewCard({
         </button>
 
         {/* Info Grid - Clickable Fields */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-brand-ink/10 font-mono text-xs">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-2 border-t border-brand-ink/10 font-mono text-xs">
           {/* Time & Date */}
           <button
             type="button"
             onClick={() => onOpenDialog?.("time")}
-            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-3 cursor-pointer"
+            className="w-full text-left p-2 sm:p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-2 sm:gap-3 cursor-pointer"
           >
-            <Clock size={18} className="text-brand-accent shrink-0 mt-0.5" />
+            <Clock size={16} className="text-brand-accent shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0 space-y-0.5">
-              <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
+              <span className="font-mono text-[9px] sm:text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium truncate">
                 {selectedTime ? "TID & DATUM" : "Välj tid & datum"}
               </span>
-              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink">
+              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink text-xs">
                 <span>{selectedTime || "Ej vald"}</span>
                 {isRecurring && <span className="text-[10px] text-brand-accent block font-normal">(Upprepas varje vecka)</span>}
                 {hasReminder && <span className="text-[10px] text-amber-700 block font-normal">(Påminnelse: {reminderTime})</span>}
@@ -100,14 +86,14 @@ export function PreviewCard({
           <button
             type="button"
             onClick={() => onOpenDialog?.("location")}
-            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-3 cursor-pointer"
+            className="w-full text-left p-2 sm:p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-2 sm:gap-3 cursor-pointer"
           >
-            <MapPin size={18} className="text-brand-accent shrink-0 mt-0.5" />
+            <MapPin size={16} className="text-brand-accent shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0 space-y-0.5">
-              <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
+              <span className="font-mono text-[9px] sm:text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium truncate">
                 {locationName ? "MÖTESPLATS" : "Var ses ni?"}
               </span>
-              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink">
+              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink text-xs">
                 <span>{locationName || "Ej vald"}</span>
               </div>
             </div>
@@ -117,14 +103,14 @@ export function PreviewCard({
           <button
             type="button"
             onClick={() => onOpenDialog?.("area")}
-            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-3 cursor-pointer"
+            className="w-full text-left p-2 sm:p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-2 sm:gap-3 cursor-pointer"
           >
-            <Globe size={18} className="text-brand-accent shrink-0 mt-0.5" />
+            <Globe size={16} className="text-brand-accent shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0 space-y-0.5">
-              <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
-                {selectedAreas.length > 0 ? "BJUD IN FRÅN" : "Var hör deltagarna hemma?"}
+              <span className="font-mono text-[9px] sm:text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium truncate">
+                {selectedAreas.length > 0 ? "BJUD IN FRÅN" : "Deltagare hemma"}
               </span>
-              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink">
+              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink text-xs">
                 <span>{selectedAreas.length > 0 ? selectedAreas.join(", ") : "Inga valda"}</span>
               </div>
             </div>
@@ -134,14 +120,14 @@ export function PreviewCard({
           <button
             type="button"
             onClick={() => onOpenDialog?.("audience")}
-            className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-3 cursor-pointer"
+            className="w-full text-left p-2 sm:p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex items-start gap-2 sm:gap-3 cursor-pointer"
           >
-            <Users size={18} className="text-brand-accent shrink-0 mt-0.5" />
+            <Users size={16} className="text-brand-accent shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0 space-y-0.5">
-              <span className="font-mono text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium">
-                {selectedAudience.length > 0 ? "MÅLGRUPP" : "Vilka grupper bjuds in?"}
+              <span className="font-mono text-[9px] sm:text-[10px] uppercase text-brand-ink/50 tracking-wider block font-medium truncate">
+                {selectedAudience.length > 0 ? "MÅLGRUPP" : "Grupper"}
               </span>
-              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink">
+              <div className="break-words whitespace-pre-wrap font-semibold text-brand-ink text-xs">
                 <span>{selectedAudience.length > 0 ? selectedAudience.join(", ") : "Inga valda"}</span>
               </div>
             </div>

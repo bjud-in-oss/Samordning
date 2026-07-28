@@ -291,24 +291,15 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
 
   return (
     <div className="space-y-6 w-full max-w-2xl mx-auto">
-      {/* Action Zone: + Skapa inbjudan */}
+      {/* Action Zone: Bjud in */}
       {!showCreateCard ? (
-        <div className="bg-white/90 border border-brand-accent/20 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs text-left hover:border-brand-accent/40 transition-all">
-          <div>
-            <h3 className="font-serif font-bold text-lg text-brand-ink">
-              Skapa din inbjudan
-            </h3>
-            <p className="font-mono text-xs text-brand-ink/60 mt-0.5">
-              Tänd LiveCardet direkt i flödet och komponera på sekunder
-            </p>
-          </div>
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={() => setShowCreateCard(true)}
-            className="px-4 py-2.5 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer shrink-0"
+            className="px-5 py-2.5 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md cursor-pointer"
           >
-            <Plus size={16} />
-            <span>+ Skapa inbjudan</span>
+            Bjud in
           </button>
         </div>
       ) : (
@@ -423,7 +414,7 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
                 </div>
                 <div>
                   <h3 className="font-serif italic text-lg text-brand-ink font-medium">
-                    Inbjudan • {prop.area}
+                    {prop.area}
                   </h3>
                   <p className="text-xs text-brand-ink/80 font-light line-clamp-2 mt-1 leading-relaxed">
                     {prop.scrubbedText || prop.activityText}
@@ -476,7 +467,7 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
 
               <div>
                 <h3 className="font-serif italic text-xl text-brand-ink font-medium group-hover:text-brand-accent transition-colors">
-                  Inbjudan • {item.area}
+                  {item.area}
                 </h3>
                 <p className="text-xs text-brand-ink/80 font-light line-clamp-2 mt-1 leading-relaxed">
                   {item.scrubbedText || item.rawText}

@@ -42,34 +42,23 @@ export default function CreateInvitationForm({
         </div>
       )}
 
-      {/* Optional Close Link if onBack provided */}
-      {onBack && (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-xs font-mono text-brand-ink/60 hover:text-brand-ink underline transition-colors cursor-pointer"
-          >
-            Dölj skaparkort
-          </button>
-        </div>
+      {/* Live Interactive Preview Card - Hidden when editing a field in dialog */}
+      {!form.activeDialog && (
+        <PreviewCard
+          selectedTime={form.selectedTime}
+          locationName={form.locationName}
+          selectedAreas={form.selectedAreas}
+          selectedAudience={form.selectedAudience}
+          selectedOrganization={form.selectedOrganization}
+          organizerPersonName={form.organizerPersonName}
+          activityText={form.activityText}
+          isRecurring={form.isRecurring}
+          hasReminder={form.hasReminder}
+          reminderTime={form.reminderTime}
+          activeDialog={form.activeDialog}
+          onOpenDialog={form.openDialog}
+        />
       )}
-
-      {/* Live Interactive Preview Card */}
-      <PreviewCard
-        selectedTime={form.selectedTime}
-        locationName={form.locationName}
-        selectedAreas={form.selectedAreas}
-        selectedAudience={form.selectedAudience}
-        selectedOrganization={form.selectedOrganization}
-        organizerPersonName={form.organizerPersonName}
-        activityText={form.activityText}
-        isRecurring={form.isRecurring}
-        hasReminder={form.hasReminder}
-        reminderTime={form.reminderTime}
-        activeDialog={form.activeDialog}
-        onOpenDialog={form.openDialog}
-      />
 
       {/* In-place Dialog Render Area */}
       {form.activeDialog && (
@@ -160,50 +149,20 @@ export default function CreateInvitationForm({
         </div>
       )}
 
-      {/* Privacy Consent Checkbox */}
-      <div className="pt-2 border-t border-brand-ink/10">
-        <label className="flex items-start gap-3 cursor-pointer p-3 bg-brand-paper/50 rounded-2xl border border-brand-ink/5">
-          <input
-            type="checkbox"
-            checked={form.consentConfirmed}
-            onChange={e => form.setConsentConfirmed(e.target.checked)}
-            className="mt-0.5 rounded border-brand-ink/30 text-brand-accent focus:ring-brand-accent shrink-0"
-          />
-          <span className="text-xs text-brand-ink/80 leading-relaxed font-light">
-            Jag bekräftar att jag inte delar andras personuppgifter (som namn, kontaktinfo, etc) i inbjudan utan deras uttryckliga godkännande. Jag förstår att min inbjudan granskas innan publicering.
-          </span>
-        </label>
-      </div>
-
-      {/* Bottom Actions Row (Side-by-side) */}
-      <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
-        <button
-          type="button"
-          onClick={() => form.setShowQrSection(!form.showQrSection)}
-          className="px-4 py-2.5 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/15 text-brand-ink font-mono text-xs uppercase font-semibold tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <QrCode size={15} className="text-brand-accent shrink-0" />
-          <span>{form.showQrSection ? "Dölj mobil-QR" : "Sänd från mobilen"}</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={handlePrimarySendClick}
-          disabled={form.sending}
-          className="px-5 py-2.5 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <Send size={15} />
-          <span>{form.sending ? "Granskar & skickar..." : "Sänd"}</span>
-        </button>
-      </div>
-
-      {/* Gateway QR / SMS Fallback Section */}
-      <GatewayQrModal
-        isFormValid={form.isFormValid}
-        showQrSection={form.showQrSection}
-        setShowQrSection={form.setShowQrSection}
-        formattedText={form.formattedText}
-      />
+      {/* Send Button in bottom right corner */}
+      {!form.activeDialog && (
+        <div className="flex justify-end pt-1">
+          <button
+            type="button"
+            onClick={handlePrimarySendClick}
+            disabled={form.sending}
+            className="px-6 py-2.5 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Send size={15} />
+            <span>{form.sending ? "Granskar & skickar..." : "Sänd"}</span>
+          </button>
+        </div>
+      )}
 
       {/* Smart AI Pre-flight Review Modal */}
       {form.aiReviewModal.open && (

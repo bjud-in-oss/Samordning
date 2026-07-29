@@ -55,25 +55,42 @@ export default function CreateInvitationForm({
         onRemoveFavorite={form.handleRemoveFavorite}
       />
 
-      {/* Live Interactive Preview Card - Dimmed during active dialog editing for sharp focus */}
-      <div className={form.activeDialog ? "opacity-20 pointer-events-none transition-opacity duration-150" : "transition-opacity duration-150"}>
-        <PreviewCard
-          selectedTime={form.selectedTime}
-          locationName={form.locationName}
-          selectedAreas={form.selectedAreas}
-          selectedAudience={form.selectedAudience}
-          selectedOrganization={form.selectedOrganization}
-          organizerPersonName={form.organizerPersonName}
-          activityText={form.activityText}
-          isRecurring={form.isRecurring}
-          hasReminder={form.hasReminder}
-          reminderTime={form.reminderTime}
-          onOpenDialog={form.openDialog}
-          onCancel={onBack}
-          onSend={handlePrimarySendClick}
-          sending={form.sending}
-        />
-      </div>
+      {/* Live Interactive Preview Card - Hidden completely during active dialog editing for strict field focus */}
+      {!form.activeDialog && (
+        <>
+          <PreviewCard
+            selectedTime={form.selectedTime}
+            locationName={form.locationName}
+            selectedAreas={form.selectedAreas}
+            selectedAudience={form.selectedAudience}
+            selectedOrganization={form.selectedOrganization}
+            organizerPersonName={form.organizerPersonName}
+            activityText={form.activityText}
+            isRecurring={form.isRecurring}
+            hasReminder={form.hasReminder}
+            reminderTime={form.reminderTime}
+            onOpenDialog={form.openDialog}
+            onCancel={onBack}
+            onSend={handlePrimarySendClick}
+            sending={form.sending}
+          />
+
+          {/* Privacy Consent Checkbox */}
+          <div className="pt-2 border-t border-brand-ink/10">
+            <label className="flex items-start gap-3 cursor-pointer p-3 bg-brand-paper/50 rounded-2xl border border-brand-ink/5">
+              <input
+                type="checkbox"
+                checked={form.consentConfirmed}
+                onChange={e => form.setConsentConfirmed(e.target.checked)}
+                className="mt-0.5 rounded border-brand-ink/30 text-emerald-800 focus:ring-emerald-800 shrink-0"
+              />
+              <span className="text-xs text-brand-ink/80 leading-relaxed font-light">
+                Jag bekräftar att jag inte delar andras personuppgifter (som namn, kontaktinfo, etc) i inbjudan utan deras uttryckliga godkännande. Jag förstår att min inbjudan granskas innan publicering.
+              </span>
+            </label>
+          </div>
+        </>
+      )}
 
       {/* In-place Dialog Render Area - Sharp Focus */}
       {form.activeDialog && (
@@ -163,43 +180,6 @@ export default function CreateInvitationForm({
           )}
         </div>
       )}
-
-      {/* Privacy Consent Checkbox */}
-      <div className="pt-2 border-t border-brand-ink/10">
-        <label className="flex items-start gap-3 cursor-pointer p-3 bg-brand-paper/50 rounded-2xl border border-brand-ink/5">
-          <input
-            type="checkbox"
-            checked={form.consentConfirmed}
-            onChange={e => form.setConsentConfirmed(e.target.checked)}
-            className="mt-0.5 rounded border-brand-ink/30 text-brand-accent focus:ring-brand-accent shrink-0"
-          />
-          <span className="text-xs text-brand-ink/80 leading-relaxed font-light">
-            Jag bekräftar att jag inte delar andras personuppgifter (som namn, kontaktinfo, etc) i inbjudan utan deras uttryckliga godkännande. Jag förstår att min inbjudan granskas innan publicering.
-          </span>
-        </label>
-      </div>
-
-      {/* Bottom Actions Row (Side-by-side) */}
-      <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
-        <button
-          type="button"
-          onClick={() => form.setShowQrSection(!form.showQrSection)}
-          className="px-4 py-2.5 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/15 text-brand-ink font-mono text-xs uppercase font-semibold tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <QrCode size={15} className="text-brand-accent shrink-0" />
-          <span>{form.showQrSection ? "Dölj mobil-QR" : "Sänd från mobilen"}</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={handlePrimarySendClick}
-          disabled={form.sending}
-          className="px-5 py-2.5 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <Send size={15} />
-          <span>{form.sending ? "Granskar & skickar..." : "Sänd"}</span>
-        </button>
-      </div>
 
       {/* Gateway QR / SMS Fallback Section */}
       <GatewayQrModal

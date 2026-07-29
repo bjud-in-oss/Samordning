@@ -304,15 +304,16 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
       {/* Status Tile: "Om ditt flöde" */}
       <div
         onClick={onOpenSettings}
-        className="bg-white rounded-3xl p-5 border border-brand-ink/10 shadow-xs relative text-left hover:border-brand-accent/40 transition-all cursor-pointer group"
+        className="bg-white rounded-3xl p-5 border border-brand-ink/10 shadow-xs relative overflow-hidden text-left hover:border-brand-accent/40 transition-all cursor-pointer group"
       >
-        <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="absolute top-0 right-0 bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-3xl rounded-bl-xl shadow-2xs">
+          AKTIVT FILTER
+        </div>
+
+        <div className="flex items-start justify-between gap-3 mb-2 pr-28">
           <h2 className="font-serif italic text-2xl font-medium text-brand-ink group-hover:text-brand-accent transition-colors">
             Om ditt flöde
           </h2>
-          <span className="bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md shadow-2xs shrink-0">
-            AKTIVT FILTER
-          </span>
         </div>
 
         <div className="text-xs text-brand-ink/80 space-y-1 font-sans leading-relaxed">
@@ -432,10 +433,11 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
                 key={prop.id}
                 className="bg-emerald-950/5 border border-emerald-800/30 rounded-2xl p-5 shadow-2xs space-y-2 text-left relative overflow-hidden"
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded bg-emerald-800 text-white font-bold">
-                    Ditt förslag • Väntar på granskning
-                  </span>
+                <div className="absolute top-0 right-0 bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-2xl rounded-bl-xl shadow-2xs">
+                  DITT FÖRSLAG • VÄNTAR PÅ GRANSKNING
+                </div>
+
+                <div className="flex items-center justify-between pr-52 pt-1">
                   <span className="font-mono text-[10px] text-brand-ink/60 font-light">
                     {prop.time || "Fast tid ej angiven"}
                   </span>
@@ -484,11 +486,12 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
               onClick={() => onSelectAlert(item.id)}
               className="bg-white rounded-2xl p-6 border border-brand-ink/5 hover:border-brand-accent/30 transition-all shadow-xs hover:shadow-md cursor-pointer space-y-3 group relative overflow-hidden"
             >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded bg-emerald-800 text-white font-bold">
-                  {item.category || "Vara en vän"}
-                </span>
-                <span className="font-mono text-[10px] text-brand-ink/50 font-light">
+              <div className="absolute top-0 right-0 bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-2xl rounded-bl-xl shadow-2xs">
+                {item.category || "Vara en vän"}
+              </div>
+
+              <div className="flex items-center justify-[flex-end] pt-1">
+                <span className="font-mono text-[10px] text-brand-ink/50 font-light pr-24">
                   {item.time || "Fast tid ej angiven"}
                 </span>
               </div>

@@ -40,8 +40,8 @@ export function PreviewCard({
 }: PreviewCardProps) {
   return (
     <div className="bg-white rounded-3xl p-6 border border-brand-ink/10 shadow-md space-y-4 relative overflow-hidden text-left">
-      {/* Dark green folded badge in top right corner */}
-      <div className="absolute top-0 right-0 bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-bl-xl shadow-2xs">
+      {/* Dark green folded badge in top right corner - edge to edge */}
+      <div className="absolute top-0 right-0 bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-3xl rounded-bl-xl shadow-2xs">
         SKRIV INBJUDAN
       </div>
 
@@ -152,7 +152,7 @@ export function PreviewCard({
             className="px-5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs uppercase tracking-wider font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ml-auto"
           >
             <Send size={14} />
-            <span>{sending ? "Sänder..." : "Sänd"}</span>
+            <span>{sending ? "Granskar & skickar..." : "Sänd"}</span>
           </button>
         )}
       </div>

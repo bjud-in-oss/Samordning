@@ -16,23 +16,25 @@ Alla inbjudningar ska automatiskt kategoriseras utifrån tre pelare utan att bes
 - Skaparkort i flödet: Klick på "Bjud in" tänds skaparkortet direkt högst upp i flödet framför övriga kort.
 
 ## 4. Enhetlig Tile-Design & Rent LiveCard (PreviewCard.tsx & CreateInvitationForm.tsx)
-- Mörkgrön märkesskylt: Alla kort i flödet återanvänder samma Tile-anatomi med en mörkgrön vikta skylt i övre högra hörnet ("SKRIV INBJUDAN" på skaparkortet, kategori eller "VÄNTAR PÅ GRANSKNING" på publicerade kort).
-- Fältlayout: Fälten "VÄLJ TID & DATUM" och "VAR SES NI?" ska ligga sida vid sida i ett 2-kolumnsgrid (grid-cols-2).
-- Rent Skriv Inbjudan-läge: Radera den yttre containerramen helt. Placera knappen "Avbryt" i nedre vänstra hörnet och "Sänd" i nedre högra hörnet DIRECT INUTI Tilen.
-- Kortstädning: Ta bort ordet "Inbjudan • ", rubriken "BESKRIVNING" och dubblerade kategorietiketter från samtliga kort.
-- Fokuseditering: Vid klick på ett fält döljs/tonas kortet ned medan det valda fältets dialog redigeras i skarpt fokus.
+- Mörkgrön märkesskylt: BEHÅLL det mörkgröna vikmärket i övre högra hörnet (absolute top-0 right-0) med texten "SKRIV INBJUDAN".
+- Återställd inre fältstruktur:
+  * Överst: Etiketten "BESKRIV DIN INBJUDAN" i kapitäler ovanför huvudtexten ("Ingen aktivitet angiven än" / inskriven text).
+  * Rad 1 (2 kolumner): "VÄLJ TID & DATUM" (vänster) och "VAR SES NI?" (höger).
+  * Rad 2 (2 kolumner): "DELTAGARE HEMMA" (vänster) och "GRUPPER" (höger).
+  * Rad 3: "VEM HÅLLER I DET?" (full bredd längst ned ovanför knapparna "Avbryt" / "Sänd").
+- Ta bort 3-kolumnslayouten ("Områden / Målgrupp / Arrangör").
+- Rent Skriv Inbjudan-läge: Radera den yttre containerramen helt. Placera knappen "Avbryt" i nedre vänstra hörnet och "Sänd" i nedre högra hörnet DIREKT INUTI Tilen.
 
-## 5. Sekventiella Steg EFTER Insändning (4 steg)
+## 5. Sekventiella Steg EFTER Insändning (PostSubmissionStepper.tsx)
 När användaren klickar på "Sänd" körs fyra steg i linjär följd:
-1. AI-Rekonciliering ("Vad du inte tänkt på"): Analyserar texten och påpekar saknade fält eller varningar innan SMS skapas.
-2. Integritet: Mjuk bekräftelse gällande personuppgifter utan medgivande.
-3. SMS & Delning: Knappar för enhetens SMS-app, kopiera direktlänk och QR-kod.
-4. SMS-Retur & Kalender: Fråga ("Fick du iväg meddelandet?"). Vid "Ja" sparas händelsen i localStorage under "Mina anmälningar" och knappen "Lägg till i kalender" (.ics / Google Calendar) visas. .ics-filen laddas BARA ner vid aktivt klick.
+1. Steg 1: AI-rekonciliering ("Vad du inte tänkt på"): Analyserar texten och påpekar saknade fält eller varningar innan SMS skapas.
+2. Steg 2: Integritetsbekräftelse (personuppgifter utan medgivande).
+3. Steg 3: SMS & Delning: SMS-länk (öppna SMS-app), kopiera-knapp och QR-kod.
+4. Steg 4: SMS-returavstämning ("Fick du iväg meddelandet?"). Om användaren väljer "Ja, skickat!" sparas inbjudan i localStorage och knappen "Lägg till i kalender" (.ics) visas. .ics-filen laddas BARA ner vid aktivt klick.
 
-## 6. Moderering & Avsändaridentitet
-- Status (pending_review): Nya inbjudningar får status "Väntar på granskning".
-- Skaparens vy: Skaparen ser sitt eget förslag mörkt/märkt med grön status "Ditt förslag • Väntar på granskning" i sitt eget flöde.
-- Admin-godkännande: Inkomna förslag visas i Admin-konsolen med knappar för Godkänn och Avböj.
+## 6. Moderering & Avsändaridentitet (AdminConsole.tsx)
+- Alla inbjudningar med status "pending_review" eller "pending" ska visas under https://utby.netlify.app/?user=ADMIN med fungerande knappar för "Godkänn" (publicerar till flödet med status "active") och "Avböj" (tar bort).
+- Skaparens vy: Skaparen ser sitt eget förslag mörkt/märkt med grön status "DITT FÖRSLAG • VÄNTAR PÅ GRANSKNING" i sitt eget flöde.
 
 ## 7. PWA & Cachning (public/sw.js & pwaService.ts)
 - Sätt Network-First-strategi för Service Worker och automatisk rensning av gamla cacher vid activate samt reg.update() vid registrering.

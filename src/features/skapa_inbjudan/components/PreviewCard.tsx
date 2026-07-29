@@ -45,20 +45,23 @@ export function PreviewCard({
         SKRIV INBJUDAN
       </div>
 
-      {/* Activity / Description - Clickable */}
+      {/* Överst: Etiketten "BESKRIV DIN INBJUDAN" i kapitäler ovanför huvudtexten */}
       <button
         type="button"
         onClick={() => onOpenDialog?.("activity")}
         className="w-full text-left p-2 -m-2 rounded-2xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 group cursor-pointer"
       >
-        <div className="space-y-0.5">
+        <div className="space-y-1">
+          <span className="font-mono text-[10px] uppercase font-bold text-brand-ink/60 tracking-wider block">
+            BESKRIV DIN INBJUDAN
+          </span>
           <h3 className="text-lg sm:text-xl font-serif font-semibold leading-tight text-brand-ink break-words whitespace-pre-wrap">
-            {activityText ? washAnnouncementText(activityText) : "Skriv din inbjudan här..."}
+            {activityText ? washAnnouncementText(activityText) : "Ingen aktivitet angiven än"}
           </h3>
         </div>
       </button>
 
-      {/* 2-Column Grid for Time & Location on all screens */}
+      {/* Rad 1 (2 kolumner): "VÄLJ TID & DATUM" (vänster) och "VAR SES NI?" (höger) */}
       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-brand-ink/10 font-mono text-xs">
         {/* Time & Date */}
         <button
@@ -97,39 +100,61 @@ export function PreviewCard({
         </button>
       </div>
 
-      {/* Secondary metadata row (Areas, Audience, Organizer) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-brand-ink/10 font-mono text-xs">
+      {/* Rad 2 (2 kolumner): "DELTAGARE HEMMA" (vänster) och "GRUPPER" (höger) */}
+      <div className="grid grid-cols-2 gap-3 font-mono text-xs">
         <button
           type="button"
           onClick={() => onOpenDialog?.("area")}
-          className="text-left p-2 rounded-xl hover:bg-brand-paper/80 transition-all flex items-center gap-2 cursor-pointer"
+          className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col justify-between cursor-pointer bg-brand-paper/30"
         >
-          <Globe size={14} className="text-brand-accent shrink-0" />
-          <span className="truncate text-[11px] font-medium text-brand-ink">
-            {selectedAreas.length > 0 ? selectedAreas.join(", ") : "Områden"}
-          </span>
+          <div className="flex items-center gap-1.5 mb-1">
+            <Globe size={14} className="text-emerald-800 shrink-0" />
+            <span className="font-mono text-[9px] uppercase text-brand-ink/60 tracking-wider font-bold">
+              DELTAGARE HEMMA
+            </span>
+          </div>
+          <div className="break-words font-semibold text-brand-ink text-xs">
+            <span>{selectedAreas.length > 0 ? selectedAreas.join(", ") : "Inga valda"}</span>
+          </div>
         </button>
 
         <button
           type="button"
           onClick={() => onOpenDialog?.("audience")}
-          className="text-left p-2 rounded-xl hover:bg-brand-paper/80 transition-all flex items-center gap-2 cursor-pointer"
+          className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col justify-between cursor-pointer bg-brand-paper/30"
         >
-          <Users size={14} className="text-brand-accent shrink-0" />
-          <span className="truncate text-[11px] font-medium text-brand-ink">
-            {selectedAudience.length > 0 ? selectedAudience.join(", ") : "Målgrupp"}
-          </span>
+          <div className="flex items-center gap-1.5 mb-1">
+            <Users size={14} className="text-emerald-800 shrink-0" />
+            <span className="font-mono text-[9px] uppercase text-brand-ink/60 tracking-wider font-bold">
+              GRUPPER
+            </span>
+          </div>
+          <div className="break-words font-semibold text-brand-ink text-xs">
+            <span>{selectedAudience.length > 0 ? selectedAudience.join(", ") : "Inga valda"}</span>
+          </div>
         </button>
+      </div>
 
+      {/* Rad 3: "VEM HÅLLER I DET?" (full bredd) */}
+      <div className="font-mono text-xs">
         <button
           type="button"
           onClick={() => onOpenDialog?.("organization")}
-          className="text-left p-2 rounded-xl hover:bg-brand-paper/80 transition-all flex items-center gap-2 cursor-pointer"
+          className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col justify-between cursor-pointer bg-brand-paper/30"
         >
-          <ShieldCheck size={14} className="text-emerald-800 shrink-0" />
-          <span className="truncate text-[11px] font-medium text-brand-ink">
-            {selectedOrganization ? `${selectedOrganization}${organizerPersonName ? ` (${organizerPersonName})` : ""}` : "Arrangör"}
-          </span>
+          <div className="flex items-center gap-1.5 mb-1">
+            <ShieldCheck size={14} className="text-emerald-800 shrink-0" />
+            <span className="font-mono text-[9px] uppercase text-brand-ink/60 tracking-wider font-bold">
+              VEM HÅLLER I DET?
+            </span>
+          </div>
+          <div className="break-words font-semibold text-brand-ink text-xs">
+            <span>
+              {selectedOrganization
+                ? `${selectedOrganization}${organizerPersonName ? ` (${organizerPersonName})` : ""}`
+                : "Ej angiven"}
+            </span>
+          </div>
         </button>
       </div>
 

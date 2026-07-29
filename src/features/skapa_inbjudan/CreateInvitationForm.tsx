@@ -9,6 +9,7 @@ import { PreviewCard } from "./components/PreviewCard";
 import { GatewayQrModal } from "./components/GatewayQrModal";
 import { AiFlagModal } from "./components/AiFlagModal";
 import { AiReviewModal } from "./components/AiReviewModal";
+import { PostSubmissionStepper } from "./components/PostSubmissionStepper";
 import { TimeDialog } from "./components/dialogs/TimeDialog";
 import { LocationDialog } from "./components/dialogs/LocationDialog";
 import { ActivityDialog } from "./components/dialogs/ActivityDialog";
@@ -24,13 +25,11 @@ export default function CreateInvitationForm({
   onSuccess
 }: CreateInvitationFormProps) {
   const form = useInvitationForm(onSuccess);
+  const [showPostStepper, setShowPostStepper] = React.useState<boolean>(false);
 
   const handlePrimarySendClick = () => {
-    const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768 && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isDesktop) {
-      form.setShowQrSection(true);
-    }
     form.handleAttemptPublish();
+    setShowPostStepper(true);
   };
 
   return (
@@ -197,6 +196,27 @@ export default function CreateInvitationForm({
           onAutoFill={form.handleAutoFillExtracted}
           onPublishAnyway={form.executePublish}
           sending={form.sending}
+        />
+      )}
+      {/* Post Submission 4-Step Stepper */}
+      {showPostStepper && (
+        <PostSubmissionStepper
+          activityText={form.activityText}
+          selectedTime={form.selectedTime}
+          locationName={form.locationName}
+          selectedOrganization={form.selectedOrganization}
+          organizerPersonName={form.organizerPersonName}
+          selectedAreas={form.selectedAreas}
+          selectedAudience={form.selectedAudience}
+          consentConfirmed={form.consentConfirmed}
+          setConsentConfirmed={form.setConsentConfirmed}
+          formattedText={form.formattedText}
+          aiProposal={form.aiReviewModal.proposal}
+          onClose={() => setShowPostStepper(false)}
+          onSuccess={() => {
+            setShowPostStepper(false);
+            if (onSuccess) onSuccess();
+          }}
         />
       )}
     </div>

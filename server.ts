@@ -20,7 +20,7 @@ import { ActiveAlert } from "./src/shared/types";
 interface SmsDraft {
   rawText: string;
   extractedMetadata: {
-    category: "Vara en vän" | "Få näring av Guds ord" | "Hjälpa andra";
+    category: "Vara en vän" | "Läsa skrifterna" | "Hjälpa andra";
     area: string | null;
     time: string | null;
     audience: "Alla" | "Enbart missionärerna";
@@ -524,7 +524,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     
     const draftCategory = draft.extractedMetadata.category || "Vara en vän";
     const draftOrg = draft.extractedMetadata.organization || "Arrangör";
-    const isLektionAndSamtal = draftCategory === "Få näring av Guds ord" && draftOrg === "Missionärerna";
+    const isLektionAndSamtal = (draftCategory === "Läsa skrifterna" || draftCategory === "Få näring av Guds ord") && draftOrg === "Missionärerna";
     const escalationLevel = isLektionAndSamtal ? 1 : undefined;
 
     const newAnnouncement: ActiveAlert = {
@@ -638,7 +638,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     const { coords, cloakedCoords } = getCoordsForArea(area);
     const offsetSeconds = calculateSecondsUntilTime(time);
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
-    const isLektionAndSamtal = category === "Få näring av Guds ord" && organization === "Missionärerna";
+    const isLektionAndSamtal = (category === "Läsa skrifterna" || category === "Få näring av Guds ord") && organization === "Missionärerna";
     const status = isTrustedOrAdmin ? "active" : "pending";
 
     const newAnnouncement: ActiveAlert = {
@@ -703,7 +703,7 @@ app.post("/api/incoming-email", async (req, res) => {
     const offsetSeconds = calculateSecondsUntilTime(washed.time);
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
 
-    const isLektionAndSamtal = (washed.category || "Vara en vän") === "Få näring av Guds ord" && (washed.responsibleParty || "Församlingsledare") === "Missionärerna";
+    const isLektionAndSamtal = ((washed.category || "Vara en vän") === "Läsa skrifterna" || (washed.category || "Vara en vän") === "Få näring av Guds ord") && (washed.responsibleParty || "Församlingsledare") === "Missionärerna";
     const escalationLevel = isLektionAndSamtal ? 1 : undefined;
 
     const newAnnouncement: ActiveAlert = {

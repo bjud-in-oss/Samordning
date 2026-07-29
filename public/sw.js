@@ -1,26 +1,51 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
+// [public/sw.js] - Network-First Service Worker with Automatic Cache Cleanup
 
-const CACHE_NAME = 'inbjudan-pwa-v1';
+const CACHE_NAME = 'inbjudan-pwa-v2';
 
 self.addEventListener('install', function(event) {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', function(event) {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    caches.keys().then(function(cacheNames) {
+      return Promise.all(
+        cacheNames.map(function(cacheName) {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Rensar gammal cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(function() {
+      return clients.claim();
+    })
+  );
 });
 
 self.addEventListener('fetch', function(event) {
   // Pass through API & dynamic requests to network directly
-  if (event.request.url.includes('/api/')) {
+  if (event.request.url.includes('/api/') || event.request.method !== 'GET') {
     return;
   }
+
+  // Network-First strategy
   event.respondWith(
-    caches.match(event.request).then(function(response) {
-      return response || fetch(event.request);
-    }).catch(function() {
-      return caches.match('/');
-    })
+    fetch(event.request)
+      .then(function(networkResponse) {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then(function(cache) {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(function() {
+        return caches.match(event.request).then(function(cachedResponse) {
+          return cachedResponse || caches.match('/');
+        });
+      })
   );
 });
 

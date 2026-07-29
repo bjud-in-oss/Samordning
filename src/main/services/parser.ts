@@ -265,9 +265,9 @@ VIKTIGT: Du får ALDRIG ändra eller skriva om användarens personliga text.
 
 Här är reglerna för extrahering:
 1. Kategori (category): Bestäm om inbjudan handlar om:
-   - "Vara en vän" (t.ex. middag, fika, lunch, umgänge, bjuda hem)
-   - "Läsa skrifterna" (t.ex. Guds ord, standardverken, Mormons bok, lektioner, samtalsstöd)
-   - "Hjälpa andra" (t.ex. praktisk hjälp, stöd, tjänande, omtanke, flytt, städning)
+   - "Vara en vän" (t.ex. samvaro, samtal, gemenskap, relationer, middag, fika, umgänge, bjuda hem)
+   - "Läsa skrifterna" (t.ex. Guds ord, standardverken, Mormons bok, fördjupning, lektioner, skriftstudier, undervisning)
+   - "Hjälpa andra" (t.ex. praktisk hjälp, stöd, tjänande, omtanke, flytt, städning, trädgårdsarbete)
 
 2. Område (area): Matcha mot följande 15 tillåtna stöddistrikt i Göteborg:
    "Angered", "Kortedala", "Gamlestaden", "Hisingen", "Biskopsgården", "Lundby", "Partille", "Örgryte", "Johanneberg", "Majorna", "Mölndal", "Frölunda", "Torslanda", "Askim", "Härryda".
@@ -354,9 +354,9 @@ export function runFallbackWash(text: string): GeminiWashResult {
   const lowerText = text.toLowerCase();
 
   let category: "Vara en vän" | "Läsa skrifterna" | "Hjälpa andra" = "Vara en vän";
-  if (lowerText.includes("skrift") || lowerText.includes("skrifter") || lowerText.includes("mormons bok") || lowerText.includes("lektion") || lowerText.includes("undervisa") || lowerText.includes("samtal") || lowerText.includes("intresserad") || lowerText.includes("undersökare") || lowerText.includes("träffa")) {
+  if (lowerText.includes("skrift") || lowerText.includes("skrifterna") || lowerText.includes("guds ord") || lowerText.includes("mormons bok") || lowerText.includes("lektion") || lowerText.includes("undervisa") || lowerText.includes("samtal") || lowerText.includes("intresserad") || lowerText.includes("undersökare") || lowerText.includes("träffa")) {
     category = "Läsa skrifterna";
-  } else if (lowerText.includes("städa") || lowerText.includes("flytta") || lowerText.includes("bära") || lowerText.includes("hjälpa") || lowerText.includes("tjänande")) {
+  } else if (lowerText.includes("städa") || lowerText.includes("flytta") || lowerText.includes("bära") || lowerText.includes("hjälpa") || lowerText.includes("tjänande") || lowerText.includes("praktisk")) {
     category = "Hjälpa andra";
   }
 

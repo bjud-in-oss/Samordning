@@ -16,6 +16,7 @@ interface ActiveStreamProps {
   isAdmin?: boolean;
   onBack?: () => void;
   pushEnabled?: boolean;
+  onOpenSettings?: () => void;
 }
 
 const ORGANIZATIONS = [
@@ -39,7 +40,8 @@ export default function ActiveStream({
   inlineCreate = false,
   isAdmin = false,
   onBack,
-  pushEnabled = false
+  pushEnabled = false,
+  onOpenSettings
 }: ActiveStreamProps) {
   const [stream, setStream] = useState<ActiveAlert[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -105,14 +107,6 @@ export default function ActiveStream({
     try {
       setLoading(true);
       setError(null);
-      if (typeof localStorage !== "undefined") {
-        try {
-          const stored = localStorage.getItem("my_pending_proposals");
-          setMyProposals(stored ? JSON.parse(stored) : []);
-        } catch (err) {
-          console.warn("Could not read my_pending_proposals", err);
-        }
-      }
       const res = await fetch("/api/alerts");
       if (!res.ok) {
         throw new Error("Gick inte att läsa in aktiva anslag.");
@@ -291,36 +285,68 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
   const smsHref = `sms:0736108997?body=${encodeURIComponent(smsPayload)}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(smsHref)}`;
 
-  if (inlineCreate) {
-    return (
-      <CreateInvitationForm
-        uiLanguage={uiLanguage}
-        savedTags={savedTags}
-        isAdmin={isAdmin}
-        onBack={onBack}
-        onSuccess={fetchStream}
-      />
-    );
-  }
-
   return (
-    <div className="space-y-6 w-full max-w-2xl mx-auto">
-      {/* Top Header Card */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-brand-ink/5 shadow-xs text-left">
-        <div className="flex items-center justify-between">
-          <h2 className="font-serif italic text-2xl sm:text-3xl font-medium text-brand-ink">
-            {t.introHeading || "Inbjudan till dig"}
+    <div className="space-y-6 w-full max-w-2xl mx-auto text-left">
+      
+      {/* Inline Creator Card when Bjud In is clicked */}
+      {inlineCreate && (
+        <div className="animate-in fade-in zoom-in-95 duration-200">
+          <CreateInvitationForm
+            uiLanguage={uiLanguage}
+            savedTags={savedTags}
+            isAdmin={isAdmin}
+            onBack={onBack}
+            onSuccess={fetchStream}
+          />
+        </div>
+      )}
+
+      {/* Status Tile: "Om ditt flöde" */}
+      <div
+        onClick={onOpenSettings}
+        className="bg-white rounded-3xl p-5 border border-brand-ink/10 shadow-xs relative text-left hover:border-brand-accent/40 transition-all cursor-pointer group"
+      >
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <h2 className="font-serif italic text-2xl font-medium text-brand-ink group-hover:text-brand-accent transition-colors">
+            Om ditt flöde
           </h2>
-          {onBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-3 py-1.5 bg-brand-paper hover:bg-brand-ink/10 text-brand-ink rounded-lg font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
-            >
-              Visa dina inbjudningar igen
-            </button>
+          <span className="bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md shadow-2xs shrink-0">
+            AKTIVT FILTER
+          </span>
+        </div>
+
+        <div className="text-xs text-brand-ink/80 space-y-1 font-sans leading-relaxed">
+          {(!savedTags || (
+            (!savedTags.limitedAreas || savedTags.limitedAreas.length === 0) &&
+            (!savedTags.primaryArea) &&
+            (!savedTags.enabledCategories || savedTags.enabledCategories.length === 0) &&
+            (!savedTags.languages || savedTags.languages.length === 0) &&
+            (!savedTags.organizations || savedTags.organizations.length === 0)
+          )) ? (
+            <p className="font-light italic text-brand-ink/70">
+              Inget val – visar alla områden, alla kategorier, alla språk och alla organisationer.
+            </p>
+          ) : (
+            <div className="space-y-1 font-mono text-[11px]">
+              {(savedTags?.limitedAreas?.length > 0 || savedTags?.primaryArea) && (
+                <p><span className="font-semibold text-brand-ink">Områden:</span> {savedTags?.limitedAreas?.length > 0 ? savedTags.limitedAreas.join(", ") : savedTags.primaryArea}</p>
+              )}
+              {savedTags?.enabledCategories?.length > 0 && (
+                <p><span className="font-semibold text-brand-ink">Kategorier:</span> {savedTags.enabledCategories.join(", ")}</p>
+              )}
+              {savedTags?.languages?.length > 0 && (
+                <p><span className="font-semibold text-brand-ink">Språk:</span> {savedTags.languages.join(", ")}</p>
+              )}
+              {savedTags?.organizations?.length > 0 && (
+                <p><span className="font-semibold text-brand-ink">Organisationer:</span> {savedTags.organizations.join(", ")}</p>
+              )}
+            </div>
           )}
         </div>
+
+        <p className="text-[10px] font-mono italic text-brand-ink/40 mt-3 border-t border-brand-ink/5 pt-2">
+          (Endast synligt för dig)
+        </p>
       </div>
 
       {/* Admin Moderation Queue Banner (visible to admins when pending posts exist) */}
@@ -346,7 +372,7 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
 
                 <div>
                   <h4 className="font-serif italic text-lg font-medium text-brand-ink">
-                    {item.category} • {item.area}
+                    {item.area}
                   </h4>
                   <p className="text-xs text-brand-ink/80 font-light mt-1">
                     {item.scrubbedText || item.rawText}
@@ -404,27 +430,27 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
             {myProposals.map(prop => (
               <div
                 key={prop.id}
-                className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-5 shadow-2xs space-y-2 text-left"
+                className="bg-emerald-950/5 border border-emerald-800/30 rounded-2xl p-5 shadow-2xs space-y-2 text-left relative overflow-hidden"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded bg-amber-100 text-amber-900 font-bold">
+                  <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded bg-emerald-800 text-white font-bold">
                     Ditt förslag • Väntar på granskning
                   </span>
-                  <span className="font-mono text-[10px] text-amber-800/70 font-light">
+                  <span className="font-mono text-[10px] text-brand-ink/60 font-light">
                     {prop.time || "Fast tid ej angiven"}
                   </span>
                 </div>
                 <div>
                   <h3 className="font-serif italic text-lg text-brand-ink font-medium">
-                    Inbjudan • {prop.area}
+                    {prop.area}
                   </h3>
                   <p className="text-xs text-brand-ink/80 font-light line-clamp-2 mt-1 leading-relaxed">
                     {prop.scrubbedText || prop.activityText}
                   </p>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-amber-200/60 text-[10px] font-mono text-amber-900/70 uppercase tracking-wider">
+                <div className="flex items-center justify-between pt-2 border-t border-brand-ink/10 text-[10px] font-mono text-brand-ink/60 uppercase tracking-wider">
                   <span>{prop.responsibleParty}</span>
-                  <span className="italic font-sans text-amber-800">Granskas av ansvariga ledare</span>
+                  <span className="italic font-sans text-emerald-800 font-semibold">Granskas av ansvariga ledare</span>
                 </div>
               </div>
             ))}
@@ -456,10 +482,10 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
             <div
               key={item.id}
               onClick={() => onSelectAlert(item.id)}
-              className="bg-white rounded-2xl p-6 border border-brand-ink/5 hover:border-brand-accent/30 transition-all shadow-xs hover:shadow-md cursor-pointer space-y-3 group"
+              className="bg-white rounded-2xl p-6 border border-brand-ink/5 hover:border-brand-accent/30 transition-all shadow-xs hover:shadow-md cursor-pointer space-y-3 group relative overflow-hidden"
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded bg-brand-paper text-brand-accent font-semibold">
+                <span className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded bg-emerald-800 text-white font-bold">
                   {item.category || "Vara en vän"}
                 </span>
                 <span className="font-mono text-[10px] text-brand-ink/50 font-light">
@@ -469,7 +495,7 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
 
               <div>
                 <h3 className="font-serif italic text-xl text-brand-ink font-medium group-hover:text-brand-accent transition-colors">
-                  Inbjudan • {item.area}
+                  {item.area}
                 </h3>
                 <p className="text-xs text-brand-ink/80 font-light line-clamp-2 mt-1 leading-relaxed">
                   {item.scrubbedText || item.rawText}

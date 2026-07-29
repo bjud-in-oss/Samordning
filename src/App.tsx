@@ -417,45 +417,24 @@ export default function App() {
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col font-sans text-brand-ink selection:bg-brand-accent selection:text-white pb-12">
       
-      {/* Sticky Top Header Bar */}
-      <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-brand-ink/10 z-50 w-full shadow-xs">
-        <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between whitespace-nowrap overflow-hidden select-none">
-          {/* VÄNSTER SIDA */}
-          <div className="flex items-center gap-2 min-w-0 flex-1 mr-4">
-            <h1 className="font-serif italic text-lg sm:text-xl font-medium tracking-tight text-brand-ink shrink-0">
-              Inbjudan till dig
-            </h1>
-            <SettingsTicker
-              savedTags={savedTags}
-              onClick={() => setCurrentView('settings')}
-            />
-          </div>
-
-          {/* HÖGER SIDA */}
+      {/* Header Bar (non-sticky, scrolls naturally) */}
+      <div className="bg-white border-b border-brand-ink/10 w-full shadow-xs">
+        <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between gap-2 overflow-hidden select-none">
+          {/* VÄNSTER SIDA: Klickbar titel */}
           <button
-            id="change-language-btn"
-            onClick={() => {
-              localStorage.removeItem("mission_router_ui_language");
-              setUiLanguage(null);
-            }}
-            className="text-brand-ink opacity-60 hover:opacity-100 transition-all cursor-pointer flex items-center justify-center p-1 shrink-0"
-            title="Ändra språk / Change language"
+            type="button"
+            onClick={() => setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings')}
+            className="flex items-center gap-2 min-w-0 text-left cursor-pointer group hover:opacity-80 transition-opacity"
+            title="Klicka för att anpassa flödet"
           >
-            <Languages size={18} className="stroke-[1.5]" />
+            <h1 className="font-serif italic text-base sm:text-lg font-medium tracking-tight text-brand-ink truncate">
+              Se dina inbjudningar
+            </h1>
           </button>
-        </div>
-      </div>
 
-      {/* Main Responsive Grid Layout */}
-      <main className="flex-1 p-4 max-w-xl w-full mx-auto flex flex-col">
-        
-        {/* Kontroller för Notiser & Anpassning */}
-        <div className="flex flex-row gap-2 sm:gap-3 mb-6 mx-auto max-w-[400px] w-full items-stretch">
-          {/* iOS Style Switch Container */}
-          <div className="flex-1 bg-white border border-brand-ink/10 rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm">
-            <span className="font-serif italic text-[15px] sm:text-base text-brand-ink tracking-tight">
-              Få inbjudningar som notiser
-            </span>
+          {/* HÖGER SIDA: Samlad styrpanel */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* iOS Style Switch for Push Notifications */}
             <button
               type="button"
               disabled={isToggling}
@@ -476,6 +455,7 @@ export default function App() {
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-wait ${
                 pushEnabled ? 'bg-brand-accent' : 'bg-brand-ink/20'
               }`}
+              title={pushEnabled ? "Notiser aktiverade" : "Aktivera notiser"}
             >
               <span className="sr-only">Toggle notifications</span>
               <span
@@ -485,24 +465,39 @@ export default function App() {
                 }`}
               />
             </button>
+
+            {/* Diskret ⚙️-kugghjul direkt intill reglaget */}
+            <button
+              type="button"
+              onClick={() => setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings')}
+              className={`p-1.5 text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper rounded-xl transition-all cursor-pointer ${
+                currentView === 'settings' ? 'bg-brand-paper text-brand-ink' : ''
+              }`}
+              title="Anpassa inställningar"
+            >
+              <Settings size={18} />
+            </button>
+
+            {/* Knappen "Bjud in" längst till höger */}
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentView('stream');
+                setActiveTab('create');
+              }}
+              className="px-3.5 py-1.5 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0"
+              title="Skapa ny inbjudan"
+            >
+              <Plus size={15} className="stroke-[2.5]" />
+              <span>Bjud in</span>
+            </button>
           </div>
-
-          {/* Settings / Anpassa knappen */}
-          <button
-            type="button"
-            disabled={isToggling}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings');
-            }}
-            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-0 bg-white border border-brand-ink/10 rounded-2xl font-mono text-[9px] sm:text-[11px] uppercase tracking-widest text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper transition-all shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-wait ${currentView === 'settings' ? 'ring-1 ring-brand-ink text-brand-ink bg-brand-paper' : ''} ${!pushEnabled ? 'opacity-50 grayscale' : ''}`}
-          >
-            <Settings size={14} className="hidden sm:inline" />
-            <span>Anpassa</span>
-          </button>
         </div>
+      </div>
 
+      {/* Main Responsive Grid Layout */}
+      <main className="flex-1 p-4 max-w-xl w-full mx-auto flex flex-col">
+        
         {pushError && (
           <div className="mb-6 bg-brand-error/10 border border-brand-error/20 rounded-2xl p-4 flex items-center gap-3 text-xs text-brand-error animate-in fade-in duration-200">
             <ShieldAlert size={16} className="shrink-0 text-brand-error" />
@@ -550,6 +545,7 @@ export default function App() {
                   inlineCreate={false}
                   isAdmin={isAdmin}
                   pushEnabled={pushEnabled}
+                  onOpenSettings={() => setCurrentView('settings')}
                 />
               )}
 
@@ -563,6 +559,7 @@ export default function App() {
                   isAdmin={isAdmin}
                   pushEnabled={pushEnabled}
                   onBack={() => setActiveTab("stream")}
+                  onOpenSettings={() => setCurrentView('settings')}
                 />
               )}
             </div>
@@ -570,20 +567,6 @@ export default function App() {
           </div>
         )}
       </main>
-
-      {/* Floating Action Button (FAB) for creating invitations - Anchored on center column */}
-      {currentView === 'stream' && activeTab === 'stream' && !activeAlertId && (
-        <div className="fixed bottom-6 inset-x-0 z-40 pointer-events-none max-w-2xl mx-auto px-4 sm:px-6 flex justify-end">
-          <button
-            onClick={() => setActiveTab('create')}
-            className="pointer-events-auto bg-brand-accent hover:bg-brand-accent/90 text-white rounded-full px-5 py-3 shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer font-mono text-xs uppercase tracking-wider font-semibold"
-            title="Bjud in"
-          >
-            <Plus size={18} />
-            <span>Bjud in</span>
-          </button>
-        </div>
-      )}
 
       {/* Centered Foot Disclaimer */}
       <Disclaimer 

@@ -1,32 +1,33 @@
-[DOMÄN: skapa_inbjudan & inbjudningar] | [STEG: Verkställa -> Slutförd] | [TESTSTATUS: Grön] | [TUR: 1/1]
+[DOMÄN: LiveCard, Flöde & Moderering] | [STEG: Verkställa -> Godkänd] | [TESTSTATUS: Grön (15/15 tester passerade)] | [TUR: 1/1]
 
-# LiveCard, Sekventiell Publicering & Moderering — Slutrapport
+# Genomförd UI- & Flödesuppdatering (doc/UI_WORKFLOWS.md)
 
-## 1. Genomförda Ändringar
-1. **Tre Huvudkategorier (AI-kategorisering)**:
-   - Uppdaterat `src/main/services/parser.ts` med de tre pelarna: "Vara en vän", "Läsa skrifterna", "Hjälpa andra".
-   - Bakgrundskategorisering av text i `CreateInvitationForm.tsx` baserat på nyckelordsanalys.
-   - Visning av kategoribadge på LiveCardet i `PreviewCard.tsx`.
+## 1. Tre Huvudkategorier
+- Kategori "Få näring av Guds ord" har döpts om till "Läsa skrifterna" i parser, server, gränssnitt och tester.
+- Alla inbjudningar sorteras under de tre pelarna: "Vara en vän", "Läsa skrifterna", "Hjälpa andra".
 
-2. **Det Fokuserade LiveCard-flödet (Skapa inbjudan)**:
-   - Startläge visar rubriken "SKRIV INBJUDAN".
-   - Klick på fält tonar ned bakgrunden (`bg-brand-ink/60 backdrop-blur-xs`) och lyfter fram det valda fältet i skarpt fokus i en dialog.
-   - Mjuk uppdatering av kortet när editering stängs.
+## 2. Topprad & Navigering (App.tsx)
+- Fasta toppraden samlar hela styrpanelen: "Se dina inbjudningar", notisreglage (Web Push), diskret ⚙️-kugghjul, samt knappen "Bjud in" längst till höger.
+- Svävande knappar, språkväljarikon och sticky positioning har tagits bort så att toppraden följer med naturligt vid skrollning.
 
-3. **Steg EFTER Insändning (Sekventiella kort)**:
-   - Skapat `PostSubmissionStepper.tsx` med 4 linjära steg:
-     1. **Steg 1: AI-Rekonciliering ("Vad du inte tänkt på")**: Analyserar saknade fält och ger feedback.
-     2. **Steg 2: Integritetsbekräftelse**: Användaren godkänner att inte dela andras personuppgifter och att inbjudan granskas.
-     3. **Steg 3: SMS & Delning**: Förformaterat SMS-meddelande och direktlänk (`sms:0736108997?body=...`) samt kopiera-knapp.
-     4. **Steg 4: SMS-Retur & Kalender**: "Fick du iväg meddelandet?" -> "Ja, skickat!" sparar anmälan i `localStorage` (`my_registrations` / `my_pending_proposals`) och erbjuder `.ics`-nedladdning samt Google Calendar-länk.
+## 3. "Om ditt flöde" (ActiveStream.tsx)
+- Ny status-tile högst upp i flödet med mörkgrön vikmärkesetikett "AKTIVT FILTER".
+- Visar exakt valda områden, kategorier, språk och organisationer (eller text om alla inbjudningar visas).
+- Klickbar tile som leder direkt till inställningarna.
 
-4. **Granskningsstatus & Moderering (`pending_review`)**:
-   - Webbinbjudningar får status `pending` och hamnar i väntrummet.
-   - Det allmänna flödet visar enbart godkända inbjudningar.
-   - Skaparen ser sitt förslag märkt med "Ditt förslag • Väntar på granskning".
-   - Administratörer kan godkänna (`.ja`) eller avvisa (`.nej`) via SMS eller administratörs-vy.
+## 4. LiveCard & Skriv Inbjudan (PreviewCard.tsx & CreateInvitationForm.tsx)
+- Vikbar etikett med mörkgrön bakgrund högst upp till höger på varje kort ("SKRIV INBJUDAN", "Ditt förslag • Väntar på granskning", "VARA EN VÄN", etc.).
+- 2-kolumnsnät på alla skärmstorlekar för "VÄLJ TID & DATUM" och "VAR SES NI?".
+- Yttre ramar kring "Skapa Inbjudan" borttagna, med "Avbryt" och "Sänd" placerade i nedre hörn inuti tilen.
+- Avskalade kort utan redundant text ("Inbjudan • ", "BESKRIVNING").
+- Skarp fokusredigering som tonar ned kortet vid öppen redigeringsdialog.
 
-## 2. Verifiering & Montering
-- **Kompilering**: `compile_applet` slutfördes utan fel.
-- **Enhetstester**: Alla 15 unit-tester via Vitest kördes och passerade (6/6 testfiler gröna).
-- **Montering**: `PostSubmissionStepper`, `PreviewCard`, `CreateInvitationForm` och `ActiveStream` är fullständigt monterade i `App.tsx` och `ActiveStream.tsx` för direkt interaktion på skärmen.
+## 5. Inlämningsflöde (1-2-3-4) & Kalender
+- Automatisk AI-rekonciliering via `AiReviewModal`.
+- Mjuk bekräftelse för personuppgifter utan samtycke.
+- SMS-länk, kopiaknapp och QR-kod via `GatewayQrModal`.
+- `icsGenerator.ts` genererar och laddar ner .ics-kalenderfiler enbart vid aktivt klick.
+
+## 6. Verifiering & Teststatus
+- `npm test`: 15/15 tester godkända.
+- `compile_applet`: Applet byggd utan fel.

@@ -1,70 +1,30 @@
-[FEATURE: Global System Architecture] | [CYCLE: Produce -> Completed] | [STAGE: Refactor/Architect] | [TURN: 1/1]
+[DOMÄN: skapa_inbjudan & inbjudningar] | [STEG: Verkställa -> Slutförd] | [TESTSTATUS: Grön] | [TUR: 1/1]
 
-# Global FSD Layer Compliance Refactoring — Final Status Report (SI v3.2)
+# LiveCard, Sekventiell Publicering & Moderering — Slutrapport
 
-## 1. Summary of Executed Refactoring Actions
-A full Feature-Sliced Design (FSD) refactoring has been executed across the repository to establish proper layer isolation (`src/shared/`, `src/main/services/`, and `src/features/`).
+## 1. Genomförda Ändringar
+1. **Tre Huvudkategorier (AI-kategorisering)**:
+   - Uppdaterat `src/main/services/parser.ts` med de tre pelarna: "Vara en vän", "Läsa skrifterna", "Hjälpa andra".
+   - Bakgrundskategorisering av text i `CreateInvitationForm.tsx` baserat på nyckelordsanalys.
+   - Visning av kategoribadge på LiveCardet i `PreviewCard.tsx`.
 
-### A. Infrastructure Created & Migrated
-1. **`src/shared/` Layer Established**:
-   - `src/shared/types/index.ts`: Shared domain models (`ActiveAlert`, `SubscriptionRecord`, `SimLog`, `GatewayStatus`, etc.).
-   - `src/shared/i18n/translations.ts`: Centralized multilingual translation dictionary (`TRANSLATIONS`, `UiLanguage`).
-   - `src/shared/geo/mapData.ts`: Unified geographic districts and coordinates dataset (`STODDISTRIKT`, `MAP_DISTRICTS`, `GOTEBORG_AREAS`, `AREA_TO_DISTRICT_MAP`, `GOTEBORG_COORDS`).
-   - `src/shared/pwa/pwaService.ts`: Client-side Service Worker registration, Web Push enrollment, and Render background keep-alive ping.
-   - `src/shared/index.ts`: Public API barrier exporting all shared utilities and types.
+2. **Det Fokuserade LiveCard-flödet (Skapa inbjudan)**:
+   - Startläge visar rubriken "SKRIV INBJUDAN".
+   - Klick på fält tonar ned bakgrunden (`bg-brand-ink/60 backdrop-blur-xs`) och lyfter fram det valda fältet i skarpt fokus i en dialog.
+   - Mjuk uppdatering av kortet när editering stängs.
 
-2. **`src/main/services/` Layer Established**:
-   - `src/main/services/parser.ts`: Server-side text washing, geocoding lookup, and Gemini API integration.
-   - `src/main/services/pushService.ts`: Server-side Web Push notification dispatcher, VAPID key manager, and in-memory log tracker.
+3. **Steg EFTER Insändning (Sekventiella kort)**:
+   - Skapat `PostSubmissionStepper.tsx` med 4 linjära steg:
+     1. **Steg 1: AI-Rekonciliering ("Vad du inte tänkt på")**: Analyserar saknade fält och ger feedback.
+     2. **Steg 2: Integritetsbekräftelse**: Användaren godkänner att inte dela andras personuppgifter och att inbjudan granskas.
+     3. **Steg 3: SMS & Delning**: Förformaterat SMS-meddelande och direktlänk (`sms:0736108997?body=...`) samt kopiera-knapp.
+     4. **Steg 4: SMS-Retur & Kalender**: "Fick du iväg meddelandet?" -> "Ja, skickat!" sparar anmälan i `localStorage` (`my_registrations` / `my_pending_proposals`) och erbjuder `.ics`-nedladdning samt Google Calendar-länk.
 
-3. **Feature Public API Barriers Maintained**:
-   - `src/features/mission_router/`: Re-exports shared types, translations, and map data for seamless backwards compatibility without breaking existing consumers.
-   - `src/features/anpassa/`: Re-exports map data from `src/shared/geo/mapData`.
-   - `src/features/mobile_pwa_app/`: Re-exports `pwaService` from `src/shared/pwa/pwaService`.
+4. **Granskningsstatus & Moderering (`pending_review`)**:
+   - Webbinbjudningar får status `pending` och hamnar i väntrummet.
+   - Det allmänna flödet visar enbart godkända inbjudningar.
+   - Skaparen ser sitt förslag märkt med "Ditt förslag • Väntar på granskning".
+   - Administratörer kan godkänna (`.ja`) eller avvisa (`.nej`) via SMS eller administratörs-vy.
 
-### B. Bundling & Security Boundaries Ensured
-- Node-only backend modules (`web-push`, `fs`, `path`) are encapsulated exclusively inside `src/main/services/pushService.ts` and `src/main/services/parser.ts`, accessed solely by `server.ts`.
-- Client bundles remain lightweight and free of server-side imports.
-
----
-
-## 2. Verification & Pre-Commit Gate Results
-- **Vitest Unit Test Suite (`npm test`)**: PASSED (15 tests across 6 test files in 2.75s).
-  - `src/main/services/__tests__/parser.test.ts`: PASSED (6 tests)
-  - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationFavorites.test.ts`: PASSED (1 test)
-  - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationDialogs.test.ts`: PASSED (2 tests)
-  - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationPublishing.test.ts`: PASSED (3 tests)
-  - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationForm.test.ts`: PASSED (2 tests)
-  - `src/features/sms_assistant/domain/__tests__/supportAgent.test.ts`: PASSED (1 test)
-- **TypeScript Typecheck (`tsc --noEmit`)**: PASSED (0 errors).
-- **Vite Application Build (`compile_applet`)**: PASSED cleanly.
-
----
-
-## 3. Architecture Status
-```
-src/
-├── main/                           # Application Entry & Global Infrastructure
-│   ├── config/
-│   │   └── firebaseClient.ts
-│   └── services/                   # Server Services (Node.js only)
-│       ├── parser.ts
-│       └── pushService.ts
-│
-├── shared/                         # Reusable Client-Safe Infrastructure & Domain
-│   ├── index.ts                    # Public API Barrier
-│   ├── types/
-│   │   └── index.ts
-│   ├── i18n/
-│   │   └── translations.ts
-│   ├── geo/
-│   │   └── mapData.ts
-│   └── pwa/
-│       └── pwaService.ts
-│
-└── features/                       # Pure Feature Slices (UI + Hooks)
-    ├── anpassa/
-    ├── inbjudningar/
-    ├── skapa_inbjudan/
-    └── sms_assistant/
-```
+## 2. Verifiering
+- `compile_applet`: Bygget slutfördes utan fel.

@@ -16,6 +16,8 @@ interface PreviewCardProps {
   isRecurring: boolean;
   hasReminder: boolean;
   reminderTime: string;
+  category?: string;
+  focusedField?: ActiveDialogType | null;
   onOpenDialog?: (dialog: ActiveDialogType) => void;
 }
 
@@ -30,6 +32,8 @@ export function PreviewCard({
   isRecurring,
   hasReminder,
   reminderTime,
+  category = "Vara en vän",
+  focusedField,
   onOpenDialog
 }: PreviewCardProps) {
   return (
@@ -38,14 +42,24 @@ export function PreviewCard({
         <span className="font-mono text-xs uppercase font-semibold text-brand-ink/80">
           Klicka på fälten i kortet för att komponera din inbjudan:
         </span>
-        <span className="font-mono text-[10px] text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-full font-medium shrink-0">
+        <span className="font-mono text-[10px] text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-full font-bold shrink-0">
           Direktredigering
         </span>
       </div>
 
-      <div className="bg-white rounded-3xl p-6 border-2 border-brand-accent/20 shadow-md space-y-4 relative overflow-hidden">
-        <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-bl-xl">
-          LIVECARD
+      <div className="bg-white rounded-3xl p-6 border-2 border-brand-accent/30 shadow-md space-y-4 relative overflow-hidden transition-all duration-300">
+        <div className="flex items-center justify-between border-b border-brand-ink/10 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-brand-accent text-white">
+              LIVECARD
+            </span>
+            <span className="font-mono text-[10px] font-bold text-brand-accent bg-brand-accent/10 px-2.5 py-0.5 rounded-full">
+              {category}
+            </span>
+          </div>
+          <span className="text-[10px] font-mono text-brand-ink/50 italic">
+            Fokus-redigering
+          </span>
         </div>
 
         {/* Title / Activity - Clickable */}

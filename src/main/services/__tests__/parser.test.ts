@@ -48,7 +48,7 @@ describe("Parser & Geocoding Service", () => {
   it("runFallbackWash extracts metadata and warnings", () => {
     const text = "Vi vill erbjuda lektion i Kortedala kl 19:00 för intresserad på svenska";
     const result = runFallbackWash(text);
-    expect(result.extractedMetadata.category).toBe("Få näring av Guds ord");
+    expect(result.extractedMetadata.category).toBe("Läsa skrifterna");
     expect(result.extractedMetadata.area).toBe("Kortedala");
     expect(result.extractedMetadata.time).toBe("19:00");
     expect(result.extractedMetadata.language).toBe("Svenska");

@@ -1,6 +1,11 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/4_Produce] - Anonym Enhetsparning (#PAIR) Verified Saved
+// [src/features/sms_assistant/components/AdminConsole.tsx] - Admin SMS Console Component
+
 import React, { useState, useEffect } from "react";
-import { Send, ShieldCheck, ArrowLeft, Sparkles, FileText, CheckCircle2, QrCode, Smartphone, RefreshCw, KeyRound, Check, X } from "lucide-react";
+import { Send, RefreshCw } from "lucide-react";
+import { PairingGate } from "./PairingGate";
+import { PendingAlertsQueue } from "./PendingAlertsQueue";
+import { AdminLogsArea } from "./AdminLogsArea";
+import { AdminConsoleHeader } from "./AdminConsoleHeader";
 
 export default function AdminConsole() {
   const [deviceToken, setDeviceToken] = useState("");
@@ -160,133 +165,20 @@ export default function AdminConsole() {
 
   if (!isPaired) {
     return (
-      <div className="h-[100dvh] flex flex-col bg-[#F0F2F5] font-sans text-brand-ink">
-        {/* Header */}
-        <div className="bg-white px-4 py-3 border-b border-brand-ink/10 flex items-center justify-between shadow-xs shrink-0">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => window.location.href = "/"}
-              className="p-2 -ml-2 text-brand-ink/60 hover:text-brand-ink transition-colors flex items-center gap-1 cursor-pointer"
-            >
-              <ArrowLeft size={20} />
-              <span className="text-xs font-mono uppercase tracking-wider">Webbapp</span>
-            </button>
-            <div className="flex items-center gap-2">
-              <KeyRound className="text-brand-accent shrink-0" size={22} />
-              <h1 className="text-lg font-serif italic text-brand-ink font-medium tracking-tight">
-                Anonym Enhetsparning
-              </h1>
-            </div>
-          </div>
-        </div>
-
-        {/* Pairing Body */}
-        <div className="flex-1 flex flex-col items-center justify-center p-4">
-          <div className="bg-white p-6 rounded-2xl border border-brand-ink/10 shadow-md max-w-md w-full space-y-5 text-center">
-            <div className="w-12 h-12 bg-brand-accent/10 rounded-full flex items-center justify-center mx-auto text-brand-accent">
-              <ShieldCheck size={26} />
-            </div>
-
-            <div className="space-y-1">
-              <h2 className="font-serif italic text-xl font-medium text-brand-ink">Enheten saknar godkännande</h2>
-              <p className="text-xs text-brand-ink/70 leading-relaxed font-light">
-                PIN-koder har ersatts av anonym enhetsparning. Skicka ett verifierings-SMS från din administratörsmobil för att låsa upp denna enhet.
-              </p>
-            </div>
-
-            <div className="p-3 bg-brand-bg rounded-xl border border-brand-ink/5 font-mono text-[11px] text-brand-ink/80 flex justify-between items-center">
-              <span className="text-brand-ink/50 uppercase text-[9px]">Token ID:</span>
-              <span className="font-semibold text-brand-accent">{deviceToken.substring(0, 16)}...</span>
-            </div>
-
-            {/* Mobile Link */}
-            <div className="space-y-3">
-              <a 
-                href={smsHref}
-                className="w-full py-3 bg-brand-accent hover:opacity-90 text-white font-mono text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
-              >
-                <Smartphone size={16} />
-                <span>Verifiera enhet via SMS (#PAIR)</span>
-              </a>
-
-              {/* QR Code for Desktop */}
-              <div className="p-4 bg-brand-bg rounded-xl border border-brand-ink/5 flex flex-col items-center gap-3">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-brand-ink/60">
-                  Dator / Stationär enhet? Skanna med mobil:
-                </span>
-                <img src={qrUrl} alt="QR för #PAIR SMS" className="w-36 h-36 border border-brand-ink/10 rounded-lg bg-white p-1" />
-                <span className="text-[10px] text-brand-ink/50 font-mono">Skickar: #PAIR {deviceToken.substring(0, 10)}...</span>
-              </div>
-
-              {/* Local Loopback Auto-Pair Button for Dev/Gateway */}
-              <button
-                onClick={handleDirectLoopbackPair}
-                className="w-full py-2 bg-brand-bg hover:bg-brand-ink/5 border border-brand-ink/10 text-brand-ink/70 font-mono text-[11px] uppercase tracking-wider rounded-xl transition-all cursor-pointer"
-              >
-                Direktaktivera lokal enhet (Gateway / Dev)
-              </button>
-
-              <button
-                onClick={() => checkPairingStatus(deviceToken)}
-                className="w-full py-1.5 text-brand-accent font-mono text-[11px] hover:underline flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <RefreshCw size={12} />
-                <span>Uppdatera status</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PairingGate
+        deviceToken={deviceToken}
+        smsHref={smsHref}
+        qrUrl={qrUrl}
+        onDirectLoopbackPair={handleDirectLoopbackPair}
+        onCheckPairingStatus={() => checkPairingStatus(deviceToken)}
+      />
     );
   }
 
   return (
     <div className="h-[100dvh] flex flex-col bg-[#F0F2F5] font-sans text-brand-ink">
-      {/* Header */}
-      <div className="bg-white px-4 py-3 border-b border-brand-ink/10 flex items-center justify-between shadow-xs shrink-0 z-10 relative">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => window.location.href = "/"}
-            className="p-2 -ml-2 text-brand-ink/60 hover:text-brand-ink transition-colors flex items-center gap-1 cursor-pointer"
-          >
-            <ArrowLeft size={20} />
-            <span className="text-xs font-mono uppercase tracking-wider hidden sm:inline">Webbapp</span>
-          </button>
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="text-brand-accent shrink-0" size={24} />
-            <div>
-              <h1 className="text-lg font-serif italic text-brand-ink font-medium tracking-tight leading-none flex items-center gap-2">
-                <span>SMS Konsol</span>
-                <span className="text-[9px] font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full not-italic font-normal">#PAIR Aktiv</span>
-              </h1>
-            </div>
-          </div>
-        </div>
+      <AdminConsoleHeader onSendSms={sendSms} onInsertTemplate={insertTemplate} />
 
-        <div className="flex items-center gap-1.5 font-mono text-[10px]">
-          <button
-            onClick={() => sendSms(".status")}
-            className="px-2.5 py-1 bg-brand-bg hover:bg-brand-ink/5 border border-brand-ink/10 rounded-lg text-brand-ink/80 transition-colors cursor-pointer"
-          >
-            .status
-          </button>
-          <button
-            onClick={() => sendSms(".mall")}
-            className="px-2.5 py-1 bg-brand-bg hover:bg-brand-ink/5 border border-brand-ink/10 rounded-lg text-brand-ink/80 transition-colors cursor-pointer"
-          >
-            .mall
-          </button>
-          <button
-            onClick={insertTemplate}
-            className="px-2.5 py-1 bg-brand-accent/10 hover:bg-brand-accent/20 text-brand-accent rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-          >
-            <FileText size={12} />
-            <span>Infoga 5-raders mall</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Settings */}
       <div className="bg-white px-4 py-2.5 border-b border-brand-ink/5 shrink-0 z-10 shadow-xs flex gap-3 text-xs">
          <input 
             type="password"
@@ -304,90 +196,15 @@ export default function AdminConsole() {
           />
       </div>
 
-      {/* Pending Proposals Moderation Queue */}
-      <div className="bg-white border-b border-brand-ink/10 px-4 py-3 shrink-0 z-10">
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
-            <span>Väntande förslag ({pendingAlerts.length})</span>
-          </span>
-          <button
-            onClick={fetchPending}
-            className="text-[10px] font-mono text-brand-ink/60 hover:text-brand-ink underline cursor-pointer"
-          >
-            Uppdatera
-          </button>
-        </div>
+      <PendingAlertsQueue
+        pendingAlerts={pendingAlerts}
+        onFetchPending={fetchPending}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
 
-        {pendingAlerts.length === 0 ? (
-          <p className="text-xs font-mono text-brand-ink/40 italic">Inga väntande förslag i kö.</p>
-        ) : (
-          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-            {pendingAlerts.map(item => (
-              <div
-                key={item.id}
-                className="bg-brand-bg rounded-xl p-3 border border-brand-ink/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left"
-              >
-                <div className="space-y-0.5 text-xs font-sans">
-                  <div className="font-mono text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
-                    #{item.id} • {item.area} • {item.category || "Vara en vän"}
-                  </div>
-                  <p className="font-serif italic text-brand-ink font-medium leading-snug">
-                    {item.scrubbedText || item.rawText}
-                  </p>
-                  <div className="font-mono text-[10px] text-brand-ink/60">
-                    Tid: {item.time || "Ej angiven"} | Arrangör: {item.responsibleParty || "Församlingen"}
-                  </div>
-                </div>
+      <AdminLogsArea logs={logs} phoneNumber={phoneNumber} />
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleApprove(item.id)}
-                    className="px-3 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-[10px] uppercase font-bold tracking-wider rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <Check size={12} />
-                    <span>Godkänn</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleReject(item.id)}
-                    className="px-3 py-1.5 bg-rose-700 hover:bg-rose-800 text-white font-mono text-[10px] uppercase font-bold tracking-wider rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <X size={12} />
-                    <span>Avböj</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 flex flex-col-reverse gap-4">
-        {logs.map((log, i) => (
-          <div key={i} className={`flex ${log.isUser ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-200`}>
-            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm font-light leading-relaxed shadow-xs ${
-              log.isUser 
-                ? "bg-[#D9FDD3] text-brand-ink rounded-tr-none font-mono text-xs" 
-                : "bg-white text-brand-ink rounded-tl-none border border-brand-ink/5 font-mono text-xs"
-            }`}>
-              <div className="font-mono text-[8px] uppercase tracking-wider opacity-50 mb-1">
-                {log.isUser ? `Du (${phoneNumber})` : "System / AI"}
-              </div>
-              <p className="whitespace-pre-wrap">{log.text}</p>
-            </div>
-          </div>
-        ))}
-        {logs.length === 0 && (
-          <div className="text-center text-brand-ink/40 text-xs font-mono uppercase tracking-widest my-auto pb-12 space-y-2">
-            <p>Skicka ett meddelande för att starta simulerat test</p>
-            <p className="text-[10px] text-brand-ink/30 font-sans normal-case">Tips: Använd snabbknappen "Infoga 5-raders mall" ovan för att testa universell inbjudningsmall.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Input Area */}
       <div className="bg-[#F0F2F5] p-3 shrink-0 flex gap-2">
         <textarea 
           rows={2}
@@ -413,4 +230,3 @@ export default function AdminConsole() {
     </div>
   );
 }
-

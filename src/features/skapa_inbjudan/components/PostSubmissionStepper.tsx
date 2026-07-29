@@ -1,10 +1,14 @@
 // [src/features/skapa_inbjudan/components/PostSubmissionStepper.tsx] - 4-Step Post Submission Stepper
 
 import React, { useState } from "react";
-import { X, CheckCircle2, AlertTriangle, FileText, Send, Copy, QrCode, Calendar, Check, ArrowRight, ShieldCheck, RefreshCw } from "lucide-react";
+import { X } from "lucide-react";
 import { AiReviewProposal } from "../domain/types";
 import { GATEWAY_NUMBER } from "../domain/constants";
 import { washAnnouncementText } from "../../mission_router";
+import { Step1AiReview } from "./Step1AiReview";
+import { Step2Privacy } from "./Step2Privacy";
+import { Step3SmsShare } from "./Step3SmsShare";
+import { Step4Reconciliation } from "./Step4Reconciliation";
 
 interface PostSubmissionStepperProps {
   activityText: string;
@@ -90,7 +94,7 @@ export function PostSubmissionStepper({
   const handleConfirmSent = async () => {
     setSaving(true);
     try {
-      const response = await fetch("/api/sim/sms", {
+      await fetch("/api/sim/sms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -136,7 +140,6 @@ export function PostSubmissionStepper({
           <X size={18} />
         </button>
 
-        {/* Stepper Progress Bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-brand-ink/60">
             <span>Steg {currentStep} av 4</span>
@@ -155,246 +158,41 @@ export function PostSubmissionStepper({
           </div>
         </div>
 
-        {/* STEG 1: AI-rekonciliering */}
         {currentStep === 1 && (
-          <div className="space-y-4 animate-in fade-in duration-150">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-brand-accent/10 text-brand-accent">
-                <FileText size={22} />
-              </div>
-              <div>
-                <h3 className="font-serif text-lg font-bold text-brand-ink leading-tight">
-                  1. AI-granskning av inbjudan
-                </h3>
-                <span className="font-mono text-[11px] text-brand-ink/50 uppercase block">
-                  Rekonciliering & förslag
-                </span>
-              </div>
-            </div>
-
-            {aiProposal.missingFields.length > 0 ? (
-              <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200 space-y-2">
-                <span className="font-mono text-[10px] uppercase font-bold text-amber-900 block">
-                  Saknade detaljer i inbjudan:
-                </span>
-                <ul className="space-y-1 text-xs font-mono text-amber-900">
-                  {aiProposal.missingFields.map((f, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0" />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-200 text-emerald-900 text-xs font-mono flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-700 shrink-0" />
-                <span>Alla viktiga fält är ifyllda och redo för publicering!</span>
-              </div>
-            )}
-
-            {aiProposal.reasonCopy && (
-              <div className="bg-amber-50 rounded-2xl p-3.5 border border-amber-200 text-xs text-amber-900">
-                <p className="leading-relaxed font-light">{aiProposal.reasonCopy}</p>
-              </div>
-            )}
-
-            <div className="pt-2 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(2)}
-                className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Fortsätt till nästa steg</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
-          </div>
+          <Step1AiReview
+            aiProposal={aiProposal}
+            onNext={() => setCurrentStep(2)}
+          />
         )}
 
-        {/* STEG 2: Integritetsbekräftelse */}
         {currentStep === 2 && (
-          <div className="space-y-4 animate-in fade-in duration-150">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-sky-100 text-sky-800">
-                <ShieldCheck size={22} />
-              </div>
-              <div>
-                <h3 className="font-serif text-lg font-bold text-brand-ink leading-tight">
-                  2. Integritetsbekräftelse
-                </h3>
-                <span className="font-mono text-[11px] text-brand-ink/50 uppercase block">
-                  Skydd av personuppgifter
-                </span>
-              </div>
-            </div>
-
-            <p className="text-xs text-brand-ink/80 leading-relaxed font-light">
-              För att upprätthålla tryggheten och följa integritetspolicyn måste alla inbjudningar respektera andras personliga uppgifter.
-            </p>
-
-            <label className="flex items-start gap-3 cursor-pointer p-4 bg-brand-paper/60 rounded-2xl border border-brand-ink/10">
-              <input
-                type="checkbox"
-                checked={consentConfirmed}
-                onChange={e => setConsentConfirmed(e.target.checked)}
-                className="mt-0.5 rounded border-brand-ink/30 text-emerald-800 focus:ring-emerald-800 shrink-0"
-              />
-              <span className="text-xs text-brand-ink leading-relaxed font-medium">
-                Jag bekräftar att jag inte delar andras personuppgifter (som namn, kontaktinfo, etc) i inbjudan utan deras uttryckliga godkännande. Jag förstår att min inbjudan granskas innan publicering.
-              </span>
-            </label>
-
-            <div className="pt-2 flex justify-end gap-2">
-              <button
-                type="button"
-                disabled={!consentConfirmed}
-                onClick={() => setCurrentStep(3)}
-                className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Bekräfta och fortsätt</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
-          </div>
+          <Step2Privacy
+            consentConfirmed={consentConfirmed}
+            setConsentConfirmed={setConsentConfirmed}
+            onNext={() => setCurrentStep(3)}
+          />
         )}
 
-        {/* STEG 3: SMS-länk, kopiera-knapp och QR-kod */}
         {currentStep === 3 && (
-          <div className="space-y-4 animate-in fade-in duration-150">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-800">
-                <Send size={22} />
-              </div>
-              <div>
-                <h3 className="font-serif text-lg font-bold text-brand-ink leading-tight">
-                  3. SMS & Delning
-                </h3>
-                <span className="font-mono text-[11px] text-brand-ink/50 uppercase block">
-                  Skicka till mottagaren
-                </span>
-              </div>
-            </div>
-
-            {isMobile ? (
-              <a
-                href={smsHref}
-                className="w-full py-3.5 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 font-bold shadow-md cursor-pointer"
-              >
-                <Send size={15} />
-                <span>Öppna SMS-app för insändning ({GATEWAY_NUMBER})</span>
-              </a>
-            ) : (
-              <div className="p-4 bg-brand-paper/50 rounded-2xl border border-brand-ink/10 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left shadow-xs">
-                <img src={qrUrl} alt="SMS QR Code" className="w-28 h-28 rounded-xl border border-brand-ink/10 shrink-0 bg-white p-1" />
-                <div className="space-y-1.5 text-xs text-brand-ink/80 font-light leading-relaxed">
-                  <span className="font-mono text-xs uppercase font-semibold text-brand-ink block">
-                    Skanna med mobil för att skicka
-                  </span>
-                  <p>
-                    QR-Koden öppnar din SMS-app med din inbjudan i ett färdigt SMS till numret {GATEWAY_NUMBER}.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={handleCopyText}
-              className="w-full py-2.5 bg-brand-paper hover:bg-brand-ink/10 border border-brand-ink/15 text-brand-ink font-mono text-xs uppercase font-semibold tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {copied ? <Check size={14} className="text-emerald-800" /> : <Copy size={14} />}
-              <span>{copied ? "Text kopierad till urklipp!" : "Kopiera SMS-text / direktlänk"}</span>
-            </button>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(4)}
-                className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Fortsätt till SMS-avstämning</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
-          </div>
+          <Step3SmsShare
+            isMobile={isMobile}
+            smsHref={smsHref}
+            qrUrl={qrUrl}
+            copied={copied}
+            onCopyText={handleCopyText}
+            onNext={() => setCurrentStep(4)}
+          />
         )}
 
-        {/* STEG 4: SMS-returavstämning */}
         {currentStep === 4 && (
-          <div className="space-y-4 animate-in fade-in duration-150">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-amber-100 text-amber-800">
-                <RefreshCw size={22} />
-              </div>
-              <div>
-                <h3 className="font-serif text-lg font-bold text-brand-ink leading-tight">
-                  4. SMS-returavstämning
-                </h3>
-                <span className="font-mono text-[11px] text-brand-ink/50 uppercase block">
-                  Avstämning
-                </span>
-              </div>
-            </div>
-
-            {!isSubmitted ? (
-              <>
-                <p className="text-sm font-serif italic text-brand-ink leading-relaxed">
-                  Fick du iväg meddelandet via din SMS-app?
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <button
-                    type="button"
-                    disabled={saving}
-                    onClick={handleConfirmSent}
-                    className="py-3 px-4 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs font-bold uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                  >
-                    <CheckCircle2 size={16} />
-                    <span>{saving ? "Sparar..." : "Ja, skickat!"}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setCurrentStep(3)}
-                    className="py-3 px-4 bg-brand-paper hover:bg-brand-ink/10 text-brand-ink border border-brand-ink/15 font-mono text-xs font-medium rounded-2xl transition-all cursor-pointer text-center"
-                  >
-                    Nej, försök igen
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-200 text-emerald-900 text-xs font-mono space-y-1">
-                  <span className="font-bold uppercase block text-emerald-950">
-                    Tack! Din inbjudan har registrerats!
-                  </span>
-                  <p className="font-sans text-emerald-800 font-light">
-                    Inbjudan har sparats i dina lokaldata och väntar på granskning innan den publiceras i flödet.
-                  </p>
-                </div>
-
-                <div className="pt-2 flex flex-col gap-2.5">
-                  <button
-                    type="button"
-                    onClick={downloadIcs}
-                    className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <Calendar size={16} />
-                    <span>Lägg till i kalender (.ics)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={onSuccess}
-                    className="w-full py-2.5 bg-brand-paper hover:bg-brand-ink/10 text-brand-ink border border-brand-ink/15 font-mono text-xs uppercase font-semibold rounded-2xl transition-all cursor-pointer text-center"
-                  >
-                    Klar / Tillbaka till flödet
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          <Step4Reconciliation
+            isSubmitted={isSubmitted}
+            saving={saving}
+            onConfirmSent={handleConfirmSent}
+            onRetryStep3={() => setCurrentStep(3)}
+            onDownloadIcs={downloadIcs}
+            onSuccess={onSuccess}
+          />
         )}
       </div>
     </div>

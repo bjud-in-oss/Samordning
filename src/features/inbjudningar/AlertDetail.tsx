@@ -1,7 +1,11 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [4_Produce]
+// [src/features/inbjudningar/AlertDetail.tsx] - Alert Detail View
+
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Calendar, Languages, ShieldCheck, Phone, Check, QrCode } from "lucide-react";
+import { ArrowLeft, MapPin } from "lucide-react";
 import { TRANSLATIONS, UiLanguage } from "../mission_router";
+import { AlertDetailHeader } from "./components/AlertDetailHeader";
+import { AlertDetailInfoCard } from "./components/AlertDetailInfoCard";
+import { AlertDetailReplySection } from "./components/AlertDetailReplySection";
 
 interface AlertDetailProps {
   alertId: string;
@@ -105,206 +109,29 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-12 text-left">
-      {/* Header with back button */}
-      <div className="bg-white rounded-2xl p-4 shadow-xs border border-brand-ink/5 flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="px-4 py-2 hover:bg-brand-paper/50 text-brand-ink/80 hover:text-brand-ink font-mono text-[10px] uppercase tracking-wider rounded-lg transition-all flex items-center gap-2 cursor-pointer"
-        >
-          <ArrowLeft size={14} />
-          <span>{t.backBtn}</span>
-        </button>
-        <div className="flex items-center gap-2">
-          <span className="bg-brand-paper text-brand-ink text-[9px] font-mono uppercase tracking-wider px-3 py-1.5 rounded border border-brand-ink/5">
-            {alert.category || "Vara en vän"}
-          </span>
-        </div>
-      </div>
+      <AlertDetailHeader
+        category={alert.category}
+        onBack={onBack}
+        backBtnText={t.backBtn}
+      />
 
-      {/* Main Card */}
-      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-brand-ink/5 space-y-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] font-mono uppercase tracking-wider px-2.5 py-1 rounded bg-brand-paper text-brand-accent">
-              {t.activeRequest}
-            </span>
-            {alert.totalActiveAlerts > 1 && (
-              <span className="font-mono text-[9px] text-brand-accent bg-brand-bg px-2 py-0.5 rounded border border-brand-ink/5">
-                ID: {alert.id}
-              </span>
-            )}
-          </div>
-          <h2 className="text-2xl md:text-3xl font-serif italic text-brand-ink font-medium mt-3 tracking-tight">
-            Inbjudan • {alert.area}
-          </h2>
-        </div>
+      <AlertDetailInfoCard
+        alert={alert}
+        showContact={showContact}
+        setShowContact={setShowContact}
+        uiLanguage={uiLanguage}
+        t={t}
+      />
 
-        {/* Clean, scrubbed text */}
-        {alert.scrubbedText && (
-          <div className="bg-brand-paper/40 rounded-xl p-6 border border-brand-ink/5 space-y-2">
-            <span className="text-[9px] uppercase font-mono tracking-wider text-brand-accent">Beskrivning</span>
-            <p className="text-brand-ink/80 font-serif italic whitespace-pre-line leading-relaxed text-sm md:text-base font-medium">
-              {alert.scrubbedText}
-            </p>
-          </div>
-        )}
-
-        {/* Clean 3-Column Info Grid: Time, Location & Organizer with Contact */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-brand-ink/5 pt-4 font-mono text-xs">
-          {/* Time */}
-          <div className="flex items-start gap-2.5 p-3 bg-brand-bg rounded-xl border border-brand-ink/5">
-            <Calendar className="text-emerald-800 shrink-0 mt-0.5" size={16} />
-            <div className="flex-1 min-w-0">
-              <div className="text-[9px] uppercase font-mono font-bold text-brand-ink/60">{t.timeLabel}</div>
-              <div className="text-xs font-serif italic font-semibold text-brand-ink mt-0.5">{alert.time || "Ingen fast tid"}</div>
-            </div>
-          </div>
-
-          {/* Location */}
-          <div className="flex items-start gap-2.5 p-3 bg-brand-bg rounded-xl border border-brand-ink/5">
-            <MapPin className="text-emerald-800 shrink-0 mt-0.5" size={16} />
-            <div className="flex-1 min-w-0">
-              <div className="text-[9px] uppercase font-mono font-bold text-brand-ink/60">{t.approxLocation}</div>
-              <div className="text-xs font-serif italic font-semibold text-brand-ink mt-0.5">{alert.locationName || alert.area}</div>
-            </div>
-          </div>
-
-          {/* Organizer + Contact */}
-          <div className="flex items-start gap-2.5 p-3 bg-brand-bg rounded-xl border border-brand-ink/5">
-            <ShieldCheck className="text-emerald-800 shrink-0 mt-0.5" size={16} />
-            <div className="flex-1 min-w-0">
-              <div className="text-[9px] uppercase font-mono font-bold text-brand-ink/60">Arrangör</div>
-              <div className="text-xs font-serif italic font-semibold text-brand-ink mt-0.5">{alert.responsibleParty || "Församlingsledare"}</div>
-              {alert.contactValue && (
-                <div className="text-[11px] font-mono text-brand-ink/80 mt-1 flex items-center gap-1">
-                  <Phone size={12} className="text-emerald-800 shrink-0" />
-                  {showContact ? (
-                    <span className="select-all font-semibold">{alert.contactValue}</span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setShowContact(true)}
-                      className="text-emerald-800 hover:underline cursor-pointer"
-                    >
-                      Visa nummer
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Simple, inviting helper text */}
-        <div className="bg-brand-paper/30 rounded-xl p-5 border border-brand-ink/5 text-xs text-brand-ink/75 leading-relaxed text-center font-serif italic font-medium">
-          <p>
-            {uiLanguage === "sv" 
-              ? "Klicka på knappen nedan för att öppna din SMS-app och meddela arrangören att du deltar." 
-              : "Click the button below to open your SMS app and notify the organizer that you are participating."}
-          </p>
-        </div>
-      </div>
-
-      {/* Reply Section */}
-      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-brand-ink/5 space-y-6">
-        {alert.isFull ? (
-          <div className="bg-brand-paper/50 text-brand-ink border border-brand-ink/10 rounded-xl p-6 text-center space-y-2">
-            <h3 className="font-serif italic text-lg font-medium">Aktiviteten är fullbokad</h3>
-            <p className="text-xs text-brand-ink/70 font-light">Denna aktivitet är nu fullbokad. Välkommen nästa gång!</p>
-          </div>
-        ) : (
-          <>
-            <div>
-              <h3 className="text-xl font-serif italic text-brand-ink font-medium">
-                {t.respondTitle}
-              </h3>
-              <p className="text-brand-ink/70 text-xs md:text-sm font-light mt-1">
-                {t.respondSubtitle}
-              </p>
-            </div>
-
-            {/* Quick prefill buttons */}
-            <div className="flex flex-wrap gap-2">
-              {[
-                t.quickReply1,
-                t.quickReply2,
-                t.quickReply3,
-                t.quickReply4
-              ].map(quick => (
-                <button
-                  key={quick}
-                  type="button"
-                  onClick={() => setResponseText(quick)}
-                  className="px-4 py-2 bg-brand-bg hover:bg-brand-paper border border-brand-ink/5 text-brand-ink/80 rounded-lg text-[10px] font-mono uppercase tracking-wider transition-all cursor-pointer"
-                >
-                  {quick}
-                </button>
-              ))}
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[9px] uppercase font-mono text-brand-accent tracking-wider">
-                {t.messageLabel}
-              </label>
-              <textarea
-                value={responseText}
-                onChange={e => setResponseText(e.target.value)}
-                rows={3}
-                className="w-full p-4 rounded-xl border border-brand-ink/10 focus:border-brand-accent focus:outline-none text-xs sm:text-sm font-serif italic text-brand-ink placeholder-brand-ink/30 transition-all resize-none bg-brand-bg/20 font-medium"
-                placeholder={t.messagePlaceholder}
-              />
-            </div>
-
-            <button
-              onClick={triggerSmsDeepLink}
-              disabled={!responseText.trim()}
-              className="w-full py-3.5 bg-brand-ink hover:opacity-90 disabled:bg-brand-paper disabled:text-brand-ink/30 text-white font-mono text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Check size={16} />
-              {t.sendResponseBtn}
-            </button>
-
-            <div className="pt-2 text-center">
-              <button
-                type="button"
-                onClick={() => setShowQrRsvp(!showQrRsvp)}
-                className="font-mono text-xs text-brand-accent hover:underline flex items-center justify-center gap-1.5 mx-auto cursor-pointer font-medium"
-              >
-                <QrCode size={14} />
-                <span>{showQrRsvp ? "Dölj QR-kod" : "Tacka Ja via annan enhet"}</span>
-              </button>
-
-              {showQrRsvp && (
-                <div className="mt-4 p-4 bg-brand-paper/40 rounded-2xl border border-brand-ink/10 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left animate-in fade-in duration-200">
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`sms:0736108997?body=${encodeURIComponent(`JA på inbjudan #${alert.id}`)}`)}`}
-                    alt="OSA QR Code"
-                    className="w-28 h-28 rounded-xl border border-brand-ink/10 shrink-0 bg-white p-1"
-                  />
-                  <div className="space-y-1.5 text-xs text-brand-ink/80 font-light leading-relaxed">
-                    <span className="font-mono text-xs uppercase font-semibold text-brand-ink block">
-                      Tacka Ja via mobil (SMS-Gateway)
-                    </span>
-                    <p>
-                      Skanna QR-koden med din mobiltelefon för att öppna ett färdigt SMS med texten:
-                    </p>
-                    <p className="font-mono text-[11px] font-semibold text-brand-accent bg-white px-2.5 py-1 rounded border border-brand-ink/10 inline-block">
-                      JA på inbjudan #{alert.id}
-                    </p>
-                    <p>
-                      SMS:et skickas direkt till mottagarnumret 0736108997.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <p className="text-[10px] font-mono text-brand-accent uppercase tracking-wider text-center leading-relaxed">
-              {t.footerNotice}
-            </p>
-          </>
-        )}
-      </div>
+      <AlertDetailReplySection
+        alert={alert}
+        responseText={responseText}
+        setResponseText={setResponseText}
+        showQrRsvp={showQrRsvp}
+        setShowQrRsvp={setShowQrRsvp}
+        triggerSmsDeepLink={triggerSmsDeepLink}
+        t={t}
+      />
     </div>
   );
 }

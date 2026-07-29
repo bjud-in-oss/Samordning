@@ -1,11 +1,13 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/4_Produce] - ActiveStream Firestore Connected Verified Saved
+// [src/features/inbjudningar/ActiveStream.tsx] - Stream Container Component
 
 import React, { useState, useEffect } from "react";
-import { ExternalLink, Send, CheckCircle, Sparkles, ShieldAlert, ArrowLeft } from "lucide-react";
-import { ActiveAlert, TRANSLATIONS, UiLanguage, washAnnouncementText } from "../mission_router";
-import { GOTEBORG_AREAS } from "../anpassa";
+import { ShieldAlert } from "lucide-react";
+import { ActiveAlert, UiLanguage } from "../mission_router";
 import { CreateInvitationForm } from "../skapa_inbjudan";
 import { subscribeToFirestoreAlerts } from "../../main/config/firebaseClient";
+import { AdminModerationQueue } from "./components/AdminModerationQueue";
+import { StreamFilterStatus } from "./components/StreamFilterStatus";
+import { StreamNoticeCard } from "./components/StreamNoticeCard";
 
 interface ActiveStreamProps {
   onSelectAlert: (id: string) => void;
@@ -18,19 +20,6 @@ interface ActiveStreamProps {
   pushEnabled?: boolean;
   onOpenSettings?: () => void;
 }
-
-const ORGANIZATIONS = [
-  "Kyrkoherde",
-  "Diakon/Rådgivare",
-  "Unga vuxna",
-  "Primärföreningen",
-  "Hjälpföreningen",
-  "Äldstes kvorum",
-  "Enskild/Familj",
-  "Missionärer",
-  "Biskopsrådet",
-  "Staven"
-];
 
 export default function ActiveStream({
   onSelectAlert,
@@ -47,8 +36,7 @@ export default function ActiveStream({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // User's own submitted proposals from localStorage
-  const [myProposals, setMyProposals] = useState<any[]>(() => {
+  const [myProposals] = useState<any[]>(() => {
     if (typeof localStorage !== "undefined") {
       try {
         const stored = localStorage.getItem("my_pending_proposals");
@@ -60,48 +48,6 @@ export default function ActiveStream({
     }
     return [];
   });
-
-  // Usage count & adaptive help state
-  const [usageCount, setUsageCount] = useState<number>(() => {
-    if (typeof localStorage !== "undefined") {
-      try {
-        const stored = localStorage.getItem("mission_router_usage_count");
-        return stored ? parseInt(stored, 10) || 0 : 0;
-      } catch (err) {
-        return 0;
-      }
-    }
-    return 0;
-  });
-  const [showHelpText, setShowHelpText] = useState<boolean>(usageCount < 3);
-
-  const defaultAreaString = savedTags?.limitedAreas && savedTags.limitedAreas.length > 0 
-    ? savedTags.limitedAreas.join(", ") 
-    : (savedTags?.primaryArea || "Alla områden");
-
-  const buildTemplate = (showHelp: boolean) => {
-    if (showHelp) {
-      return `Tid: (t.ex. Idag kl 18:00)\nMötesplats: (Var ses vi fysiskt, eller länk/telefon)\nAktivitet: (Vad ska vi göra?)\nBjud in från områden: ${defaultAreaString}\nMålgrupp: Alla`;
-    }
-    return `Tid: \nMötesplats: \nAktivitet: \nBjud in från områden: ${defaultAreaString}\nMålgrupp: Alla`;
-  };
-
-  // Form states for creating an invitation
-  const [announcementText, setAnnouncementText] = useState<string>(() => buildTemplate(usageCount < 3));
-  const [sending, setSending] = useState<boolean>(false);
-  const [toast, setToast] = useState<string | null>(null);
-
-  // AI Wash Stepper & Edit States
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  const [washing, setWashing] = useState<boolean>(false);
-  const [washResult, setWashResult] = useState<any | null>(null);
-
-  const [selectedCategory, setSelectedCategory] = useState<string>("Vara en vän");
-  const [selectedArea, setSelectedArea] = useState<string>("");
-  const [selectedTime, setSelectedTime] = useState<string>("");
-  const [selectedAudience, setSelectedAudience] = useState<string>("Alla");
-  const [selectedOrganization, setSelectedOrganization] = useState<string>("Enskild/Familj");
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("Svenska");
 
   const fetchStream = async () => {
     try {
@@ -128,7 +74,6 @@ export default function ActiveStream({
     let unsubscribeFirestore = () => {};
     let firestoreReceivedData = false;
 
-    // Try anonymous Firestore subscription first
     unsubscribeFirestore = subscribeToFirestoreAlerts((firestoreAlerts) => {
       if (Array.isArray(firestoreAlerts) && firestoreAlerts.length > 0) {
         firestoreReceivedData = true;
@@ -137,7 +82,6 @@ export default function ActiveStream({
       }
     });
 
-    // If Firestore does not emit data within 1 second, fetch from /api/alerts as fallback
     const fallbackTimer = setTimeout(() => {
       if (!firestoreReceivedData) {
         fetchStream();
@@ -148,7 +92,7 @@ export default function ActiveStream({
       if (!firestoreReceivedData) {
         fetchStream();
       }
-    }, 15000); // Polla var 15:e sekund om inte Firestore är aktivt
+    }, 15000);
 
     return () => {
       unsubscribeFirestore();
@@ -157,38 +101,30 @@ export default function ActiveStream({
     };
   }, []);
 
-  const t = TRANSLATIONS[uiLanguage] || TRANSLATIONS.sv;
-  const [introExpanded, setIntroExpanded] = useState<boolean>(false);
-
-  // Filter Stream based on User Preferences and Status
   const pendingAlerts = stream.filter(item => item.status === "pending");
   const activeStream = stream.filter(item => item.status !== "pending" && item.status !== "rejected");
 
   const filteredStream = activeStream.filter(item => {
-    if (!savedTags) return true; // Show all if no filters saved
+    if (!savedTags) return true;
 
-    // 1. Geography filter
     if (savedTags.limitAreas && savedTags.limitedAreas && savedTags.limitedAreas.length > 0) {
       if (item.area && !savedTags.limitedAreas.includes(item.area)) {
         return false;
       }
     }
 
-    // 2. Format / Category filter
     if (savedTags.enabledCategories && savedTags.enabledCategories.length > 0) {
       if (item.category && !savedTags.enabledCategories.includes(item.category)) {
         return false;
       }
     }
 
-    // 3. Organization / Target Group filter
     if (savedTags.organizations && savedTags.organizations.length > 0) {
       if (item.responsibleParty && !savedTags.organizations.includes(item.responsibleParty)) {
         return false;
       }
     }
 
-    // 4. Language filter
     if (savedTags.languages && savedTags.languages.length > 0) {
       if (item.language && !savedTags.languages.includes(item.language)) {
         return false;
@@ -216,79 +152,14 @@ export default function ActiveStream({
     }
   };
 
-  // Notify parent of stream count updates
   useEffect(() => {
     if (onStreamCountChange) {
       onStreamCountChange(filteredStream.length, activeStream.length);
     }
   }, [filteredStream.length, activeStream.length, onStreamCountChange]);
 
-
-  const handleWash = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!announcementText.trim()) return;
-
-    const washedCleanText = washAnnouncementText(announcementText);
-
-    setWashing(true);
-    try {
-      const res = await fetch("/api/wash", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: washedCleanText })
-      });
-
-      if (!res.ok) throw new Error("Gick inte att tvätta inbjudan.");
-      const data = await res.json();
-      setWashResult(data);
-
-      setSelectedCategory(data.extractedMetadata.category || "Vara en vän");
-      setSelectedArea(data.extractedMetadata.area || defaultAreaString);
-      setSelectedTime(data.extractedMetadata.time || "");
-      setSelectedAudience(data.extractedMetadata.audience || "Alla");
-      setSelectedOrganization(data.extractedMetadata.organization || "Enskild/Familj");
-      setSelectedLanguage(data.extractedMetadata.language || "Svenska");
-
-      setAnnouncementText(washedCleanText);
-
-      const newCount = usageCount + 1;
-      setUsageCount(newCount);
-      if (typeof localStorage !== "undefined") {
-        localStorage.setItem("mission_router_usage_count", newCount.toString());
-      }
-
-      setCurrentStep(2);
-    } catch (err: any) {
-      const msg = uiLanguage === "sv" ? "Fel vid AI-analys: " : "AI analysis error: ";
-      alert(msg + err.message);
-    } finally {
-      setWashing(false);
-    }
-  };
-
-  const toggleHelpText = () => {
-    const nextShow = !showHelpText;
-    setShowHelpText(nextShow);
-    setAnnouncementText(buildTemplate(nextShow));
-  };
-
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  const smsPayload = washResult ? `#WEBB
-Kategori: ${selectedCategory}
-Tid: ${selectedTime || "18:00"}
-Mötesplats: ${washResult.extractedMetadata.locationName || selectedArea}
-Bjud in från områden: ${selectedArea}
-Målgrupp: ${selectedAudience}
-Avsändare: ${selectedOrganization || "Arrangör"}
-Aktivitet: ${washAnnouncementText(announcementText)}` : "";
-  
-  const smsHref = `sms:0736108997?body=${encodeURIComponent(smsPayload)}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(smsHref)}`;
-
   return (
     <div className="space-y-6 w-full max-w-2xl mx-auto text-left">
-      
-      {/* Inline Creator Card when Bjud In is clicked */}
       {inlineCreate && (
         <div className="animate-in fade-in zoom-in-95 duration-200">
           <CreateInvitationForm
@@ -301,131 +172,19 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
         </div>
       )}
 
-      {/* Status Tile: "Om ditt flöde" */}
-      <div
-        onClick={onOpenSettings}
-        className="bg-white rounded-3xl p-5 border border-brand-ink/10 shadow-xs relative overflow-hidden text-left hover:border-brand-accent/40 transition-all cursor-pointer group"
-      >
-        <div className="absolute top-0 right-0 bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-3xl rounded-bl-xl shadow-2xs">
-          AKTIVT FILTER
-        </div>
+      <StreamFilterStatus
+        savedTags={savedTags}
+        onOpenSettings={onOpenSettings}
+      />
 
-        <div className="flex items-start justify-between gap-3 mb-2 pr-28">
-          <h2 className="font-serif italic text-2xl font-medium text-brand-ink group-hover:text-brand-accent transition-colors">
-            Om ditt flöde
-          </h2>
-        </div>
-
-        <div className="text-xs text-brand-ink/80 space-y-1 font-sans leading-relaxed">
-          {(!savedTags || (
-            (!savedTags.limitedAreas || savedTags.limitedAreas.length === 0) &&
-            (!savedTags.primaryArea) &&
-            (!savedTags.enabledCategories || savedTags.enabledCategories.length === 0) &&
-            (!savedTags.languages || savedTags.languages.length === 0) &&
-            (!savedTags.organizations || savedTags.organizations.length === 0)
-          )) ? (
-            <p className="font-light italic text-brand-ink/70">
-              Inget val – visar alla områden, alla kategorier, alla språk och alla organisationer.
-            </p>
-          ) : (
-            <div className="space-y-1 font-mono text-[11px]">
-              {(savedTags?.limitedAreas?.length > 0 || savedTags?.primaryArea) && (
-                <p><span className="font-semibold text-brand-ink">Områden:</span> {savedTags?.limitedAreas?.length > 0 ? savedTags.limitedAreas.join(", ") : savedTags.primaryArea}</p>
-              )}
-              {savedTags?.enabledCategories?.length > 0 && (
-                <p><span className="font-semibold text-brand-ink">Kategorier:</span> {savedTags.enabledCategories.join(", ")}</p>
-              )}
-              {savedTags?.languages?.length > 0 && (
-                <p><span className="font-semibold text-brand-ink">Språk:</span> {savedTags.languages.join(", ")}</p>
-              )}
-              {savedTags?.organizations?.length > 0 && (
-                <p><span className="font-semibold text-brand-ink">Organisationer:</span> {savedTags.organizations.join(", ")}</p>
-              )}
-            </div>
-          )}
-        </div>
-
-        <p className="text-[10px] font-mono italic text-brand-ink/40 mt-3 border-t border-brand-ink/5 pt-2">
-          (Endast synligt för dig)
-        </p>
-      </div>
-
-      {/* Admin Moderation Queue Banner (visible to admins when pending posts exist) */}
-      {isAdmin && pendingAlerts.length > 0 && (
-        <div className="bg-amber-50/90 rounded-2xl p-5 border border-amber-200/80 shadow-xs text-left space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[11px] font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
-              <ShieldAlert size={16} className="text-amber-600" />
-              Modereringskö ({pendingAlerts.length} väntande inbjudan)
-            </span>
-            <span className="text-[10px] font-mono text-amber-800/70">Endast synligt för admin</span>
-          </div>
-
-          <div className="space-y-3">
-            {pendingAlerts.map(item => (
-              <div key={item.id} className="bg-white rounded-xl p-4 border border-amber-200 shadow-2xs space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900">
-                    ID #{item.id} • Väntar godkännande
-                  </span>
-                  <span className="font-mono text-[10px] text-brand-ink/50">{item.time}</span>
-                </div>
-
-                <div>
-                  <h4 className="font-serif italic text-lg font-medium text-brand-ink">
-                    {item.area}
-                  </h4>
-                  <p className="text-xs text-brand-ink/80 font-light mt-1">
-                    {item.scrubbedText || item.rawText}
-                  </p>
-                  <p className="text-[10px] text-brand-ink/50 mt-1 font-mono">
-                    Avsändare: {item.responsibleParty} ({item.contactValue})
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-brand-ink/5 text-xs font-mono">
-                  <button
-                    type="button"
-                    onClick={() => handleModerate(item.id, "active")}
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer flex items-center gap-1 font-semibold"
-                  >
-                    <span>✓ Godkänn (.ja)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleModerate(item.id, "rejected")}
-                    className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors cursor-pointer flex items-center gap-1 font-semibold"
-                  >
-                    <span>✕ Avvisa (.nej)</span>
-                  </button>
-
-                  {item.contactValue && item.contactValue !== "0736108997" && (
-                    <div className="flex items-center gap-1 ml-auto">
-                      <a
-                        href={`tel:${item.contactValue}`}
-                        className="px-2.5 py-1.5 bg-brand-paper hover:bg-brand-ink/10 text-brand-ink rounded-lg transition-colors text-[10px]"
-                      >
-                        📞 Ring
-                      </a>
-                      <a
-                        href={`sms:${item.contactValue}?body=${encodeURIComponent(`Hej! Angående inbjudan #${item.id}: `)}`}
-                        className="px-2.5 py-1.5 bg-brand-paper hover:bg-brand-ink/10 text-brand-ink rounded-lg transition-colors text-[10px]"
-                      >
-                        💬 SMS
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      {isAdmin && (
+        <AdminModerationQueue
+          pendingAlerts={pendingAlerts}
+          handleModerate={handleModerate}
+        />
       )}
 
-      {/* Feed list */}
       <div className="space-y-4 text-left">
-
-        {/* User's own submitted pending proposals */}
         {myProposals.length > 0 && (
           <div className="space-y-3">
             {myProposals.map(prop => (
@@ -481,38 +240,7 @@ Aktivitet: ${washAnnouncementText(announcementText)}` : "";
           </div>
         ) : (
           filteredStream.map(item => (
-            <div
-              key={item.id}
-              onClick={() => onSelectAlert(item.id)}
-              className="bg-white rounded-2xl p-6 border border-brand-ink/5 hover:border-brand-accent/30 transition-all shadow-xs hover:shadow-md cursor-pointer space-y-3 group relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-2xl rounded-bl-xl shadow-2xs">
-                {item.category || "Vara en vän"}
-              </div>
-
-              <div className="flex items-center justify-[flex-end] pt-1">
-                <span className="font-mono text-[10px] text-brand-ink/50 font-light pr-24">
-                  {item.time || "Fast tid ej angiven"}
-                </span>
-              </div>
-
-              <div>
-                <h3 className="font-serif italic text-xl text-brand-ink font-medium group-hover:text-brand-accent transition-colors">
-                  {item.area}
-                </h3>
-                <p className="text-xs text-brand-ink/80 font-light line-clamp-2 mt-1 leading-relaxed">
-                  {item.scrubbedText || item.rawText}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-brand-ink/5 text-[10px] font-mono text-brand-ink/50 uppercase tracking-wider">
-                <span>{item.responsibleParty || "Arrangör"}</span>
-                <span className="group-hover:translate-x-1 transition-transform flex items-center gap-1 text-brand-accent font-semibold">
-                  <span>Visa detaljer</span>
-                  <ExternalLink size={12} />
-                </span>
-              </div>
-            </div>
+            <StreamNoticeCard key={item.id} item={item} onSelectAlert={onSelectAlert} />
           ))
         )}
       </div>

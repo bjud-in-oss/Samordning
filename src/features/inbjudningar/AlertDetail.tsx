@@ -149,53 +149,47 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
           </div>
         )}
 
-        {/* Details row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-xl border border-brand-ink/5">
-            <MapPin className="text-brand-accent shrink-0" size={20} />
-            <div>
-              <div className="text-[9px] uppercase font-mono text-brand-accent">{t.approxLocation}</div>
-              <div className="text-sm font-serif italic font-medium text-brand-ink">{alert.locationName}</div>
+        {/* Clean 3-Column Info Grid: Time, Location & Organizer with Contact */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-brand-ink/5 pt-4 font-mono text-xs">
+          {/* Time */}
+          <div className="flex items-start gap-2.5 p-3 bg-brand-bg rounded-xl border border-brand-ink/5">
+            <Calendar className="text-emerald-800 shrink-0 mt-0.5" size={16} />
+            <div className="flex-1 min-w-0">
+              <div className="text-[9px] uppercase font-mono font-bold text-brand-ink/60">{t.timeLabel}</div>
+              <div className="text-xs font-serif italic font-semibold text-brand-ink mt-0.5">{alert.time || "Ingen fast tid"}</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-xl border border-brand-ink/5">
-            <Calendar className="text-brand-accent shrink-0" size={20} />
-            <div>
-              <div className="text-[9px] uppercase font-mono text-brand-accent">{t.timeLabel}</div>
-              <div className="text-sm font-serif italic font-medium text-brand-ink">{alert.time || "Ingen fast tid"}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Responsible Party & Contact */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-brand-ink/5 pt-6">
-          <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-xl border border-brand-ink/5">
-            <div className="w-8 h-8 bg-brand-paper text-brand-ink rounded-full flex items-center justify-center font-serif italic font-medium text-xs shrink-0 border border-brand-ink/5">
-              {alert.responsibleParty ? alert.responsibleParty.substring(0, 2).toUpperCase() : "GE"}
-            </div>
-            <div>
-              <div className="text-[9px] uppercase font-mono text-brand-accent">Arrangör</div>
-              <div className="text-sm font-serif italic font-medium text-brand-ink">{alert.responsibleParty}</div>
+          {/* Location */}
+          <div className="flex items-start gap-2.5 p-3 bg-brand-bg rounded-xl border border-brand-ink/5">
+            <MapPin className="text-emerald-800 shrink-0 mt-0.5" size={16} />
+            <div className="flex-1 min-w-0">
+              <div className="text-[9px] uppercase font-mono font-bold text-brand-ink/60">{t.approxLocation}</div>
+              <div className="text-xs font-serif italic font-semibold text-brand-ink mt-0.5">{alert.locationName || alert.area}</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-xl border border-brand-ink/5">
-            <div className="w-8 h-8 bg-brand-paper text-brand-accent rounded-full flex items-center justify-center shrink-0 border border-brand-ink/5">
-              <Phone size={14} className="text-brand-accent" />
-            </div>
-            <div className="flex-1">
-              <div className="text-[9px] uppercase font-mono text-brand-accent">Mottagare</div>
-              {showContact ? (
-                <div className="text-xs font-mono text-brand-ink select-all break-all">{alert.contactValue}</div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowContact(true)}
-                  className="text-xs text-brand-accent hover:opacity-100 opacity-70 underline font-mono uppercase tracking-wider cursor-pointer"
-                >
-                  Visa nummer
-                </button>
+          {/* Organizer + Contact */}
+          <div className="flex items-start gap-2.5 p-3 bg-brand-bg rounded-xl border border-brand-ink/5">
+            <ShieldCheck className="text-emerald-800 shrink-0 mt-0.5" size={16} />
+            <div className="flex-1 min-w-0">
+              <div className="text-[9px] uppercase font-mono font-bold text-brand-ink/60">Arrangör</div>
+              <div className="text-xs font-serif italic font-semibold text-brand-ink mt-0.5">{alert.responsibleParty || "Församlingsledare"}</div>
+              {alert.contactValue && (
+                <div className="text-[11px] font-mono text-brand-ink/80 mt-1 flex items-center gap-1">
+                  <Phone size={12} className="text-emerald-800 shrink-0" />
+                  {showContact ? (
+                    <span className="select-all font-semibold">{alert.contactValue}</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowContact(true)}
+                      className="text-emerald-800 hover:underline cursor-pointer"
+                    >
+                      Visa nummer
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </div>

@@ -524,7 +524,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     
     const draftCategory = draft.extractedMetadata.category || "Vara en vän";
     const draftOrg = draft.extractedMetadata.organization || "Arrangör";
-    const isLektionAndSamtal = (draftCategory === "Läsa skrifterna" || draftCategory === "Få näring av Guds ord") && draftOrg === "Missionärerna";
+    const isLektionAndSamtal = draftCategory === "Läsa skrifterna" && draftOrg === "Missionärerna";
     const escalationLevel = isLektionAndSamtal ? 1 : undefined;
 
     const newAnnouncement: ActiveAlert = {
@@ -638,7 +638,7 @@ app.post("/api/incoming-sms", async (req, res) => {
     const { coords, cloakedCoords } = getCoordsForArea(area);
     const offsetSeconds = calculateSecondsUntilTime(time);
     const expiryTimestamp = Date.now() + (offsetSeconds + 2 * 3600) * 1000;
-    const isLektionAndSamtal = (category === "Läsa skrifterna" || category === "Få näring av Guds ord") && organization === "Missionärerna";
+    const isLektionAndSamtal = category === "Läsa skrifterna" && organization === "Missionärerna";
     const status = isTrustedOrAdmin ? "active" : "pending";
 
     const newAnnouncement: ActiveAlert = {

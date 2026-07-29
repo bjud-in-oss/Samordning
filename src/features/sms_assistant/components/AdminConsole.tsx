@@ -10,46 +10,6 @@ export default function AdminConsole() {
   const [phoneNumber, setPhoneNumber] = useState("0700000000");
   const [message, setMessage] = useState("");
   const [logs, setLogs] = useState<{isUser: boolean, text: string}[]>([]);
-  const [pendingAlerts, setPendingAlerts] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<"moderation" | "console">("moderation");
-
-  const fetchPendingAlerts = async () => {
-    try {
-      const res = await fetch("/api/alerts");
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setPendingAlerts(data.filter((item: any) => item.status === "pending" || item.status === "pending_review"));
-        }
-      }
-    } catch (e) {
-      console.error("Fel vid hämtning av väntande inbjudningar:", e);
-    }
-  };
-
-  useEffect(() => {
-    fetchPendingAlerts();
-    const interval = setInterval(fetchPendingAlerts, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleModerate = async (id: string, status: "active" | "rejected") => {
-    try {
-      const res = await fetch(`/api/alerts/${id}/status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status })
-      });
-      if (res.ok) {
-        fetchPendingAlerts();
-      } else {
-        alert("Kunde inte uppdatera inbjudan.");
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Nätverksfel vid moderering.");
-    }
-  };
 
   useEffect(() => {
     let token = localStorage.getItem("admin_device_token");
@@ -256,29 +216,6 @@ export default function AdminConsole() {
         </div>
 
         <div className="flex items-center gap-1.5 font-mono text-[10px]">
-          <div className="flex bg-brand-bg p-1 rounded-xl border border-brand-ink/10 mr-2">
-            <button
-              onClick={() => setActiveTab("moderation")}
-              className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                activeTab === "moderation"
-                  ? "bg-brand-accent text-white shadow-xs"
-                  : "text-brand-ink/70 hover:text-brand-ink"
-              }`}
-            >
-              Granskning ({pendingAlerts.length})
-            </button>
-            <button
-              onClick={() => setActiveTab("console")}
-              className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                activeTab === "console"
-                  ? "bg-brand-accent text-white shadow-xs"
-                  : "text-brand-ink/70 hover:text-brand-ink"
-              }`}
-            >
-              SMS Simulator
-            </button>
-          </div>
-
           <button
             onClick={() => sendSms(".status")}
             className="px-2.5 py-1 bg-brand-bg hover:bg-brand-ink/5 border border-brand-ink/10 rounded-lg text-brand-ink/80 transition-colors cursor-pointer"
@@ -286,167 +223,86 @@ export default function AdminConsole() {
             .status
           </button>
           <button
+            onClick={() => sendSms(".mall")}
+            className="px-2.5 py-1 bg-brand-bg hover:bg-brand-ink/5 border border-brand-ink/10 rounded-lg text-brand-ink/80 transition-colors cursor-pointer"
+          >
+            .mall
+          </button>
+          <button
             onClick={insertTemplate}
             className="px-2.5 py-1 bg-brand-accent/10 hover:bg-brand-accent/20 text-brand-accent rounded-lg transition-colors cursor-pointer flex items-center gap-1"
           >
             <FileText size={12} />
-            <span>Mall</span>
+            <span>Infoga 5-raders mall</span>
           </button>
         </div>
       </div>
 
-      {activeTab === "moderation" ? (
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 max-w-3xl mx-auto w-full">
-          <div className="flex items-center justify-between border-b border-brand-ink/10 pb-2">
-            <h2 className="font-serif font-bold text-lg text-brand-ink flex items-center gap-2">
-              <span>Väntande inbjudningar för moderering</span>
-              {pendingAlerts.length > 0 && (
-                <span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-mono">
-                  {pendingAlerts.length} väntar
-                </span>
-              )}
-            </h2>
-            <button
-              onClick={fetchPendingAlerts}
-              className="text-xs font-mono text-brand-accent hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              <RefreshCw size={13} />
-              <span>Uppdatera</span>
-            </button>
-          </div>
+      {/* Settings */}
+      <div className="bg-white px-4 py-2.5 border-b border-brand-ink/5 shrink-0 z-10 shadow-xs flex gap-3 text-xs">
+         <input 
+            type="password"
+            className="w-1/2 p-2 bg-brand-bg rounded-lg border border-brand-ink/10 focus:border-brand-accent focus:outline-none transition-colors font-mono text-xs" 
+            placeholder="API Secret (t.ex. samordning-secret-2026)" 
+            value={apiSecret} 
+            onChange={e => setApiSecret(e.target.value)} 
+          />
+          <input 
+            type="text"
+            className="w-1/2 p-2 bg-brand-bg rounded-lg border border-brand-ink/10 focus:border-brand-accent focus:outline-none transition-colors font-mono text-xs" 
+            placeholder="Ditt nummer (+46...)" 
+            value={phoneNumber} 
+            onChange={e => setPhoneNumber(e.target.value)} 
+          />
+      </div>
 
-          {pendingAlerts.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl border border-brand-ink/10 p-6 space-y-2">
-              <CheckCircle2 size={32} className="mx-auto text-emerald-600" />
-              <p className="font-serif font-semibold text-brand-ink text-base">
-                Inga väntande inbjudningar
-              </p>
-              <p className="text-xs text-brand-ink/60 font-mono">
-                Alla inbjudningar är granskade och publicerade!
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {pendingAlerts.map(alertItem => (
-                <div
-                  key={alertItem.id}
-                  className="bg-white rounded-2xl p-5 border border-amber-200 shadow-sm space-y-3 relative text-left"
-                >
-                  <div className="flex items-start justify-between gap-2 border-b border-brand-ink/10 pb-2">
-                    <div>
-                      <span className="font-mono text-[10px] uppercase font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
-                        {alertItem.category || "Inbjudan"}
-                      </span>
-                      <h3 className="font-serif font-bold text-base text-brand-ink mt-1">
-                        {alertItem.area || alertItem.locationName || "Göteborg"} &bull; {alertItem.time || "Ingen tid"}
-                      </h3>
-                    </div>
-                    <span className="font-mono text-[10px] text-brand-ink/50">
-                      ID: {alertItem.id}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-brand-ink/80 font-mono whitespace-pre-wrap leading-relaxed bg-brand-paper/50 p-3 rounded-xl border border-brand-ink/5">
-                    {alertItem.scrubbedText || alertItem.text}
-                  </p>
-
-                  <div className="flex items-center justify-between pt-1 text-xs font-mono">
-                    <span className="text-brand-ink/60 text-[11px]">
-                      Arrangör: {alertItem.responsibleParty || alertItem.organization || "Enskild"}
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleModerate(alertItem.id, "rejected")}
-                        className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 font-bold rounded-xl transition-all cursor-pointer"
-                      >
-                        Avböj
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleModerate(alertItem.id, "active")}
-                        className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1"
-                      >
-                        <CheckCircle2 size={14} />
-                        <span>Godkänn & Publicera</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : (
-        <>
-          {/* Settings */}
-          <div className="bg-white px-4 py-2.5 border-b border-brand-ink/5 shrink-0 z-10 shadow-xs flex gap-3 text-xs">
-             <input 
-                type="password"
-                className="w-1/2 p-2 bg-brand-bg rounded-lg border border-brand-ink/10 focus:border-brand-accent focus:outline-none transition-colors font-mono text-xs" 
-                placeholder="API Secret (t.ex. samordning-secret-2026)" 
-                value={apiSecret} 
-                onChange={e => setApiSecret(e.target.value)} 
-              />
-              <input 
-                type="text"
-                className="w-1/2 p-2 bg-brand-bg rounded-lg border border-brand-ink/10 focus:border-brand-accent focus:outline-none transition-colors font-mono text-xs" 
-                placeholder="Ditt nummer (+46...)" 
-                value={phoneNumber} 
-                onChange={e => setPhoneNumber(e.target.value)} 
-              />
-          </div>
-
-          {/* Chat Area */}
-          <div className="flex-1 overflow-y-auto px-4 py-6 flex flex-col-reverse gap-4">
-            {logs.map((log, i) => (
-              <div key={i} className={`flex ${log.isUser ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-200`}>
-                <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm font-light leading-relaxed shadow-xs ${
-                  log.isUser 
-                    ? "bg-[#D9FDD3] text-brand-ink rounded-tr-none font-mono text-xs" 
-                    : "bg-white text-brand-ink rounded-tl-none border border-brand-ink/5 font-mono text-xs"
-                }`}>
-                  <div className="font-mono text-[8px] uppercase tracking-wider opacity-50 mb-1">
-                    {log.isUser ? `Du (${phoneNumber})` : "System / AI"}
-                  </div>
-                  <p className="whitespace-pre-wrap">{log.text}</p>
-                </div>
+      {/* Chat Area */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 flex flex-col-reverse gap-4">
+        {logs.map((log, i) => (
+          <div key={i} className={`flex ${log.isUser ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-200`}>
+            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm font-light leading-relaxed shadow-xs ${
+              log.isUser 
+                ? "bg-[#D9FDD3] text-brand-ink rounded-tr-none font-mono text-xs" 
+                : "bg-white text-brand-ink rounded-tl-none border border-brand-ink/5 font-mono text-xs"
+            }`}>
+              <div className="font-mono text-[8px] uppercase tracking-wider opacity-50 mb-1">
+                {log.isUser ? `Du (${phoneNumber})` : "System / AI"}
               </div>
-            ))}
-            {logs.length === 0 && (
-              <div className="text-center text-brand-ink/40 text-xs font-mono uppercase tracking-widest my-auto pb-12 space-y-2">
-                <p>Skicka ett meddelande för att starta simulerat test</p>
-                <p className="text-[10px] text-brand-ink/30 font-sans normal-case">Tips: Använd snabbknappen "Infoga 5-raders mall" ovan för att testa universell inbjudningsmall.</p>
-              </div>
-            )}
+              <p className="whitespace-pre-wrap">{log.text}</p>
+            </div>
           </div>
+        ))}
+        {logs.length === 0 && (
+          <div className="text-center text-brand-ink/40 text-xs font-mono uppercase tracking-widest my-auto pb-12 space-y-2">
+            <p>Skicka ett meddelande för att starta simulerat test</p>
+            <p className="text-[10px] text-brand-ink/30 font-sans normal-case">Tips: Använd snabbknappen "Infoga 5-raders mall" ovan för att testa universell inbjudningsmall.</p>
+          </div>
+        )}
+      </div>
 
-          {/* Input Area */}
-          <div className="bg-[#F0F2F5] p-3 shrink-0 flex gap-2">
-            <textarea 
-              rows={2}
-              className="flex-1 p-3 bg-white rounded-2xl border-none focus:ring-0 shadow-xs resize-none text-xs font-mono leading-relaxed" 
-              placeholder="Skriv simulerat SMS..." 
-              value={message} 
-              onChange={e => setMessage(e.target.value)} 
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  sendSms();
-                }
-              }}
-            />
-            <button 
-              onClick={() => sendSms()} 
-              disabled={!apiSecret || !phoneNumber || !message.trim()}
-              className="w-11 h-11 bg-brand-accent text-white rounded-full flex items-center justify-center shrink-0 shadow-xs hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed self-end cursor-pointer"
-            >
-              <Send size={18} className="ml-0.5" />
-            </button>
-          </div>
-        </>
-      )}
+      {/* Input Area */}
+      <div className="bg-[#F0F2F5] p-3 shrink-0 flex gap-2">
+        <textarea 
+          rows={2}
+          className="flex-1 p-3 bg-white rounded-2xl border-none focus:ring-0 shadow-xs resize-none text-xs font-mono leading-relaxed" 
+          placeholder="Skriv simulerat SMS..." 
+          value={message} 
+          onChange={e => setMessage(e.target.value)} 
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              sendSms();
+            }
+          }}
+        />
+        <button 
+          onClick={() => sendSms()} 
+          disabled={!apiSecret || !phoneNumber || !message.trim()}
+          className="w-11 h-11 bg-brand-accent text-white rounded-full flex items-center justify-center shrink-0 shadow-xs hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed self-end cursor-pointer"
+        >
+          <Send size={18} className="ml-0.5" />
+        </button>
+      </div>
     </div>
   );
 }

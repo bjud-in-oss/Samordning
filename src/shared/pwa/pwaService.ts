@@ -25,7 +25,6 @@ export function registerServiceWorker(swPath: string = "/sw.js"): Promise<Servic
       .register(swPath, { scope: "/" })
       .then((reg) => {
         console.log("Service Worker registrerad för Android/PWA:", reg.scope);
-        reg.update().catch(() => {});
         return reg;
       })
       .catch((err) => {

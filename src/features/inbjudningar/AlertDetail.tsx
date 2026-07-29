@@ -124,22 +124,25 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
       {/* Main Card */}
       <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-brand-ink/5 space-y-6">
         <div>
-          {alert.totalActiveAlerts > 1 && (
-            <span className="font-mono text-[9px] text-brand-accent bg-brand-bg px-2 py-0.5 rounded border border-brand-ink/5">
-              ID: {alert.id}
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-mono uppercase tracking-wider px-2.5 py-1 rounded bg-brand-paper text-brand-accent">
+              {t.activeRequest}
             </span>
-          )}
-          <h2 className="text-2xl md:text-3xl font-serif italic text-brand-ink font-medium mt-1 tracking-tight">
-            {alert.area}
+            {alert.totalActiveAlerts > 1 && (
+              <span className="font-mono text-[9px] text-brand-accent bg-brand-bg px-2 py-0.5 rounded border border-brand-ink/5">
+                ID: {alert.id}
+              </span>
+            )}
+          </div>
+          <h2 className="text-2xl md:text-3xl font-serif italic text-brand-ink font-medium mt-3 tracking-tight">
+            Inbjudan • {alert.area}
           </h2>
         </div>
 
         {/* Clean, scrubbed text */}
         {alert.scrubbedText && (
           <div className="bg-brand-paper/40 rounded-xl p-6 border border-brand-ink/5 space-y-2">
-            <span className="text-[9px] uppercase font-mono tracking-wider text-brand-accent">
-              {alert.category || "Vara en vän"}
-            </span>
+            <span className="text-[9px] uppercase font-mono tracking-wider text-brand-accent">Beskrivning</span>
             <p className="text-brand-ink/80 font-serif italic whitespace-pre-line leading-relaxed text-sm md:text-base font-medium">
               {alert.scrubbedText}
             </p>
@@ -147,7 +150,7 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
         )}
 
         {/* Details row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-xl border border-brand-ink/5">
             <MapPin className="text-brand-accent shrink-0" size={20} />
             <div>
@@ -163,7 +166,10 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
               <div className="text-sm font-serif italic font-medium text-brand-ink">{alert.time || "Ingen fast tid"}</div>
             </div>
           </div>
+        </div>
 
+        {/* Responsible Party & Contact */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-brand-ink/5 pt-6">
           <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-xl border border-brand-ink/5">
             <div className="w-8 h-8 bg-brand-paper text-brand-ink rounded-full flex items-center justify-center font-serif italic font-medium text-xs shrink-0 border border-brand-ink/5">
               {alert.responsibleParty ? alert.responsibleParty.substring(0, 2).toUpperCase() : "GE"}
@@ -171,11 +177,37 @@ export default function AlertDetail({ alertId, onBack, uiLanguage }: AlertDetail
             <div>
               <div className="text-[9px] uppercase font-mono text-brand-accent">Arrangör</div>
               <div className="text-sm font-serif italic font-medium text-brand-ink">{alert.responsibleParty}</div>
-              {alert.contactValue && (
-                <div className="text-[11px] font-mono text-brand-ink/70 mt-0.5">{alert.contactValue}</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-4 bg-brand-bg rounded-xl border border-brand-ink/5">
+            <div className="w-8 h-8 bg-brand-paper text-brand-accent rounded-full flex items-center justify-center shrink-0 border border-brand-ink/5">
+              <Phone size={14} className="text-brand-accent" />
+            </div>
+            <div className="flex-1">
+              <div className="text-[9px] uppercase font-mono text-brand-accent">Mottagare</div>
+              {showContact ? (
+                <div className="text-xs font-mono text-brand-ink select-all break-all">{alert.contactValue}</div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowContact(true)}
+                  className="text-xs text-brand-accent hover:opacity-100 opacity-70 underline font-mono uppercase tracking-wider cursor-pointer"
+                >
+                  Visa nummer
+                </button>
               )}
             </div>
           </div>
+        </div>
+
+        {/* Simple, inviting helper text */}
+        <div className="bg-brand-paper/30 rounded-xl p-5 border border-brand-ink/5 text-xs text-brand-ink/75 leading-relaxed text-center font-serif italic font-medium">
+          <p>
+            {uiLanguage === "sv" 
+              ? "Klicka på knappen nedan för att öppna din SMS-app och meddela arrangören att du deltar." 
+              : "Click the button below to open your SMS app and notify the organizer that you are participating."}
+          </p>
         </div>
       </div>
 

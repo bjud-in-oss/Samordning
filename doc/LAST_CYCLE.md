@@ -1,20 +1,41 @@
-[FEATURE: LiveCard Grid & Non-Sticky Header] | [CYCLE: Produce -> Completed] | [STAGE: Green/Verified] | [TURN: 1/1]
+[FEATURE: Global System Architecture] | [CYCLE: Produce -> Completed] | [STAGE: Refactor/Architect] | [TURN: 1/1]
 
-# LiveCard Grid & Non-Sticky Header — Final Status Report
+# Global FSD Layer Compliance Refactoring — Final Status Report (SI v3.2)
 
-## 1. Summary of Executed Fixes
-1. **Borttagen Sticky Överlappning i `App.tsx`**:
-   - `sticky top-0 z-50` har tagits bort från toppmenyn så att den inte överlappar eller skär igenom LiveCardet vid skrollning. Toppmenyn skrollar nu med sidan.
+## 1. Summary of Executed Refactoring Actions
+A full Feature-Sliced Design (FSD) refactoring has been executed across the repository to establish proper layer isolation (`src/shared/`, `src/main/services/`, and `src/features/`).
 
-2. **2-Kolumns Layout för LiveCard i `PreviewCard.tsx`**:
-   - Omstrukturerat infogridet i kortet från `grid-cols-1 sm:grid-cols-2` till `grid-cols-2` på alla skärmstorlekar.
-   - "VÄLJ TID & DATUM" och "VAR SES NI?" visas nu sida vid sida i kolumn 1 och 2, och "BJUD IN FRÅN" samt "MÅLGRUPP" visas sida vid sida i rad 2.
+### A. Infrastructure Created & Migrated
+1. **`src/shared/` Layer Established**:
+   - `src/shared/types/index.ts`: Shared domain models (`ActiveAlert`, `SubscriptionRecord`, `SimLog`, `GatewayStatus`, etc.).
+   - `src/shared/i18n/translations.ts`: Centralized multilingual translation dictionary (`TRANSLATIONS`, `UiLanguage`).
+   - `src/shared/geo/mapData.ts`: Unified geographic districts and coordinates dataset (`STODDISTRIKT`, `MAP_DISTRICTS`, `GOTEBORG_AREAS`, `AREA_TO_DISTRICT_MAP`, `GOTEBORG_COORDS`).
+   - `src/shared/pwa/pwaService.ts`: Client-side Service Worker registration, Web Push enrollment, and Render background keep-alive ping.
+   - `src/shared/index.ts`: Public API barrier exporting all shared utilities and types.
 
+2. **`src/main/services/` Layer Established**:
+   - `src/main/services/parser.ts`: Server-side text washing, geocoding lookup, and Gemini API integration.
+   - `src/main/services/pushService.ts`: Server-side Web Push notification dispatcher, VAPID key manager, and in-memory log tracker.
+
+3. **Feature Public API Barriers Maintained**:
+   - `src/features/mission_router/`: Re-exports shared types, translations, and map data for seamless backwards compatibility without breaking existing consumers.
+   - `src/features/anpassa/`: Re-exports map data from `src/shared/geo/mapData`.
+   - `src/features/mobile_pwa_app/`: Re-exports `pwaService` from `src/shared/pwa/pwaService`.
+
+### B. Bundling & Security Boundaries Ensured
+- Node-only backend modules (`web-push`, `fs`, `path`) are encapsulated exclusively inside `src/main/services/pushService.ts` and `src/main/services/parser.ts`, accessed solely by `server.ts`.
+- Client bundles remain lightweight and free of server-side imports.
 
 ---
 
 ## 2. Verification & Pre-Commit Gate Results
-- **Vitest Unit Test Suite (`npm test`)**: PASSED (15 tests across 6 test files).
+- **Vitest Unit Test Suite (`npm test`)**: PASSED (15 tests across 6 test files in 2.75s).
+  - `src/main/services/__tests__/parser.test.ts`: PASSED (6 tests)
+  - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationFavorites.test.ts`: PASSED (1 test)
+  - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationDialogs.test.ts`: PASSED (2 tests)
+  - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationPublishing.test.ts`: PASSED (3 tests)
+  - `src/features/skapa_inbjudan/hooks/__tests__/useInvitationForm.test.ts`: PASSED (2 tests)
+  - `src/features/sms_assistant/domain/__tests__/supportAgent.test.ts`: PASSED (1 test)
 - **TypeScript Typecheck (`tsc --noEmit`)**: PASSED (0 errors).
 - **Vite Application Build (`compile_applet`)**: PASSED cleanly.
 

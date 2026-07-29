@@ -1,6 +1,6 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Single Page Form Orchestrator
 
-import React, { useState } from "react";
+import React from "react";
 import { ArrowLeft, CheckCircle, Send, QrCode } from "lucide-react";
 import { CreateInvitationFormProps } from "./domain/types";
 import { useInvitationForm } from "./hooks/useInvitationForm";
@@ -9,7 +9,6 @@ import { PreviewCard } from "./components/PreviewCard";
 import { GatewayQrModal } from "./components/GatewayQrModal";
 import { AiFlagModal } from "./components/AiFlagModal";
 import { AiReviewModal } from "./components/AiReviewModal";
-import { PostSubmissionSteps } from "./components/PostSubmissionSteps";
 import { TimeDialog } from "./components/dialogs/TimeDialog";
 import { LocationDialog } from "./components/dialogs/LocationDialog";
 import { ActivityDialog } from "./components/dialogs/ActivityDialog";
@@ -25,15 +24,17 @@ export default function CreateInvitationForm({
   onSuccess
 }: CreateInvitationFormProps) {
   const form = useInvitationForm(onSuccess);
-  const [showPostSubmissionSteps, setShowPostSubmissionSteps] = useState<boolean>(false);
 
   const handlePrimarySendClick = () => {
-    // Open post-submission steps
-    setShowPostSubmissionSteps(true);
+    const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768 && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isDesktop) {
+      form.setShowQrSection(true);
+    }
+    form.handleAttemptPublish();
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       {/* Toast Notification */}
       {form.toast && (
         <div className="fixed top-4 right-4 z-50 bg-emerald-900 text-white font-mono text-xs px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
@@ -42,23 +43,77 @@ export default function CreateInvitationForm({
         </div>
       )}
 
-      {/* Live Interactive Preview Card - Hidden when editing a field in dialog */}
-      {!form.activeDialog && (
-        <PreviewCard
-          selectedTime={form.selectedTime}
-          locationName={form.locationName}
-          selectedAreas={form.selectedAreas}
-          selectedAudience={form.selectedAudience}
-          selectedOrganization={form.selectedOrganization}
-          organizerPersonName={form.organizerPersonName}
-          activityText={form.activityText}
-          isRecurring={form.isRecurring}
-          hasReminder={form.hasReminder}
-          reminderTime={form.reminderTime}
-          activeDialog={form.activeDialog}
-          onOpenDialog={form.openDialog}
-        />
-      )}
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-brand-ink/10 pb-4 gap-3">
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="p-2 bg-brand-paper hover:bg-brand-paper/80 rounded-xl border border-brand-ink/10 text-brand-ink transition-all cursor-pointer"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          )}
+          <div>
+            <h1 className="text-2xl font-serif font-bold text-brand-ink">
+              Skapa ny Inbjudan
+            </h1>
+            <p className="font-mono text-xs text-brand-ink/60">
+              Inbjudan publiceras direkt i det gemensamma flödet
+            </p>
+          </div>
+        </div>
+
+        {/* Header Corner Action Buttons */}
+        <div className="flex items-center gap-2 self-start sm:self-center">
+          <button
+            type="button"
+            onClick={() => form.setShowQrSection(!form.showQrSection)}
+            className="px-3.5 py-2 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/15 text-brand-ink font-mono text-xs uppercase font-semibold tracking-wider rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+          >
+            <QrCode size={14} className="text-brand-accent shrink-0" />
+            <span>{form.showQrSection ? "Dölj QR" : "Sänd från mobilen"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handlePrimarySendClick}
+            disabled={form.sending}
+            className="px-4 py-2 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+          >
+            <Send size={14} />
+            <span>{form.sending ? "Sänder..." : "Sänd"}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Favorites Bar */}
+      <FavoritesBar
+        favorites={form.favorites}
+        favModalOpen={form.favModalOpen}
+        setFavModalOpen={form.setFavModalOpen}
+        newFavName={form.newFavName}
+        setNewFavName={form.setNewFavName}
+        onSaveFavorite={form.handleSaveFavorite}
+        onApplyFavorite={form.handleApplyFavorite}
+        onRemoveFavorite={form.handleRemoveFavorite}
+      />
+
+      {/* Live Interactive Preview Card */}
+      <PreviewCard
+        selectedTime={form.selectedTime}
+        locationName={form.locationName}
+        selectedAreas={form.selectedAreas}
+        selectedAudience={form.selectedAudience}
+        selectedOrganization={form.selectedOrganization}
+        organizerPersonName={form.organizerPersonName}
+        activityText={form.activityText}
+        isRecurring={form.isRecurring}
+        hasReminder={form.hasReminder}
+        reminderTime={form.reminderTime}
+        onOpenDialog={form.openDialog}
+      />
 
       {/* In-place Dialog Render Area */}
       {form.activeDialog && (
@@ -149,20 +204,50 @@ export default function CreateInvitationForm({
         </div>
       )}
 
-      {/* Send Button in bottom right corner */}
-      {!form.activeDialog && (
-        <div className="flex justify-end pt-1">
-          <button
-            type="button"
-            onClick={handlePrimarySendClick}
-            disabled={form.sending}
-            className="px-6 py-2.5 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Send size={15} />
-            <span>{form.sending ? "Granskar & skickar..." : "Sänd"}</span>
-          </button>
-        </div>
-      )}
+      {/* Privacy Consent Checkbox */}
+      <div className="pt-2 border-t border-brand-ink/10">
+        <label className="flex items-start gap-3 cursor-pointer p-3 bg-brand-paper/50 rounded-2xl border border-brand-ink/5">
+          <input
+            type="checkbox"
+            checked={form.consentConfirmed}
+            onChange={e => form.setConsentConfirmed(e.target.checked)}
+            className="mt-0.5 rounded border-brand-ink/30 text-brand-accent focus:ring-brand-accent shrink-0"
+          />
+          <span className="text-xs text-brand-ink/80 leading-relaxed font-light">
+            Jag bekräftar att jag inte delar andras personuppgifter (som namn, kontaktinfo, etc) i inbjudan utan deras uttryckliga godkännande. Jag förstår att min inbjudan granskas innan publicering.
+          </span>
+        </label>
+      </div>
+
+      {/* Bottom Actions Row (Side-by-side) */}
+      <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
+        <button
+          type="button"
+          onClick={() => form.setShowQrSection(!form.showQrSection)}
+          className="px-4 py-2.5 bg-brand-paper hover:bg-brand-paper/80 border border-brand-ink/15 text-brand-ink font-mono text-xs uppercase font-semibold tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <QrCode size={15} className="text-brand-accent shrink-0" />
+          <span>{form.showQrSection ? "Dölj mobil-QR" : "Sänd från mobilen"}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handlePrimarySendClick}
+          disabled={form.sending}
+          className="px-5 py-2.5 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <Send size={15} />
+          <span>{form.sending ? "Granskar & skickar..." : "Sänd"}</span>
+        </button>
+      </div>
+
+      {/* Gateway QR / SMS Fallback Section */}
+      <GatewayQrModal
+        isFormValid={form.isFormValid}
+        showQrSection={form.showQrSection}
+        setShowQrSection={form.setShowQrSection}
+        formattedText={form.formattedText}
+      />
 
       {/* Smart AI Pre-flight Review Modal */}
       {form.aiReviewModal.open && (
@@ -173,27 +258,6 @@ export default function CreateInvitationForm({
           onPublishAnyway={form.executePublish}
           sending={form.sending}
         />
-      )}
-
-      {/* Post-Submission Sequential Cards Modal */}
-      {showPostSubmissionSteps && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <PostSubmissionSteps
-            formattedText={form.formattedText}
-            selectedTime={form.selectedTime}
-            locationName={form.locationName}
-            selectedOrganization={form.selectedOrganization}
-            organizerPersonName={form.organizerPersonName}
-            activityText={form.activityText}
-            selectedAreas={form.selectedAreas}
-            selectedAudience={form.selectedAudience}
-            onFinished={() => {
-              setShowPostSubmissionSteps(false);
-              if (onSuccess) onSuccess();
-            }}
-            onCancel={() => setShowPostSubmissionSteps(false)}
-          />
-        </div>
       )}
     </div>
   );

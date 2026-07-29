@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/mission_router/4_Produce] - Verified Saved
 
 import React, { useState, useEffect, useCallback } from "react";
-import { ShieldAlert, X, Smartphone, Settings, Plus, Clock } from "lucide-react";
+import { ShieldAlert, Languages, X, Smartphone, Settings, Plus } from "lucide-react";
 import { SettingsTicker, OnboardingWizard } from "./features/anpassa";
 import { AlertDetail, ActiveStream, Disclaimer } from "./features/inbjudningar";
 import { TRANSLATIONS, UiLanguage } from "./features/mission_router";
@@ -417,28 +417,49 @@ export default function App() {
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col font-sans text-brand-ink selection:bg-brand-accent selection:text-white pb-12">
       
-      {/* Top Header Bar */}
-      <div className="bg-white/95 border-b border-brand-ink/10 z-10 w-full shadow-xs">
-        <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between gap-3 select-none">
-          {/* Clickable text area / clock icon to open Settings (Anpassa) */}
-          <button
-            type="button"
-            onClick={() => setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings')}
-            className="flex items-center gap-2 text-left cursor-pointer group flex-1 min-w-0"
-          >
-            <Clock size={18} className="text-brand-accent shrink-0 group-hover:scale-110 transition-transform" />
-            <span className="font-serif italic text-base sm:text-lg text-brand-ink tracking-tight font-medium truncate">
-              Se dina inbjudningar
-            </span>
-          </button>
+      {/* Sticky Top Header Bar */}
+      <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-brand-ink/10 z-50 w-full shadow-xs">
+        <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between whitespace-nowrap overflow-hidden select-none">
+          {/* VÄNSTER SIDA */}
+          <div className="flex items-center gap-2 min-w-0 flex-1 mr-4">
+            <h1 className="font-serif italic text-lg sm:text-xl font-medium tracking-tight text-brand-ink shrink-0">
+              Inbjudan till dig
+            </h1>
+            <SettingsTicker
+              savedTags={savedTags}
+              onClick={() => setCurrentView('settings')}
+            />
+          </div>
 
-          {/* Toggle Switch */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* HÖGER SIDA */}
+          <button
+            id="change-language-btn"
+            onClick={() => {
+              localStorage.removeItem("mission_router_ui_language");
+              setUiLanguage(null);
+            }}
+            className="text-brand-ink opacity-60 hover:opacity-100 transition-all cursor-pointer flex items-center justify-center p-1 shrink-0"
+            title="Ändra språk / Change language"
+          >
+            <Languages size={18} className="stroke-[1.5]" />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Responsive Grid Layout */}
+      <main className="flex-1 p-4 max-w-xl w-full mx-auto flex flex-col">
+        
+        {/* Kontroller för Notiser & Anpassning */}
+        <div className="flex flex-row gap-2 sm:gap-3 mb-6 mx-auto max-w-[400px] w-full items-stretch">
+          {/* iOS Style Switch Container */}
+          <div className="flex-1 bg-white border border-brand-ink/10 rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm">
+            <span className="font-serif italic text-[15px] sm:text-base text-brand-ink tracking-tight">
+              Få inbjudningar som notiser
+            </span>
             <button
               type="button"
               disabled={isToggling}
-              onClick={async (e) => {
-                e.stopPropagation();
+              onClick={async () => {
                 setIsToggling(true);
                 try {
                   if (pushEnabled) {
@@ -446,16 +467,15 @@ export default function App() {
                   } else {
                     await handleEnablePush();
                   }
-                } catch (err) {
-                  console.error(err);
+                } catch (e) {
+                  console.error(e);
                 } finally {
                   setIsToggling(false);
                 }
               }}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-wait ${
                 pushEnabled ? 'bg-brand-accent' : 'bg-brand-ink/20'
               }`}
-              title="Aktivera/Inaktivera notiser"
             >
               <span className="sr-only">Toggle notifications</span>
               <span
@@ -466,11 +486,22 @@ export default function App() {
               />
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Main Responsive Grid Layout */}
-      <main className="flex-1 p-4 max-w-xl w-full mx-auto flex flex-col">
+          {/* Settings / Anpassa knappen */}
+          <button
+            type="button"
+            disabled={isToggling}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings');
+            }}
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-0 bg-white border border-brand-ink/10 rounded-2xl font-mono text-[9px] sm:text-[11px] uppercase tracking-widest text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper transition-all shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-wait ${currentView === 'settings' ? 'ring-1 ring-brand-ink text-brand-ink bg-brand-paper' : ''} ${!pushEnabled ? 'opacity-50 grayscale' : ''}`}
+          >
+            <Settings size={14} className="hidden sm:inline" />
+            <span>Anpassa</span>
+          </button>
+        </div>
 
         {pushError && (
           <div className="mb-6 bg-brand-error/10 border border-brand-error/20 rounded-2xl p-4 flex items-center gap-3 text-xs text-brand-error animate-in fade-in duration-200">
@@ -510,13 +541,25 @@ export default function App() {
                 </div>
               )}
 
-              {currentView === 'stream' && (
+              {currentView === 'stream' && activeTab === "stream" && (
                 <ActiveStream
                   onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
                   uiLanguage={uiLanguage || "sv"}
                   savedTags={savedTags}
                   onStreamCountChange={handleStreamCountChange}
-                  inlineCreate={activeTab === "create"}
+                  inlineCreate={false}
+                  isAdmin={isAdmin}
+                  pushEnabled={pushEnabled}
+                />
+              )}
+
+              {currentView === 'stream' && activeTab === "create" && (
+                <ActiveStream
+                  onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
+                  uiLanguage={uiLanguage || "sv"}
+                  savedTags={savedTags}
+                  onStreamCountChange={handleStreamCountChange}
+                  inlineCreate={true}
                   isAdmin={isAdmin}
                   pushEnabled={pushEnabled}
                   onBack={() => setActiveTab("stream")}
@@ -527,6 +570,20 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* Floating Action Button (FAB) for creating invitations - Anchored on center column */}
+      {currentView === 'stream' && activeTab === 'stream' && !activeAlertId && (
+        <div className="fixed bottom-6 inset-x-0 z-40 pointer-events-none max-w-2xl mx-auto px-4 sm:px-6 flex justify-end">
+          <button
+            onClick={() => setActiveTab('create')}
+            className="pointer-events-auto bg-brand-accent hover:bg-brand-accent/90 text-white rounded-full px-5 py-3 shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer font-mono text-xs uppercase tracking-wider font-semibold"
+            title="Bjud in"
+          >
+            <Plus size={18} />
+            <span>Bjud in</span>
+          </button>
+        </div>
+      )}
 
       {/* Centered Foot Disclaimer */}
       <Disclaimer 

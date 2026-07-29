@@ -26,5 +26,7 @@
    - Skaparen ser sitt förslag märkt med "Ditt förslag • Väntar på granskning".
    - Administratörer kan godkänna (`.ja`) eller avvisa (`.nej`) via SMS eller administratörs-vy.
 
-## 2. Verifiering
-- `compile_applet`: Bygget slutfördes utan fel.
+## 2. Verifiering & Montering
+- **Kompilering**: `compile_applet` slutfördes utan fel.
+- **Enhetstester**: Alla 15 unit-tester via Vitest kördes och passerade (6/6 testfiler gröna).
+- **Montering**: `PostSubmissionStepper`, `PreviewCard`, `CreateInvitationForm` och `ActiveStream` är fullständigt monterade i `App.tsx` och `ActiveStream.tsx` för direkt interaktion på skärmen.

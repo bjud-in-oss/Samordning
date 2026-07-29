@@ -105,6 +105,14 @@ export default function ActiveStream({
     try {
       setLoading(true);
       setError(null);
+      if (typeof localStorage !== "undefined") {
+        try {
+          const stored = localStorage.getItem("my_pending_proposals");
+          setMyProposals(stored ? JSON.parse(stored) : []);
+        } catch (err) {
+          console.warn("Could not read my_pending_proposals", err);
+        }
+      }
       const res = await fetch("/api/alerts");
       if (!res.ok) {
         throw new Error("Gick inte att läsa in aktiva anslag.");

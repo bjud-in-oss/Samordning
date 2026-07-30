@@ -1,6 +1,7 @@
 import React from "react";
 import { OnboardingWizard } from "../features/anpassa";
 import { AlertDetail, ActiveStream } from "../features/inbjudningar";
+import { CreateInvitationForm } from "../features/skapa_inbjudan";
 import { UiLanguage } from "../features/mission_router";
 
 interface MainViewContentProps {

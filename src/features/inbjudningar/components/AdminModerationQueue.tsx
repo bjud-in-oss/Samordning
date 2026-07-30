@@ -1,6 +1,6 @@
 import React from "react";
 import { ShieldAlert } from "lucide-react";
-import { ActiveAlert } from "../mission_router";
+import { ActiveAlert } from "../../mission_router";
 
 interface AdminModerationQueueProps {
   pendingAlerts: ActiveAlert[];

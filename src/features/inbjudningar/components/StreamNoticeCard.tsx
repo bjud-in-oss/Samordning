@@ -3,6 +3,7 @@ import { ExternalLink } from "lucide-react";
 import { ActiveAlert } from "../../mission_router";
 
 interface StreamNoticeCardProps {
+  key?: string;
   item: ActiveAlert;
   onSelectAlert: (id: string) => void;
 }

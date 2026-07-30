@@ -71,7 +71,7 @@ export async function handleSmsCommand(
     
     const draftCategory = draft.extractedMetadata.category || "Vara en vän";
     const draftOrg = draft.extractedMetadata.organization || "Arrangör";
-    const isLektionAndSamtal = draftCategory === "Läsa skrifterna" && draftOrg === "Missionärerna";
+    const isLektionAndSamtal = draftCategory === "Få näring av Guds ord" && draftOrg === "Missionärerna";
     const escalationLevel = isLektionAndSamtal ? 1 : undefined;
 
     const newAnnouncement: ActiveAlert = {

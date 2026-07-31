@@ -32,15 +32,17 @@ export function useAppState() {
     }
   });
 
-  const handleAdminAuth = () => {
-    const password = prompt("Ange administratörskod:");
-    if (password === "utby2026") {
-      try { localStorage.setItem("isAdmin", "true"); } catch(e) {}
-      setIsAdmin(true);
-      alert("Du är nu inloggad som administratör.");
-    } else if (password !== null) {
-      alert("Felaktig kod.");
+  const setAdminStatus = (status: boolean) => {
+    try {
+      if (status) {
+        localStorage.setItem("isAdmin", "true");
+      } else {
+        localStorage.removeItem("isAdmin");
+      }
+    } catch (e) {
+      // Ignore
     }
+    setIsAdmin(status);
   };
 
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
@@ -71,7 +73,8 @@ export function useAppState() {
     hasAcceptedIntro,
     setHasAcceptedIntro,
     isAdmin,
-    handleAdminAuth,
+    setIsAdmin,
+    setAdminStatus,
     activeAlertId,
     setActiveAlertId,
     subscriptionId,

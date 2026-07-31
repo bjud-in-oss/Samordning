@@ -1,11 +1,17 @@
 # Steg 1: Att kartlägga
 
-- **Domän**: `exportering` (exporthantering för inställningar och inbjudningar).
-- **Syfte**: Generera och spara ned laddningsbara filer (JSON samt iCalendar `.ics`) från applikationens tillstånd.
-- **Befintligt tillstånd**:
-  - Inga filer finns ännu för domänen i `src/features/exportering/` eller `doc/features/exportering/`.
-  - Huvudvyn `src/components/MainViewContent.tsx` är den valda konsumtionspunkten för den nya exportknappen.
-- **Gränssnittskrav**:
-  - Ren FSD-struktur med publika exporter via `index.ts`.
-  - Fraktal dokumentation i `doc/features/exportering/`.
-  - Enhetstester för JSON- och ICS-genereringslogik i `domain/__tests__/exportUtils.test.ts`.
+- **Uppdrag**: Sanera och säkra administratörs- och modereringsarkitekturen.
+- **Kartlagda brister och komponenter**:
+  1. **Föråldrade testdomäner**:
+     - `src/features/healthcheck` och `src/features/exportering` samt deras dokumentation i `doc/features/`.
+     - `HealthStatusWidget` och `ExportButton` konsumeras i `src/components/MainViewContent.tsx`.
+  2. **Säkerhet & Bakdörrar**:
+     - URL-parameter `admin=true` / `user=admin` i `src/App.tsx`.
+     - Hårdkodat lösenord `"utby2026"` i `src/hooks/useAppState.ts`.
+  3. **Admin-parning & Inloggning**:
+     - SMS/QR-baserad parning via `#PAIR <token>` behöver göras till primär autentiseringsmetod och sparas i `localStorage` (`admin_device_token`, `isAdmin`).
+  4. **Platt Admin-hantering**:
+     - Behov av gränssnitt och API-stöd för att lägga till/ta bort administratörsnummer direkt i AdminConsole samt via SMS-kommandon (`.admin +...`, `.admin -...`).
+  5. **Aktiv Moderering & Betrodda Skapare**:
+     - Moderering av inkommande förslag (godkänna, avböja, godkänna & lita på).
+     - Betrodda skapare (`trustedNumbers`) ska kunna passera modereringskön automatiskt till det offentliga flödet (`status: "active"`).

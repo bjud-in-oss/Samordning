@@ -4,7 +4,7 @@ import { Check, X } from "lucide-react";
 interface PendingAlertsQueueProps {
   pendingAlerts: any[];
   onFetchPending: () => void;
-  onApprove: (id: string) => void;
+  onApprove: (id: string, trustSender?: boolean) => void;
   onReject: (id: string) => void;
 }
 
@@ -49,19 +49,29 @@ export function PendingAlertsQueue({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
                 <button
                   type="button"
-                  onClick={() => onApprove(item.id)}
-                  className="px-3 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-[10px] uppercase font-bold tracking-wider rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                  onClick={() => onApprove(item.id, false)}
+                  className="px-2.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-[10px] uppercase font-bold tracking-wider rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                  title="Godkänn förslaget och publicera i flödet"
                 >
                   <Check size={12} />
                   <span>Godkänn</span>
                 </button>
                 <button
                   type="button"
+                  onClick={() => onApprove(item.id, true)}
+                  className="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-mono text-[10px] uppercase font-bold tracking-wider rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                  title="Godkänn och lita på avsändaren i framtiden"
+                >
+                  <Check size={12} />
+                  <span>Godkänn & Lita på</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => onReject(item.id)}
-                  className="px-3 py-1.5 bg-rose-700 hover:bg-rose-800 text-white font-mono text-[10px] uppercase font-bold tracking-wider rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                  className="px-2.5 py-1.5 bg-rose-700 hover:bg-rose-800 text-white font-mono text-[10px] uppercase font-bold tracking-wider rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
                 >
                   <X size={12} />
                   <span>Avböj</span>

@@ -1,5 +1,5 @@
 import { ActiveAlert } from "../shared/types";
-import { activeAlerts, adminNumbers, trustedNumbers, smsDrafts, saveActiveAlerts, saveTrusted, getNextFreeId, sendOutboundSms } from "./storage";
+import { activeAlerts, adminNumbers, trustedNumbers, smsDrafts, saveActiveAlerts, saveAdmins, saveTrusted, getNextFreeId, sendOutboundSms, normalizePhone } from "./storage";
 import { addSimLog, broadcastCancelPush, triggerPushAlert } from "../main/services/pushService";
 import { getCoordsForArea, calculateSecondsUntilTime, washAnnouncementText } from "../main/services/parser";
 
@@ -20,6 +20,54 @@ export async function handleSmsCommand(
   const avsandareMatch = trimmedText.match(/^[\.#]avsändare\s+(.+)$/i);
   const expanderaMatch = trimmedText.match(/^[\.#]expandera\s+(\d+)$/i);
   const fullMatch = trimmedText.match(/^[\.#]full\s+(\d+)$/i);
+  const adminCmdMatch = trimmedText.match(/^[\.#]admin\s+([\+\-]?)\s*(.+)$/i);
+  const betroddCmdMatch = trimmedText.match(/^[\.#]betrodd\s+([\+\-]?)\s*(.+)$/i);
+
+  if (adminCmdMatch) {
+    if (!isAdmin) return { handled: true, response: { success: false, error: "Obehörig.", status: 403 } };
+    const sign = adminCmdMatch[1];
+    const targetNorm = normalizePhone(adminCmdMatch[2].trim());
+    if (!targetNorm) return { handled: true, response: { success: false, replyMessage: "Ogiltigt telefonnummer." } };
+
+    if (sign === "-") {
+      const idx = adminNumbers.findIndex(n => normalizePhone(n) === targetNorm);
+      if (idx > -1) {
+        adminNumbers.splice(idx, 1);
+        saveAdmins();
+        return { handled: true, response: { success: true, replyMessage: `Admin ${targetNorm} har tagits bort.` } };
+      }
+      return { handled: true, response: { success: false, replyMessage: `Admin ${targetNorm} hittades inte.` } };
+    } else {
+      if (!adminNumbers.some(n => normalizePhone(n) === targetNorm)) {
+        adminNumbers.push(targetNorm);
+        saveAdmins();
+      }
+      return { handled: true, response: { success: true, replyMessage: `Admin ${targetNorm} har lagts till!` } };
+    }
+  }
+
+  if (betroddCmdMatch) {
+    if (!isAdmin) return { handled: true, response: { success: false, error: "Obehörig.", status: 403 } };
+    const sign = betroddCmdMatch[1];
+    const targetNorm = normalizePhone(betroddCmdMatch[2].trim());
+    if (!targetNorm) return { handled: true, response: { success: false, replyMessage: "Ogiltigt telefonnummer." } };
+
+    if (sign === "-") {
+      const idx = trustedNumbers.findIndex(n => normalizePhone(n) === targetNorm);
+      if (idx > -1) {
+        trustedNumbers.splice(idx, 1);
+        saveTrusted();
+        return { handled: true, response: { success: true, replyMessage: `Betrodd ${targetNorm} har tagits bort.` } };
+      }
+      return { handled: true, response: { success: false, replyMessage: `Betrodd ${targetNorm} hittades inte.` } };
+    } else {
+      if (!trustedNumbers.some(n => normalizePhone(n) === targetNorm)) {
+        trustedNumbers.push(targetNorm);
+        saveTrusted();
+      }
+      return { handled: true, response: { success: true, replyMessage: `Betrodd skapare ${targetNorm} har lagts till!` } };
+    }
+  }
 
   if (helpMatch) {
     const helpText = "5-raders mall för inbjudan:\nTid: (t.ex. Idag kl 18:00)\nMötesplats: (Plats/Länk/Tfn)\nAktivitet: (Vad ska ni göra?)\nBjud in från områden: (Område)\nMålgrupp: Alla\n\nKommandon: .ja [id], .nej [id], .ta bort [id], .status, .mall";

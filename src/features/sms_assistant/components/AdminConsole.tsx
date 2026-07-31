@@ -6,8 +6,14 @@ import { PairingGate } from "./PairingGate";
 import { PendingAlertsQueue } from "./PendingAlertsQueue";
 import { AdminLogsArea } from "./AdminLogsArea";
 import { AdminConsoleHeader } from "./AdminConsoleHeader";
+import { AdminMembersPanel } from "./AdminMembersPanel";
 
-export default function AdminConsole() {
+interface AdminConsoleProps {
+  onBack?: () => void;
+  onPairSuccess?: () => void;
+}
+
+export default function AdminConsole({ onBack, onPairSuccess }: AdminConsoleProps) {
   const [deviceToken, setDeviceToken] = useState("");
   const [isPaired, setIsPaired] = useState(false);
   const [checkingPairing, setCheckingPairing] = useState(true);
@@ -34,12 +40,12 @@ export default function AdminConsole() {
     fetchPending();
   }, []);
 
-  const handleApprove = async (id: string) => {
+  const handleApprove = async (id: string, trustSender: boolean = false) => {
     try {
       const res = await fetch(`/api/alerts/${id}/status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "active" })
+        body: JSON.stringify({ status: "active", trustSender })
       });
       if (res.ok) {
         fetchPending();
@@ -88,6 +94,8 @@ export default function AdminConsole() {
       const data = await res.json();
       if (data.paired) {
         setIsPaired(true);
+        localStorage.setItem("isAdmin", "true");
+        if (onPairSuccess) onPairSuccess();
       } else {
         setIsPaired(false);
       }
@@ -110,6 +118,8 @@ export default function AdminConsole() {
       const data = await res.json();
       if (data.success) {
         setIsPaired(true);
+        localStorage.setItem("isAdmin", "true");
+        if (onPairSuccess) onPairSuccess();
       }
     } catch (e) {
       alert("Kunde inte aktivera enheten direkt.");
@@ -138,6 +148,7 @@ export default function AdminConsole() {
       
       const data = await res.json();
       setLogs(prev => [{ isUser: false, text: data.replyMessage || JSON.stringify(data) }, ...prev]);
+      fetchPending();
     } catch (e: any) {
       setLogs(prev => [{ isUser: false, text: "Nätverksfel eller ogiltigt svar." }, ...prev]);
     }
@@ -176,8 +187,8 @@ export default function AdminConsole() {
   }
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-[#F0F2F5] font-sans text-brand-ink">
-      <AdminConsoleHeader onSendSms={sendSms} onInsertTemplate={insertTemplate} />
+    <div className="min-h-[100dvh] flex flex-col bg-[#F0F2F5] font-sans text-brand-ink">
+      <AdminConsoleHeader onSendSms={sendSms} onInsertTemplate={insertTemplate} onBack={onBack} />
 
       <div className="bg-white px-4 py-2.5 border-b border-brand-ink/5 shrink-0 z-10 shadow-xs flex gap-3 text-xs">
          <input 
@@ -203,9 +214,12 @@ export default function AdminConsole() {
         onReject={handleReject}
       />
 
-      <AdminLogsArea logs={logs} phoneNumber={phoneNumber} />
+      <div className="p-4 space-y-4 flex-1 overflow-y-auto">
+        <AdminMembersPanel />
+        <AdminLogsArea logs={logs} phoneNumber={phoneNumber} />
+      </div>
 
-      <div className="bg-[#F0F2F5] p-3 shrink-0 flex gap-2">
+      <div className="bg-[#F0F2F5] p-3 shrink-0 flex gap-2 border-t border-brand-ink/10">
         <textarea 
           rows={2}
           className="flex-1 p-3 bg-white rounded-2xl border-none focus:ring-0 shadow-xs resize-none text-xs font-mono leading-relaxed" 

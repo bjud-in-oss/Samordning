@@ -18,12 +18,6 @@ export default function App() {
     pingRenderBackend();
   }, []);
 
-  const isAdminConsole = typeof window !== "undefined" && window.location.search.includes("admin=true");
-
-  if (isAdminConsole) {
-    return <AdminConsole />;
-  }
-
   const {
     showIosModal,
     setShowIosModal,
@@ -32,7 +26,8 @@ export default function App() {
     hasAcceptedIntro,
     setHasAcceptedIntro,
     isAdmin,
-    handleAdminAuth,
+    setIsAdmin,
+    setAdminStatus,
     activeAlertId,
     setActiveAlertId,
     subscriptionId,
@@ -66,7 +61,7 @@ export default function App() {
   }, []);
 
   const [activeTab, setActiveTab] = useState<"stream" | "create">("stream");
-  const [currentView, setCurrentView] = useState<'stream' | 'settings'>('stream');
+  const [currentView, setCurrentView] = useState<'stream' | 'settings' | 'admin'>('stream');
   const [isToggling, setIsToggling] = useState<boolean>(false);
 
   const [isOnline] = useState<boolean>(true);
@@ -144,10 +139,19 @@ export default function App() {
     );
   }
 
+  if (currentView === 'admin') {
+    return (
+      <AdminConsole
+        onBack={() => setCurrentView('stream')}
+        onPairSuccess={() => setAdminStatus(true)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col font-sans text-brand-ink selection:bg-brand-accent selection:text-white pb-12">
       <AppHeader
-        currentView={currentView}
+        currentView={currentView === 'admin' ? 'stream' : currentView}
         onToggleSettings={() => setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings')}
         pushEnabled={pushEnabled}
         isToggling={isToggling}
@@ -183,8 +187,8 @@ export default function App() {
           activeAlertId={activeAlertId}
           navigateTo={navigateTo}
           uiLanguage={uiLanguage}
-          currentView={currentView}
-          setCurrentView={setCurrentView}
+          currentView={currentView === 'admin' ? 'stream' : currentView}
+          setCurrentView={setCurrentView as any}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           handleSaveTags={handleSaveTags}
@@ -200,7 +204,7 @@ export default function App() {
       <Disclaimer 
         uiLanguage={uiLanguage || "sv"} 
         onShowIntro={() => setHasAcceptedIntro(false)}
-        onAdminTrigger={handleAdminAuth}
+        onAdminTrigger={() => setCurrentView('admin')}
         isOnline={isOnline}
         isSyncing={isSyncing}
       />

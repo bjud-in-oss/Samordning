@@ -4,14 +4,15 @@ import { ArrowLeft, ShieldCheck, FileText } from "lucide-react";
 interface AdminConsoleHeaderProps {
   onSendSms: (text: string) => void;
   onInsertTemplate: () => void;
+  onBack?: () => void;
 }
 
-export function AdminConsoleHeader({ onSendSms, onInsertTemplate }: AdminConsoleHeaderProps) {
+export function AdminConsoleHeader({ onSendSms, onInsertTemplate, onBack }: AdminConsoleHeaderProps) {
   return (
     <div className="bg-white px-4 py-3 border-b border-brand-ink/10 flex items-center justify-between shadow-xs shrink-0 z-10 relative">
       <div className="flex items-center gap-3">
         <button 
-          onClick={() => window.location.href = "/"}
+          onClick={onBack || (() => window.location.href = "/")}
           className="p-2 -ml-2 text-brand-ink/60 hover:text-brand-ink transition-colors flex items-center gap-1 cursor-pointer"
         >
           <ArrowLeft size={20} />

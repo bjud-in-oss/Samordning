@@ -1,16 +1,20 @@
 # Steg 2: Att förändra
 
-- **Design av ny domän `exportering`**:
-  1. Skapa domänlogik i `src/features/exportering/domain/exportUtils.ts`:
-     - `generateJsonExport(data: unknown): string`
-     - `generateIcsExport(events: Array<{ title: string; date?: string; description?: string }>): string`
-     - `downloadFile(content: string, filename: string, mimeType: string): void`
-  2. Skapa enhetstester i `src/features/exportering/domain/__tests__/exportUtils.test.ts` med täckning för JSON- och ICS-format.
-  3. Skapa UI-komponenten `src/features/exportering/components/ExportButton.tsx` som erbjuder en dropdown/knapp för export.
-  4. Exportera publika gränssnittet i `src/features/exportering/index.ts`.
-  5. Skapa lokal fraktal dokumentation i `doc/features/exportering/`:
-     - `INDEX.md`
-     - `BUSINESS_RULES.md`
-     - `UI_WORKFLOWS.md`
-     - `INTEGRATIONS.md`
-  6. Ansluta och konsumera `ExportButton` i `src/components/MainViewContent.tsx`.
+- **Planerade förändringar**:
+  1. **Städning & Sanering**:
+     - Ta bort `src/features/healthcheck` och `src/features/exportering`.
+     - Ta bort `doc/features/healthcheck` och `doc/features/exportering`.
+     - Rensa bort `HealthStatusWidget` och `ExportButton` från `MainViewContent.tsx`.
+     - Rensa bort URL-bakdörren `?admin=true` / `?user=admin` från `App.tsx`.
+     - Ersätt lösenordspropt `"utby2026"` i `useAppState.ts` med SMS/QR-enhetsparning och persistering i `localStorage`.
+  2. **Lösenordsfri SMS Admin-parning**:
+     - Vid admin-aktivering kontrolleras `admin_device_token` mot `/api/admin/check-pairing`.
+     - Om enheten är parats blir användaren godkänd som admin och förblir inloggad i `localStorage`.
+     - Om den ej är parats visas `PairingGate` med SMS-länk och QR-kod.
+  3. **Platt Admin-hantering & Betrodda Skapare**:
+     - Skapa `AdminMembersPanel` i `sms_assistant` för att visa, lägga till och ta bort administratörer och betrodda skapare.
+     - Implementera API-ändpunkter: `GET /api/admin/members`, `POST /api/admin/members/add`, `POST /api/admin/members/remove`.
+     - Stöd SMS-kommandon: `.admin +<nr>`, `.admin -<nr>`, `.betrodd +<nr>`, `.betrodd -<nr>`.
+  4. **Aktiv Moderering**:
+     - Förbättra modereringskön `PendingAlertsQueue` i `AdminConsole` med åtgärder för att godkänna, avböja samt godkänna & vitlista avsändaren.
+     - Inbjudningar från betrodda skapare publiceras direkt (`status: "active"`).

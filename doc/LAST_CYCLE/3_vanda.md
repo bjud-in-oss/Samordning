@@ -1,5 +1,7 @@
 # Steg 3: Att vända
 
-- Identifierat och rensat den gamla `doc/LAST_CYCLE.md`-filen i roten.
-- Rensat bort alla `LAST_CYCLE.md`-filer från tidigare funktionstester i `src/features/`.
-- Verifierat att inga dokumentationsfiler återstår i `src/`-trädet.
+- **Rannsakning & Förenkling**:
+  - Säkerställ att inga externa tunga kalenderbibliotek installeras i onödan. ICS-standarden (RFC 5545) kan genereras typsäkert och rent med en lättviktsfunktion.
+  - Säkerställ att alla filer hålls strikt under 250 rader.
+  - Förhindra interna importvägar; kommunikation ska gå enbart via `src/features/exportering/index.ts`.
+  - Ingen tillståndslagring på disk i Node/RAM, utan klientdriven web-blob nedladdning.

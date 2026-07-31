@@ -4,6 +4,7 @@ import { AlertDetail, ActiveStream } from "../features/inbjudningar";
 import { CreateInvitationForm } from "../features/skapa_inbjudan";
 import { UiLanguage } from "../features/mission_router";
 import { HealthStatusWidget } from "../features/healthcheck";
+import { ExportButton } from "../features/exportering";
 
 interface MainViewContentProps {
   activeAlertId: string | null;
@@ -92,8 +93,9 @@ export function MainViewContent({
           />
         )}
       </div>
-      <div className="flex justify-center pt-2">
+      <div className="flex items-center justify-center gap-4 pt-2">
         <HealthStatusWidget />
+        <ExportButton exportData={savedTags} />
       </div>
     </div>
   );

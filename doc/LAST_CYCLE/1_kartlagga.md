@@ -1,8 +1,11 @@
 # Steg 1: Att kartlägga
 
-- **Tillstånd**: Dokumentation låg tidigare i `src/features/[domän]/doc/` samt samlad i en enskild `doc/LAST_CYCLE.md`.
-- **Systemkrav**: 
-  - `doc/` i roten äger all dokumentation. `src/` är reserverat enbart för källkod och tester.
-  - Lokal fraktal dokumentation ska ligga i `doc/features/[domän]/` med fyra obligatoriska filer (`INDEX.md`, `BUSINESS_RULES.md`, `UI_WORKFLOWS.md`, `INTEGRATIONS.md`).
-  - Processloggar i `doc/LAST_CYCLE/` ska delas upp i fem separata filer (`1_kartlagga.md`, `2_forandra.md`, `3_vanda.md`, `4_forlika.md`, `5_producera.md`).
-- **Inventerade domäner**: `anpassa`, `healthcheck`, `inbjudningar`, `mission_router`, `mobile_pwa_app`, `skapa_inbjudan`, `sms_assistant`.
+- **Domän**: `exportering` (exporthantering för inställningar och inbjudningar).
+- **Syfte**: Generera och spara ned laddningsbara filer (JSON samt iCalendar `.ics`) från applikationens tillstånd.
+- **Befintligt tillstånd**:
+  - Inga filer finns ännu för domänen i `src/features/exportering/` eller `doc/features/exportering/`.
+  - Huvudvyn `src/components/MainViewContent.tsx` är den valda konsumtionspunkten för den nya exportknappen.
+- **Gränssnittskrav**:
+  - Ren FSD-struktur med publika exporter via `index.ts`.
+  - Fraktal dokumentation i `doc/features/exportering/`.
+  - Enhetstester för JSON- och ICS-genereringslogik i `domain/__tests__/exportUtils.test.ts`.

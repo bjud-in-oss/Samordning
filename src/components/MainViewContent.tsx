@@ -3,6 +3,7 @@ import { OnboardingWizard } from "../features/anpassa";
 import { AlertDetail, ActiveStream } from "../features/inbjudningar";
 import { CreateInvitationForm } from "../features/skapa_inbjudan";
 import { UiLanguage } from "../features/mission_router";
+import { HealthStatusWidget } from "../features/healthcheck";
 
 interface MainViewContentProps {
   activeAlertId: string | null;
@@ -90,6 +91,9 @@ export function MainViewContent({
             onOpenSettings={() => setCurrentView('settings')}
           />
         )}
+      </div>
+      <div className="flex justify-center pt-2">
+        <HealthStatusWidget />
       </div>
     </div>
   );

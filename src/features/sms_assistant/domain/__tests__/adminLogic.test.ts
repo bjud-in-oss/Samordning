@@ -5,7 +5,10 @@ import {
   isPhoneInList, 
   addPhoneToList, 
   removePhoneFromList, 
-  filterPendingAlerts 
+  filterPendingAlerts,
+  classifyLogLevel,
+  filterLogs,
+  LogEntry
 } from '../adminLogic';
 
 describe('adminLogic helpers', () => {
@@ -54,5 +57,28 @@ describe('adminLogic helpers', () => {
     const pending = filterPendingAlerts(alerts);
     expect(pending).toHaveLength(2);
     expect(pending.map(p => p.id)).toEqual(['1', '3']);
+  });
+
+  it('classifies log levels correctly based on keywords or explicit level', () => {
+    expect(classifyLogLevel({ text: 'Inbjudan skapad' })).toBe('INFO');
+    expect(classifyLogLevel({ text: 'Fel vid anslutning till API' })).toBe('ERROR');
+    expect(classifyLogLevel({ text: 'Varning för obehörig åtkomst' })).toBe('WARN');
+    expect(classifyLogLevel({ text: 'Standard meddelande', level: 'ERROR' })).toBe('ERROR');
+  });
+
+  it('filters log entries by search text and log level', () => {
+    const logs: LogEntry[] = [
+      { text: 'Inbjudan #101 publicerad', isUser: false },
+      { text: 'Fel: Nätverksavbrott vid sändning', isUser: false },
+      { text: 'Varning: Ogiltigt format', isUser: false },
+      { text: 'Sms skickades av admin', isUser: true }
+    ];
+
+    expect(filterLogs(logs, '', 'ALLA')).toHaveLength(4);
+    expect(filterLogs(logs, '', 'ERROR')).toHaveLength(1);
+    expect(filterLogs(logs, '', 'WARN')).toHaveLength(1);
+    expect(filterLogs(logs, 'inbjudan', 'ALLA')).toHaveLength(1);
+    expect(filterLogs(logs, 'nätverk', 'ERROR')).toHaveLength(1);
+    expect(filterLogs(logs, 'nätverk', 'INFO')).toHaveLength(0);
   });
 });

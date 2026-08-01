@@ -129,28 +129,26 @@ export default function AdminConsole({ onBack, onPairSuccess }: AdminConsoleProp
   const sendSms = async (customText?: string) => {
     const textToSend = customText || message.trim();
     if (!apiSecret || !phoneNumber || !textToSend) return;
-    
     localStorage.setItem("admin_api_secret", apiSecret);
     localStorage.setItem("admin_phone_number", phoneNumber);
 
-    setLogs(prev => [{ isUser: true, text: textToSend }, ...prev]);
+    const nowStr = new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    setLogs(prev => [{ isUser: true, text: textToSend, timestamp: nowStr }, ...prev]);
     if (!customText) setMessage("");
 
     try {
       const res = await fetch("/api/incoming-sms", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "x-api-secret": apiSecret 
-        },
+        headers: { "Content-Type": "application/json", "x-api-secret": apiSecret },
         body: JSON.stringify({ sender: phoneNumber, text: textToSend })
       });
-      
       const data = await res.json();
-      setLogs(prev => [{ isUser: false, text: data.replyMessage || JSON.stringify(data) }, ...prev]);
+      const replyTime = new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      setLogs(prev => [{ isUser: false, text: data.replyMessage || JSON.stringify(data), timestamp: replyTime }, ...prev]);
       fetchPending();
     } catch (e: any) {
-      setLogs(prev => [{ isUser: false, text: "Nätverksfel eller ogiltigt svar." }, ...prev]);
+      const errTime = new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      setLogs(prev => [{ isUser: false, text: "Nätverksfel eller ogiltigt svar.", level: "ERROR", timestamp: errTime }, ...prev]);
     }
   };
 
@@ -216,7 +214,7 @@ export default function AdminConsole({ onBack, onPairSuccess }: AdminConsoleProp
 
       <div className="p-4 space-y-4 flex-1 overflow-y-auto">
         <AdminMembersPanel />
-        <AdminLogsArea logs={logs} phoneNumber={phoneNumber} />
+        <AdminLogsArea logs={logs} phoneNumber={phoneNumber} onClearLogs={() => setLogs([])} />
       </div>
 
       <div className="bg-[#F0F2F5] p-3 shrink-0 flex gap-2 border-t border-brand-ink/10">

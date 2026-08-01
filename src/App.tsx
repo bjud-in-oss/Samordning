@@ -1,4 +1,4 @@
-// [src/App.tsx] - Main Application Layout & Controller
+// [src/App.tsx] - Main Application Layout & Controller (Updated)
 
 import React, { useState, useEffect, useCallback } from "react";
 import { ShieldAlert } from "lucide-react";

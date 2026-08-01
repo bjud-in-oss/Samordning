@@ -36,3 +36,50 @@ export function removePhoneFromList(list: string[], phone: string): string[] {
 export function filterPendingAlerts<T extends { status?: string }>(alerts: T[]): T[] {
   return alerts.filter(a => a.status === "pending" || a.status === "pending_review");
 }
+
+export type LogLevel = "ALLA" | "INFO" | "WARN" | "ERROR";
+
+export interface LogEntry {
+  isUser?: boolean;
+  text: string;
+  level?: "INFO" | "WARN" | "ERROR";
+  timestamp?: string;
+}
+
+export function classifyLogLevel(entry: LogEntry): "INFO" | "WARN" | "ERROR" {
+  if (entry.level) return entry.level;
+  const txt = (entry.text || "").toLowerCase();
+  if (txt.includes("varning") || txt.includes("warn") || txt.includes("obehörig") || txt.includes("tips")) {
+    return "WARN";
+  }
+  if (
+    txt.includes("fel") || 
+    txt.includes("error") || 
+    txt.includes("ogiltig") || 
+    txt.includes("misslyckas") || 
+    txt.includes("403") || 
+    txt.includes("404") || 
+    txt.includes("500")
+  ) {
+    return "ERROR";
+  }
+  return "INFO";
+}
+
+export function filterLogs(
+  logs: LogEntry[], 
+  searchQuery: string, 
+  levelFilter: LogLevel
+): LogEntry[] {
+  const query = searchQuery.trim().toLowerCase();
+  return logs.filter(log => {
+    const level = classifyLogLevel(log);
+    if (levelFilter !== "ALLA" && level !== levelFilter) {
+      return false;
+    }
+    if (!query) return true;
+    const textMatch = log.text.toLowerCase().includes(query);
+    const timeMatch = log.timestamp ? log.timestamp.toLowerCase().includes(query) : false;
+    return textMatch || timeMatch;
+  });
+}

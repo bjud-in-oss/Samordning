@@ -1,6 +1,7 @@
 /**
- * DETERMINISTISK MASTER-KONTROLL FÖR SEPARERADE STEG-FILER (v5.1)
- * Körs automatiskt via npm test före alla tester.
+ * DETERMINISTISK MASTER-KONTROLL (v6.2)
+ * Kombinerar loop-kontroll, tidsstämplar, Feature-Sliced Design och FSD-konsumtion.
+ * Körs automatiskt via npm test.
  */
 
 import fs from 'fs';
@@ -25,7 +26,7 @@ function logError(title, message) {
 }
 
 // -----------------------------------------------------------------------------
-// 1. KONTROLL AV SEPARERADE STEG-FILER (doc/LAST_CYCLE/)
+// 1. KONTROLL AV PROCESSLOGGAR OCH EVIGA LOOPAR (4-STEGSMODELLEN)
 // -----------------------------------------------------------------------------
 if (!fs.existsSync(LAST_CYCLE_DIR)) {
   logError(
@@ -34,44 +35,56 @@ if (!fs.existsSync(LAST_CYCLE_DIR)) {
   );
 } else {
   const step1Path = path.join(LAST_CYCLE_DIR, '1_kartlagga.md');
-  const step2Path = path.join(LAST_CYCLE_DIR, '2_forandra.md');
-  const step3Path = path.join(LAST_CYCLE_DIR, '3_vanda.md');
-  const step4Path = path.join(LAST_CYCLE_DIR, '4_forlika.md');
+  const step2Path = path.join(LAST_CYCLE_DIR, '2_planera.md');
+  const step3Path = path.join(LAST_CYCLE_DIR, '3_designa.md');
 
   if (!fs.existsSync(step1Path)) logError('STEG 1 SAKNAS', 'Filen "doc/LAST_CYCLE/1_kartlagga.md" saknas.');
-  if (!fs.existsSync(step2Path)) logError('STEG 2 SAKNAS', 'Filen "doc/LAST_CYCLE/2_forandra.md" saknas.');
-  if (!fs.existsSync(step3Path)) logError('STEG 3 SAKNAS', 'Filen "doc/LAST_CYCLE/3_vanda.md" saknas.');
-  if (!fs.existsSync(step4Path)) logError('STEG 4 SAKNAS', 'Filen "doc/LAST_CYCLE/4_forlika.md" saknas.');
+  if (!fs.existsSync(step2Path)) logError('STEG 2 SAKNAS', 'Filen "doc/LAST_CYCLE/2_planera.md" saknas.');
+  if (!fs.existsSync(step3Path)) logError('STEG 3 SAKNAS', 'Filen "doc/LAST_CYCLE/3_designa.md" saknas.');
 
-  if (fs.existsSync(step1Path) && fs.existsSync(step2Path) && fs.existsSync(step3Path) && fs.existsSync(step4Path)) {
+  if (fs.existsSync(step1Path) && fs.existsSync(step2Path) && fs.existsSync(step3Path)) {
     const t1 = fs.statSync(step1Path).mtimeMs;
     const t2 = fs.statSync(step2Path).mtimeMs;
     const t3 = fs.statSync(step3Path).mtimeMs;
-    const t4 = fs.statSync(step4Path).mtimeMs;
 
-    // Verifiera tidsstämplar mellan stegen
-    if (t2 < t1) logError('SEKVENSFEL', '2_forandra.md sparades före 1_kartlagga.md.');
-    if (t3 < t2) logError('SEKVENSFEL', '3_vanda.md sparades före 2_forandra.md.');
-    if (t4 < t3) logError('SEKVENSFEL', '4_forlika.md sparades före 3_vanda.md.');
+    // A. Verifiera sekvens i tidsstämplar
+    if (t2 < t1) logError('SEKVENSFEL', '2_planera.md sparades före 1_kartlagga.md.');
+    if (t3 < t2) logError('SEKVENSFEL', '3_designa.md sparades före 2_planera.md.');
 
-    // Verifiera beslut i Steg 4
-    const step4Content = fs.readFileSync(step4Path, 'utf-8');
-    const isApproved = /BESLUT:\s*GODKÄND/i.test(step4Content);
-    const isReLoop = /BESLUT:\s*OMSTART/i.test(step4Content);
+    // B. Verifiera beslut i Steg 3
+    const step3Content = fs.readFileSync(step3Path, 'utf-8');
+    const isApproved = /BESLUT:\s*GODKÄND/i.test(step3Content);
 
-    if (isReLoop) {
-      logError('OMSTART KRÄVS', '4_forlika.md har markerats med BESLUT: OMSTART. Börja om från 1_kartlagga.md.');
+    // C. Kontrollera evig omstartsloop (Räkna konsekutiva OMSTART)
+    const cycleFiles = fs.readdirSync(LAST_CYCLE_DIR).filter(f => f.endsWith('.md')).sort();
+    let consecutiveOmstarter = 0;
+
+    for (const file of cycleFiles) {
+      const content = fs.readFileSync(path.join(LAST_CYCLE_DIR, file), 'utf-8');
+      if (/BESLUT:\s*OMSTART/i.test(content)) {
+        consecutiveOmstarter++;
+      } else if (/BESLUT:\_GODKÄND/i.test(content)) {
+        consecutiveOmstarter = 0;
+      }
+    }
+
+    if (consecutiveOmstarter >= 2) {
+      logError('EVIG LOOP UPPTÄCKT', `Processen har fastnat i en omstartsloop (${consecutiveOmstarter} st OMSTART i rad). Exekvering stoppad.`);
     } else if (!isApproved) {
-      logError('DOMSTOLSSPÄRR', '4_forlika.md saknar "BESLUT: GODKÄND". Källkod får inte redigeras.');
+      logError('DOMSTOLSSPÄRR', '3_designa.md saknar "BESLUT: GODKÄND". Källkod får inte redigeras.');
     }
 
     // ---------------------------------------------------------------------------
-    // 2. KÄLLKODSSPÄRR (src/ får inte ha ändrats FÖRE 4_forlika.md låstes)
+    // 2. KÄLLKODSSPÄRR (src/ får inte ha ändrats FÖRE 3_designa.md låstes)
     // ---------------------------------------------------------------------------
     if (fs.existsSync(SRC_DIR) && isApproved) {
-      const now = Date.now();
-      const FIFTEEN_MINUTES = 15 * 60 * 1000;
+      const visitedPaths = new Set();
+
       const checkSrcTimestamps = (dir) => {
+        const realPath = fs.realpathSync(dir);
+        if (visitedPaths.has(realPath)) return;
+        visitedPaths.add(realPath);
+
         const files = fs.readdirSync(dir);
         for (const file of files) {
           const fullPath = path.join(dir, file);
@@ -80,15 +93,12 @@ if (!fs.existsSync(LAST_CYCLE_DIR)) {
           if (stat.isDirectory()) {
             checkSrcTimestamps(fullPath);
           } else if (/\.(ts|tsx|js|jsx)$/.test(file) && !file.includes('__tests__')) {
-            // Kontrollera endast nyligen ändrade filer (senaste 15 minuterna)
-            if (now - stat.mtimeMs < FIFTEEN_MINUTES) {
-              if (stat.mtimeMs < t4 - 2000) {
-                logError(
-                  'TIDSSTÄMPELÖVERTRÄDELSE',
-                  `Källkodsfilen "${path.relative(ROOT_DIR, fullPath)}" ändrades före "4_forlika.md" sparades.`
-                );
-                break;
-              }
+            if (stat.mtimeMs < t3 - 2000) {
+              logError(
+                'TIDSSTÄMPELÖVERTRÄDELSE',
+                `Källkodsfilen "${path.relative(ROOT_DIR, fullPath)}" ändrades före "3_designa.md" sparades.`
+              );
+              break;
             }
           }
         }
@@ -99,10 +109,16 @@ if (!fs.existsSync(LAST_CYCLE_DIR)) {
 }
 
 // -----------------------------------------------------------------------------
-// 3. CODEBASE- OCH FSD-REGLER
+// 3. CODEBASE-, FRAKTAL DOKUMENTATION OCH FSD-REGLER
 // -----------------------------------------------------------------------------
 if (fs.existsSync(SRC_DIR)) {
+  const visitedPaths = new Set();
+
   const scanCodebase = (dir) => {
+    const realPath = fs.realpathSync(dir);
+    if (visitedPaths.has(realPath)) return;
+    visitedPaths.add(realPath);
+
     const files = fs.readdirSync(dir);
 
     for (const file of files) {
@@ -110,7 +126,7 @@ if (fs.existsSync(SRC_DIR)) {
       const stat = fs.statSync(fullPath);
 
       if (stat.isDirectory()) {
-        // Kontrollera att fraktal doku ligger under doc/features/[domän]/
+        // A. Kontrollera att fraktal doku ligger under doc/features/[domän]/
         if (dir.endsWith(path.join('src', 'features'))) {
           const featureName = file;
           const targetDocDir = path.join(FEATURE_DOC_DIR, featureName);
@@ -126,7 +142,7 @@ if (fs.existsSync(SRC_DIR)) {
             }
           }
 
-          // Kontrollera konsumtionskrav
+          // B. Kontrollera konsumtionskrav (Import utanför den egna domänen)
           const importRegex = new RegExp(`from\\s+['"].*\\/features\\/${featureName}['"]`, 'g');
           let isConsumedExternally = false;
 
@@ -156,10 +172,12 @@ if (fs.existsSync(SRC_DIR)) {
         const fileContent = fs.readFileSync(fullPath, 'utf-8');
         const lines = fileContent.split('\n').length;
 
+        // C. Radantal (<250 rader)
         if (lines > 250) {
           logError('STORLEKSGRÄNS ÖVERSKRIDEN', `Filen "${path.relative(ROOT_DIR, fullPath)}" har ${lines} rader (max 250).`);
         }
 
+        // D. FSD-regel: Förbjud direkta importer till undermappar i andra features
         const invalidFsdImport = /from\s+['"][^'"]*\/features\/[^/]+\/(components|hooks|api|domain)\//;
         const fileLines = fileContent.split('\n');
         if (fileLines.some(line => invalidFsdImport.test(line))) {
@@ -180,5 +198,5 @@ if (hasErrors) {
   console.error('   AI Studio måste åtgärda avvikelserna i doc/LAST_CYCLE/ innan koden godkänns.\n');
   process.exit(1);
 } else {
-  console.log('✅ Arkitektur- och processkontroll godkänd.');
+  console.log('✅ Arkitektur-, process- och loopkontroll godkänd.');
 }

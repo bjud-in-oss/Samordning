@@ -1,14 +1,13 @@
 # Steg 4: Att producera
 
 - **Utfall och genomförda åtgärder**:
-  1. **Realtidssökning och nivåfiltrering**:
-     - Sökfält i realtid och dedikerade nivåknappar (`ALLA`, `INFO`, `WARN`, `ERROR`) med räknare per nivå i `AdminLogsArea.tsx`.
-     - Rena funktioner för loggklassificering (`classifyLogLevel`) och typsäker sökfiltrering (`filterLogs`) i `adminLogic.ts`.
-  2. **Loggbuffertrensning**:
-     - Papperskorgsknapp i loggrubriken som anropar `onClearLogs` och tömmer aktiva loggar.
-  3. **Visuell färgkodning**:
-     - Tydlig visuell differentiering med färglagda loggkort och nivåbrickor baserat på `INFO`, `WARN` och `ERROR`.
-  4. **Prestanda**:
-     - Memoiserade beräkningar via `useMemo` för nivåfilter och fritextsökning.
-  5. **TDD & Verifiering**:
-     - Alla 8 enhetstester i `adminLogic.test.ts` samt 23 tester totalt i hela testsviten passerar utan anmärkning (`npm test` och `scripts/verify-architecture.js` godkända).
+  1. **TDD & Testdrivet utförande**:
+     - Skrev och uppdaterade enhetstester i `useInvitationDialogs.test.ts` som verifierar att alla temporära utkastbuffertar nollställs till godkända formulärvärden när användaren avbryter eller stänger utan att spara.
+  2. **Isolerad tillståndsåterställning i subhooks**:
+     - Utökade `useInvitationDialogs.ts` med komplett buffertåterställning (`resetDialogBuffers` & `closeDialog`) och temporära tillstånd för alla dialoger (`tempLocation`, `tempAreas`, `tempAudience`, `tempOrg`, `tempPersonName`, `tempActivity`, `tempTime`, `tempIsRecurring`, `tempHasReminder`, `tempReminderTime`).
+  3. **Anslutning i UI & Facade**:
+     - Uppdaterade `useInvitationForm.ts` och `CreateInvitationForm.tsx` så att samtliga undermodaler (`TimeDialog`, `LocationDialog`, `ActivityDialog`, `AreaDialog`, `AudienceDialog`, `OrganizerDialog`) stänger via `form.closeDialog()` och använder temporära buffertsättare under redigering.
+  4. **Public Domain Export**:
+     - Exporterade `useInvitationForm` och `useInvitationDialogs` i `src/features/skapa_inbjudan/index.ts`.
+  5. **Verifiering & Testtäckning**:
+     - `npm test` och `scripts/verify-architecture.js` godkända utan anmärkning med 24 gröna tester.

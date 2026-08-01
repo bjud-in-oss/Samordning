@@ -40,7 +40,11 @@ export function useInvitationForm(onSuccess?: () => void) {
     activityText,
     selectedAreas,
     selectedAudience,
-    selectedOrganization
+    selectedOrganization,
+    organizerPersonName,
+    isRecurring,
+    hasReminder,
+    reminderTime
   });
 
   // Apply favorite helper callback
@@ -160,15 +164,24 @@ export function useInvitationForm(onSuccess?: () => void) {
     setTempAudience: dialogs.setTempAudience,
     tempOrg: dialogs.tempOrg,
     setTempOrg: dialogs.setTempOrg,
+    tempPersonName: dialogs.tempPersonName,
+    setTempPersonName: dialogs.setTempPersonName,
     tempActivity: dialogs.tempActivity,
     setTempActivity: dialogs.setTempActivity,
     tempTime: dialogs.tempTime,
     setTempTime: dialogs.setTempTime,
+    tempIsRecurring: dialogs.tempIsRecurring,
+    setTempIsRecurring: dialogs.setTempIsRecurring,
+    tempHasReminder: dialogs.tempHasReminder,
+    setTempHasReminder: dialogs.setTempHasReminder,
+    tempReminderTime: dialogs.tempReminderTime,
+    setTempReminderTime: dialogs.setTempReminderTime,
     showPersonNameModal: dialogs.showPersonNameModal,
     setShowPersonNameModal: dialogs.setShowPersonNameModal,
     showQrSection: dialogs.showQrSection,
     setShowQrSection: dialogs.setShowQrSection,
     openDialog: dialogs.openDialog,
+    closeDialog: dialogs.closeDialog,
 
     // Publishing & State
     sending: publishing.sending,

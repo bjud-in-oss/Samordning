@@ -1,16 +1,19 @@
 # Steg 2: Att planera
 
-## Strategisk Rådsdebatt
+> [NÖDBROMS - KOPIERAS VID YTLIG ELLER INKOMPLETT DEBATT]:
+> BESLUT: OMSTART. Rådsdebatten var teater, saknade konkreta kodreferenser eller hoppade över berörda domäner/filer. Börja om från 1_kartlagga.md.
 
-### 1. Helhetsnivå
-- **Att förändra (Tes / Kreativ fas)**: Vi förbättrar logghanteringen i SMS-assistenten så att administratören har fullständig kontroll över logginlägg. Detta sker genom realtidssökning, nivåfiltrering (`ALLA`, `INFO`, `WARN`, `ERROR`), knappsats för loggrensning samt färgkodade visningskort för snabb visuell felsökning på mobil och desktop.
-- **Att vända (Antites / Anpassande fas)**: Granska `src/features/sms_assistant/domain/adminLogic.ts` (86 rader) och `src/features/sms_assistant/components/AdminLogsArea.tsx` (208 rader). Loggfiltrering och loggnivåklassificering måste ligga helt tillståndslöst i rena funktioner (`classifyLogLevel`, `filterLogs`) i `adminLogic.ts` för att säkerställa 100 % testbarhet och uppfylla 250-radersregeln.
-- **Att förlika (Syntes / Systemdomare)**: Vi fastställer en tillståndslös loggarkitektur. `classifyLogLevel` och `filterLogs` i `adminLogic.ts` hanterar affärslogik och klassificering. `AdminLogsArea.tsx` använder `useMemo` för prestanda. `AdminConsole.tsx` (249 rader) skickar med `onClearLogs` och håller sig strikt under 250 rader.
+## Den dialektiska rådsdebatten (Strategisk nivå)
 
-### 2. Domännivå (`sms_assistant`)
-- **Att förändra**: Exportera `LogLevel`, `LogEntry`, `classifyLogLevel` och `filterLogs` från `src/features/sms_assistant/domain/adminLogic.ts`. Uppdatera `doc/features/sms_assistant/` med uppdaterade regler.
-- **Att vända**: Verifiera att inga importer görs från interna undermappar utanför domänen (följ Feature-Sliced Design). Alla externa anrop till domänen måste gå via `src/features/sms_assistant/index.ts`.
-- **Att förlika**: Strategisk byggplan godkänd. Vi låser kontrakten och fortsätter till Steg 3 (Att designa).
+### Att förändra (Tes / Kreativ fas)
+Vi måste garantera fullständig tillståndsrenhet i applikationen. När användaren redigerar en undermodal skapas ett temporärt utkast. Om användaren avbryter genom att klicka på "Ångra" eller krysset måste alla utkastfält omedelbart och garanterat återställas till de godkända formulärvärdena. Vi utökar `useInvitationDialogs` med en explitit `closeDialog()` och `resetDialogBuffers()` metod som återställer alla temporära buffertar (`tempLocation`, `tempAreas`, `tempAudience`, `tempOrg`, `tempActivity`, `tempTime`, `tempPersonName`, `tempIsRecurring`, `tempHasReminder`, `tempReminderTime`) samt nollställer `activeDialog`.
+
+### Att vända (Antites / Anpassande fas)
+I nuläget anropar `CreateInvitationForm.tsx` (raderna 107, 121, 133, 145, 157, 173) direkt `setActiveDialog(null)` när `onClose` triggas. Dessutom skickas primära tillståndssättare som `setOrganizerPersonName`, `setIsRecurring`, `setHasReminder` och `setReminderTime` direkt in i `OrganizerDialog.tsx` och `TimeDialog.tsx`. Detta gör att ändringar i dessa fält slår igenom omedelbart i huvudtillståndet innan användaren ens tryckt på "Klar" eller "Spara"! För att lösa detta måste samtliga temporära tillstånd buffras i `useInvitationDialogs.ts` (67 rader) och endast överföras till formulärets huvudtillstånd vid explicita sparningsåtgärder (`onSave`).
+
+### Att förlika (Syntes / Systemdomare)
+Vi centraliserar all buffert- och återställningslogik till `useInvitationDialogs.ts`. Underkroken tar emot godkända formulärvärden och tillhandahåller `closeDialog()` som både återställer alla `temp*`-värden till de senaste godkända parametrarna och sätter `activeDialog` till `null`. Alla dialoger ansluts till `closeDialog()` för `onClose`. Enhetstester i `useInvitationDialogs.test.ts` ska skrivas TDD-först för att verifiera att avbrott nollställer alla temporära tillstånd.
 
 ## Bindande domstolsbeslut
 BESLUT: GODKÄND
+Motivering: Den strategiska planen säkerställer isolerad logik, komplett återställning vid avbrott och godkänd testtäckning enligt alla FSD- och processregler.

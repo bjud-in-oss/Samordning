@@ -98,16 +98,19 @@ export default function CreateInvitationForm({
             <TimeDialog
               tempTime={form.tempTime}
               setTempTime={form.setTempTime}
-              isRecurring={form.isRecurring}
-              setIsRecurring={form.setIsRecurring}
-              hasReminder={form.hasReminder}
-              setHasReminder={form.setHasReminder}
-              reminderTime={form.reminderTime}
-              setReminderTime={form.setReminderTime}
-              onClose={() => form.setActiveDialog(null)}
+              isRecurring={form.tempIsRecurring}
+              setIsRecurring={form.setTempIsRecurring}
+              hasReminder={form.tempHasReminder}
+              setHasReminder={form.setTempHasReminder}
+              reminderTime={form.tempReminderTime}
+              setReminderTime={form.setTempReminderTime}
+              onClose={form.closeDialog}
               onSave={t => {
                 form.setSelectedTime(t);
-                form.setActiveDialog(null);
+                form.setIsRecurring(form.tempIsRecurring);
+                form.setHasReminder(form.tempHasReminder);
+                form.setReminderTime(form.tempReminderTime);
+                form.closeDialog();
               }}
             />
           )}
@@ -118,10 +121,10 @@ export default function CreateInvitationForm({
               setTempLocation={form.setTempLocation}
               selectedAreas={form.selectedAreas}
               setSelectedAreas={form.setSelectedAreas}
-              onClose={() => form.setActiveDialog(null)}
+              onClose={form.closeDialog}
               onSave={loc => {
                 form.setLocationName(loc);
-                form.setActiveDialog(null);
+                form.closeDialog();
               }}
             />
           )}
@@ -130,10 +133,10 @@ export default function CreateInvitationForm({
             <ActivityDialog
               tempActivity={form.tempActivity}
               setTempActivity={form.setTempActivity}
-              onClose={() => form.setActiveDialog(null)}
+              onClose={form.closeDialog}
               onSave={act => {
                 form.setActivityText(act);
-                form.setActiveDialog(null);
+                form.closeDialog();
               }}
             />
           )}
@@ -142,10 +145,10 @@ export default function CreateInvitationForm({
             <AreaDialog
               tempAreas={form.tempAreas}
               setTempAreas={form.setTempAreas}
-              onClose={() => form.setActiveDialog(null)}
+              onClose={form.closeDialog}
               onSave={areas => {
                 form.setSelectedAreas(areas);
-                form.setActiveDialog(null);
+                form.closeDialog();
               }}
             />
           )}
@@ -154,10 +157,10 @@ export default function CreateInvitationForm({
             <AudienceDialog
               tempAudience={form.tempAudience}
               setTempAudience={form.setTempAudience}
-              onClose={() => form.setActiveDialog(null)}
+              onClose={form.closeDialog}
               onSave={aud => {
                 form.setSelectedAudience(aud);
-                form.setActiveDialog(null);
+                form.closeDialog();
               }}
             />
           )}
@@ -166,14 +169,15 @@ export default function CreateInvitationForm({
             <OrganizerDialog
               tempOrg={form.tempOrg}
               setTempOrg={form.setTempOrg}
-              organizerPersonName={form.organizerPersonName}
-              setOrganizerPersonName={form.setOrganizerPersonName}
+              organizerPersonName={form.tempPersonName}
+              setOrganizerPersonName={form.setTempPersonName}
               showPersonNameModal={form.showPersonNameModal}
               setShowPersonNameModal={form.setShowPersonNameModal}
-              onClose={() => form.setActiveDialog(null)}
+              onClose={form.closeDialog}
               onSave={org => {
                 form.setSelectedOrganization(org);
-                form.setActiveDialog(null);
+                form.setOrganizerPersonName(form.tempPersonName);
+                form.closeDialog();
               }}
             />
           )}

@@ -1,15 +1,16 @@
 # Steg 2: Att planera
 
-- **Strategi & Arkitektur**:
-  1. Utöka `src/features/sms_assistant/domain/adminLogic.ts` med:
-     - `LogEntry` gränssnitt (`isUser`, `text`, `level?`, `timestamp?`).
-     - `classifyLogLevel(entry: LogEntry)` för att automatisk härleda loggnivå (`INFO`, `WARN`, `ERROR`) baserat på textinnehåll eller explicit niva.
-     - `filterLogs(logs: LogEntry[], query: string, levelFilter: string)` för snabb och typsäker filtrering.
-  2. Utöka enhetstester i `src/features/sms_assistant/domain/__tests__/adminLogic.test.ts` med tester för loggnivåer och sök/filtreringslogik.
-  3. Uppdatera `src/features/sms_assistant/components/AdminLogsArea.tsx`:
-     - Sökfält i realtid med rensningsknapp.
-     - Filternavigering för nivåer (`ALLA`, `INFO`, `WARN`, `ERROR`) med räknare per nivå.
-     - Töm-knapp för att rensa loggbufferten.
-     - Färgkodade loggkort med tydliga nivåbrickor (grön för user, blå/neutral för INFO, gul för WARN, röd för ERROR).
-     - `useMemo` för prestandaoptimering vid större mängder loggar.
-  4. Uppdatera `src/features/sms_assistant/components/AdminConsole.tsx` för att skicka med `onClearLogs` och hålla filstorleken strikt under 250 rader.
+## Strategisk Rådsdebatt
+
+### 1. Helhetsnivå
+- **Att förändra (Tes / Kreativ fas)**: Vi behöver ge administratörer i `AdminConsole` full kontroll över system- och kommunikationsloggar med snabb fritextsökning, nivåfilter (ALLA, INFO, WARN, ERROR), samt en tydlig knappsats för rensning av loggbuffert.
+- **Att vända (Antites / Anpassande fas)**: Loggfiltreringen får inte introducera tunga externa bibliotek eller bryta Feature-Sliced Design. Alla logikfunktioner (`classifyLogLevel`, `filterLogs`) ska ligga renodlade i domänskiktet (`adminLogic.ts`) och testas med 100 % täckning innan UI-komponenter rörs.
+- **Att förlika (Syntes / Systemdomare)**: Vi bygger en ren och typsäker loggfiltrering med renodlade funktioner i `adminLogic.ts`, täcker den med enhetstester i `adminLogic.test.ts`, och ansluter den till `AdminLogsArea.tsx` med `useMemo` för optimal prestanda utan UI-låsningar.
+
+### 2. Domännivå (`sms_assistant`)
+- **Att förändra**: Implementera `LogLevel` typ, `LogEntry` gränssnitt, `classifyLogLevel` samt `filterLogs` i `adminLogic.ts`. Uppdatera `AdminLogsArea.tsx` med sökfält, nivåknappar, rensningsknapp och visuell färgkodning.
+- **Att vända**: Se till att `AdminConsole.tsx` inte överskrider 250 rader. Verifiera att `onClearLogs` skickas med från `AdminConsole.tsx` för att tömma tillståndet.
+- **Att förlika**: Godkänn arkitekturplanen. Samtliga dokumentationsfiler i `doc/features/` ska låsas och uppdateras i detta steg innan några ändringar görs i källkoden.
+
+## Bindande domstolsbeslut
+BESLUT: GODKÄND

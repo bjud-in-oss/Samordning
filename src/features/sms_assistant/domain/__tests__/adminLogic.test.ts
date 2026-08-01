@@ -61,7 +61,7 @@ describe('adminLogic helpers', () => {
 
   it('classifies log levels correctly based on keywords or explicit level', () => {
     expect(classifyLogLevel({ text: 'Inbjudan skapad' })).toBe('INFO');
-    expect(classifyLogLevel({ text: 'Fel vid anslutning till API' })).toBe('ERROR');
+    expect(classifyLogLevel({ text: 'Fel: Nätverksavbrott vid sändning' })).toBe('ERROR');
     expect(classifyLogLevel({ text: 'Varning för obehörig åtkomst' })).toBe('WARN');
     expect(classifyLogLevel({ text: 'Standard meddelande', level: 'ERROR' })).toBe('ERROR');
   });

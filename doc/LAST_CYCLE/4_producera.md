@@ -1,15 +1,14 @@
 # Steg 4: Att producera
 
-- **Genomförda förbättringar i `AdminLogsArea`**:
+- **Utfall och genomförda åtgärder**:
   1. **Realtidssökning och nivåfiltrering**:
-     - Lagt till ett sökfält med ikoner och rensningsknapp.
-     - Lagt till filternavigering för nivåerna `ALLA`, `INFO`, `WARN` och `ERROR` med visning av antal per nivå.
-  2. **Rensning av loggbuffert**:
-     - Implementerat knappen "Rensa loggar" med ikon som tömmer den aktiva loggbufferten.
+     - Sökfält och filterknappar (`ALLA`, `INFO`, `WARN`, `ERROR`) med räknare per nivå i `AdminLogsArea.tsx`.
+     - Renodlad klassificering och filtreringslogik i `adminLogic.ts` (`classifyLogLevel`, `filterLogs`).
+  2. **Loggbuffertrensning**:
+     - Knappsats för att tömma den aktiva loggbufferten via `onClearLogs`.
   3. **Visuell färgkodning**:
-     - Färgat loggkorten utifrån loggnivå (grön för användarmeddelanden, neutral/blå för INFO, amber/gul för WARN och rose/röd för ERROR) samt lagt till nivåbrickor.
-  4. **Prestanda-optimering**:
-     - Använt `useMemo` för beräkning av nivåantal och filtrering för att förhindra tröghet i UI vid större datamängder.
-  5. **Domänlogik & Tester**:
-     - Utökat `adminLogic.ts` med `classifyLogLevel` och `filterLogs`.
-     - Skrivit täckande enhetstester i `adminLogic.test.ts`.
+     - Tydlig färgkodning av loggkort och nivåbrickor baserat på loggnivå.
+  4. **Prestanda**:
+     - `useMemo` för nivåberäkningar och sökfiltrering.
+  5. **TDD & Verifiering**:
+     - 100 % passande enhetstester i `adminLogic.test.ts` (8/8 tester gröna) och full passning i `npm test` och `scripts/verify-architecture.js`.

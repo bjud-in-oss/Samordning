@@ -1,8 +1,8 @@
 # Feature Documentation: `sms_assistant`
 
 ## Overview & Scope
-`sms_assistant` contains the admin console for monitoring SMS gateway interactions, support agent prompt definitions, and simulation controls.
+`sms_assistant` innehåller administratörskonsolen för SMS-gateway, medlemmar (admins och betrodda skapare), moderering av inkommande förfrågningar, samt realtidssökning och nivåfiltrerade systemloggar.
 
 ## Public API Exports (`src/features/sms_assistant/index.ts`)
 - **Components**: `AdminConsole`
-- **Domain**: `SUPPORT_AGENT_PROMPT`
+- **Domain**: `SUPPORT_AGENT_PROMPT`, `classifyLogLevel`, `filterLogs`, `LogEntry`, `LogLevel`

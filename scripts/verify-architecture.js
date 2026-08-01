@@ -1,7 +1,6 @@
 /**
- * DETERMINISTISK MASTER-KONTROLL (v6.2)
- * Kombinerar loop-kontroll, tidsstämplar, Feature-Sliced Design och FSD-konsumtion.
- * Körs automatiskt via npm test.
+ * DETERMINISTISK MASTER-KONTROLL OCH PROCESSREVISOR (v6.2)
+ * Körs automatiskt via npm test eller i CI/CD-pipelinen.
  */
 
 import fs from 'fs';
@@ -26,7 +25,7 @@ function logError(title, message) {
 }
 
 // -----------------------------------------------------------------------------
-// 1. KONTROLL AV PROCESSLOGGAR OCH EVIGA LOOPAR (4-STEGSMODELLEN)
+// 1. KONTROLL AV PROCESSLOGGAR, TIDSSTÄMPLAR OCH LOOPAR (4-STEGSMODELLEN)
 // -----------------------------------------------------------------------------
 if (!fs.existsSync(LAST_CYCLE_DIR)) {
   logError(
@@ -47,15 +46,15 @@ if (!fs.existsSync(LAST_CYCLE_DIR)) {
     const t2 = fs.statSync(step2Path).mtimeMs;
     const t3 = fs.statSync(step3Path).mtimeMs;
 
-    // A. Verifiera sekvens i tidsstämplar
+    // A. Verifiera kronologisk sekvens i processloggarna
     if (t2 < t1) logError('SEKVENSFEL', '2_planera.md sparades före 1_kartlagga.md.');
     if (t3 < t2) logError('SEKVENSFEL', '3_designa.md sparades före 2_planera.md.');
 
-    // B. Verifiera beslut i Steg 3
+    // B. Verifiera godkänt beslut i Steg 3
     const step3Content = fs.readFileSync(step3Path, 'utf-8');
     const isApproved = /BESLUT:\s*GODKÄND/i.test(step3Content);
 
-    // C. Kontrollera evig omstartsloop (Räkna konsekutiva OMSTART)
+    // C. Kontroll av evig omstartsloop (Räknar historiska OMSTART i rad)
     const cycleFiles = fs.readdirSync(LAST_CYCLE_DIR).filter(f => f.endsWith('.md')).sort();
     let consecutiveOmstarter = 0;
 
@@ -63,22 +62,24 @@ if (!fs.existsSync(LAST_CYCLE_DIR)) {
       const content = fs.readFileSync(path.join(LAST_CYCLE_DIR, file), 'utf-8');
       if (/BESLUT:\s*OMSTART/i.test(content)) {
         consecutiveOmstarter++;
-      } else if (/BESLUT:\_GODKÄND/i.test(content)) {
+      } else if (/BESLUT:\s*GODKÄND/i.test(content)) {
         consecutiveOmstarter = 0;
       }
     }
 
     if (consecutiveOmstarter >= 2) {
-      logError('EVIG LOOP UPPTÄCKT', `Processen har fastnat i en omstartsloop (${consecutiveOmstarter} st OMSTART i rad). Exekvering stoppad.`);
+      logError('EVIG OMSTARTSLOOP', `Processen har fastnat i en loop (${consecutiveOmstarter} st OMSTART i rad). Manuell granskning krävs.`);
     } else if (!isApproved) {
-      logError('DOMSTOLSSPÄRR', '3_designa.md saknar "BESLUT: GODKÄND". Källkod får inte redigeras.');
+      logError('DOMSTOLSSPÄRR', '3_designa.md saknar "BESLUT: GODKÄND". Källkod i src/ får inte redigeras.');
     }
 
     // ---------------------------------------------------------------------------
-    // 2. KÄLLKODSSPÄRR (src/ får inte ha ändrats FÖRE 3_designa.md låstes)
+    // 2. KÄLLKODSSPÄRR OCH TDD-ORDNING (src/ får inte tjuvstarta)
     // ---------------------------------------------------------------------------
     if (fs.existsSync(SRC_DIR) && isApproved) {
       const visitedPaths = new Set();
+      let newestTestTime = 0;
+      let oldestSourceCodeEditTime = Infinity;
 
       const checkSrcTimestamps = (dir) => {
         const realPath = fs.realpathSync(dir);
@@ -92,18 +93,31 @@ if (!fs.existsSync(LAST_CYCLE_DIR)) {
 
           if (stat.isDirectory()) {
             checkSrcTimestamps(fullPath);
-          } else if (/\.(ts|tsx|js|jsx)$/.test(file) && !file.includes('__tests__')) {
+          } else if (/\.(ts|tsx|js|jsx)$/.test(file)) {
+            // Kontroll 1: Har koden ändrats FÖRE 3_designa.md låstes?
             if (stat.mtimeMs < t3 - 2000) {
               logError(
                 'TIDSSTÄMPELÖVERTRÄDELSE',
                 `Källkodsfilen "${path.relative(ROOT_DIR, fullPath)}" ändrades före "3_designa.md" sparades.`
               );
-              break;
+            }
+
+            // Mät TDD-ordning (Test vs Produktionskod)
+            if (file.includes('__tests__') || file.endsWith('.test.ts') || file.endsWith('.test.tsx')) {
+              if (stat.mtimeMs > newestTestTime) newestTestTime = stat.mtimeMs;
+            } else {
+              if (stat.mtimeMs < oldestSourceCodeEditTime) oldestSourceCodeEditTime = stat.mtimeMs;
             }
           }
         }
       };
+
       checkSrcTimestamps(SRC_DIR);
+
+      // Kontroll 2: TDD-ordning (Innebär att produktionskoden inte får vara äldre än testfilen)
+      if (oldestSourceCodeEditTime !== Infinity && newestTestTime !== 0 && oldestSourceCodeEditTime < newestTestTime - 2000) {
+        logError('TDD-ÖVERTRÄDELSE', 'Produktionskod sparades på disk innan enhetstesterna skapades/uppdaterades.');
+      }
     }
   }
 }
@@ -135,9 +149,16 @@ if (fs.existsSync(SRC_DIR)) {
           if (!fs.existsSync(targetDocDir)) {
             logError('DOKUMENTATION SAKNAS', `Mappen "doc/features/${featureName}/" saknas.`);
           } else {
+            const step2Path = path.join(LAST_CYCLE_DIR, '2_planera.md');
+            const t2 = fs.existsSync(step2Path) ? fs.statSync(step2Path).mtimeMs : 0;
+
             for (const docFile of requiredDocs) {
-              if (!fs.existsSync(path.join(targetDocDir, docFile))) {
+              const docPath = path.join(targetDocDir, docFile);
+              if (!fs.existsSync(docPath)) {
                 logError('DOKUMENTATION OFULLSTÄNDIG', `Domänen saknar "doc/features/${featureName}/${docFile}".`);
+              } else if (t2 > 0 && fs.statSync(docPath).mtimeMs < t2 - 2000) {
+                // Kräv att dokumentationen uppdaterades under nuvarande cykel
+                logError('DOKUMENTATION FÖRÅLDRAD', `Filen "doc/features/${featureName}/${docFile}" uppdaterades inte under Steg 3.`);
               }
             }
           }
@@ -174,7 +195,7 @@ if (fs.existsSync(SRC_DIR)) {
 
         // C. Radantal (<250 rader)
         if (lines > 250) {
-          logError('STORLEKSGRÄNS ÖVERSKRIDEN', `Filen "${path.relative(ROOT_DIR, fullPath)}" har ${lines} rader (max 250).`);
+          logError('STORLEKSGRÄNS ÖVERSKRIDEN', `Filen "${path.relative(ROOT_DIR, fullPath)}" har ${lines} rader (max 250 tillåtet).`);
         }
 
         // D. FSD-regel: Förbjud direkta importer till undermappar i andra features
@@ -198,5 +219,5 @@ if (hasErrors) {
   console.error('   AI Studio måste åtgärda avvikelserna i doc/LAST_CYCLE/ innan koden godkänns.\n');
   process.exit(1);
 } else {
-  console.log('✅ Arkitektur-, process- och loopkontroll godkänd.');
+  console.log('✅ Arkitektur-, process-, TDD- och loopkontroll godkänd.');
 }

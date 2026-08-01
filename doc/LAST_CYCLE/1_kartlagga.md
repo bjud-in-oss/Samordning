@@ -1,10 +1,18 @@
 # Steg 1: Att kartlägga
 
-- **Domän**: `sms_assistant`
-- **Syfte**: Förbättra hanteringen av admin-loggar i `AdminLogsArea`.
-- **Krav**:
-  1. **Realtidssökning och nivåfiltrering**: Administratören ska kunna söka i loggtext och filtrera på loggnivåer (`ALLA`, `INFO`, `WARN`, `ERROR`).
-  2. **Rensning av loggbuffert**: Knappsats/knapp för att tömma den aktiva loggvy-bufferten.
-  3. **Visuell tydlighet och färgkodning**: Loggrader ska färgkodas tydligt baserat på loggnivå för felsökning på mobil och desktop.
-  4. **Prestanda**: Prestandaoptimering med `useMemo` för att förhindra att gränssnittet låser sig vid större mängder loggar.
-  5. **Testtäckning**: Enhetstester för loggklassificering och filtreringsfunktioner i `adminLogic.test.ts`.
+### Påverkade domäner
+- `sms_assistant`
+- `anpassa`
+- `inbjudningar`
+- `mission_router`
+- `mobile_pwa_app`
+- `skapa_inbjudan`
+
+### Empirisk inventering
+- **Mål**: Förbättra hanteringen av admin-loggar i `AdminLogsArea`.
+- **Användarbehov & UX-krav**:
+  1. Realtidssökning i loggtext via ett dedikerat sökfält.
+  2. Nivåfiltrering för loggnivåer (`ALLA`, `INFO`, `WARN`, `ERROR`).
+  3. Rensningsknapp/knappsats för att tömma den aktiva loggbufferten.
+  4. Tydlig färgkodning och nivåbrickor baserat på loggnivå.
+  5. Prestandaoptimering via `useMemo` för att förhindra tröghet.

@@ -3,14 +3,14 @@
 ## Strategisk Rådsdebatt
 
 ### 1. Helhetsnivå
-- **Att förändra (Tes / Kreativ fas)**: Vi behöver ge administratörer i `AdminConsole` full kontroll över system- och kommunikationsloggar med snabb fritextsökning, nivåfilter (ALLA, INFO, WARN, ERROR), samt en tydlig knappsats för rensning av loggbuffert.
-- **Att vända (Antites / Anpassande fas)**: Loggfiltreringen får inte introducera tunga externa bibliotek eller bryta Feature-Sliced Design. Alla logikfunktioner (`classifyLogLevel`, `filterLogs`) ska ligga renodlade i domänskiktet (`adminLogic.ts`) och testas med 100 % täckning innan UI-komponenter rörs.
-- **Att förlika (Syntes / Systemdomare)**: Vi bygger en ren och typsäker loggfiltrering med renodlade funktioner i `adminLogic.ts`, täcker den med enhetstester i `adminLogic.test.ts`, och ansluter den till `AdminLogsArea.tsx` med `useMemo` för optimal prestanda utan UI-låsningar.
+- **Att förändra (Tes / Kreativ fas)**: Vi förbättrar logghanteringen i SMS-assistenten så att administratören har fullständig kontroll över logginlägg. Detta sker genom realtidssökning, nivåfiltrering (`ALLA`, `INFO`, `WARN`, `ERROR`), knappsats för loggrensning samt färgkodade visningskort för snabb visuell felsökning på mobil och desktop.
+- **Att vända (Antites / Anpassande fas)**: Granska `src/features/sms_assistant/domain/adminLogic.ts` (86 rader) och `src/features/sms_assistant/components/AdminLogsArea.tsx` (208 rader). Loggfiltrering och loggnivåklassificering måste ligga helt tillståndslöst i rena funktioner (`classifyLogLevel`, `filterLogs`) i `adminLogic.ts` för att säkerställa 100 % testbarhet och uppfylla 250-radersregeln.
+- **Att förlika (Syntes / Systemdomare)**: Vi fastställer en tillståndslös loggarkitektur. `classifyLogLevel` och `filterLogs` i `adminLogic.ts` hanterar affärslogik och klassificering. `AdminLogsArea.tsx` använder `useMemo` för prestanda. `AdminConsole.tsx` (249 rader) skickar med `onClearLogs` och håller sig strikt under 250 rader.
 
 ### 2. Domännivå (`sms_assistant`)
-- **Att förändra**: Implementera `LogLevel` typ, `LogEntry` gränssnitt, `classifyLogLevel` samt `filterLogs` i `adminLogic.ts`. Uppdatera `AdminLogsArea.tsx` med sökfält, nivåknappar, rensningsknapp och visuell färgkodning.
-- **Att vända**: Se till att `AdminConsole.tsx` inte överskrider 250 rader. Verifiera att `onClearLogs` skickas med från `AdminConsole.tsx` för att tömma tillståndet.
-- **Att förlika**: Godkänn arkitekturplanen. Samtliga dokumentationsfiler i `doc/features/` ska låsas och uppdateras i detta steg innan några ändringar görs i källkoden.
+- **Att förändra**: Exportera `LogLevel`, `LogEntry`, `classifyLogLevel` och `filterLogs` från `src/features/sms_assistant/domain/adminLogic.ts`. Uppdatera `doc/features/sms_assistant/` med uppdaterade regler.
+- **Att vända**: Verifiera att inga importer görs från interna undermappar utanför domänen (följ Feature-Sliced Design). Alla externa anrop till domänen måste gå via `src/features/sms_assistant/index.ts`.
+- **Att förlika**: Strategisk byggplan godkänd. Vi låser kontrakten och fortsätter till Steg 3 (Att designa).
 
 ## Bindande domstolsbeslut
 BESLUT: GODKÄND

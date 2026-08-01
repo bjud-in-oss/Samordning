@@ -2,13 +2,13 @@
 
 - **Utfall och genomförda åtgärder**:
   1. **Realtidssökning och nivåfiltrering**:
-     - Sökfält och filterknappar (`ALLA`, `INFO`, `WARN`, `ERROR`) med räknare per nivå i `AdminLogsArea.tsx`.
-     - Renodlad klassificering och filtreringslogik i `adminLogic.ts` (`classifyLogLevel`, `filterLogs`).
+     - Sökfält i realtid och dedikerade nivåknappar (`ALLA`, `INFO`, `WARN`, `ERROR`) med räknare per nivå i `AdminLogsArea.tsx`.
+     - Rena funktioner för loggklassificering (`classifyLogLevel`) och typsäker sökfiltrering (`filterLogs`) i `adminLogic.ts`.
   2. **Loggbuffertrensning**:
-     - Knappsats för att tömma den aktiva loggbufferten via `onClearLogs`.
+     - Papperskorgsknapp i loggrubriken som anropar `onClearLogs` och tömmer aktiva loggar.
   3. **Visuell färgkodning**:
-     - Tydlig färgkodning av loggkort och nivåbrickor baserat på loggnivå.
+     - Tydlig visuell differentiering med färglagda loggkort och nivåbrickor baserat på `INFO`, `WARN` och `ERROR`.
   4. **Prestanda**:
-     - `useMemo` för nivåberäkningar och sökfiltrering.
+     - Memoiserade beräkningar via `useMemo` för nivåfilter och fritextsökning.
   5. **TDD & Verifiering**:
-     - 100 % passande enhetstester i `adminLogic.test.ts` (8/8 tester gröna) och full passning i `npm test` och `scripts/verify-architecture.js`.
+     - Alla 8 enhetstester i `adminLogic.test.ts` samt 23 tester totalt i hela testsviten passerar utan anmärkning (`npm test` och `scripts/verify-architecture.js` godkända).

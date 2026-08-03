@@ -51,3 +51,22 @@
   - **Modularitet:** Varje domän i `src/features/[domän]/` blir en fristående och portabel enhet (kod, tester, dokumentation och publika gränssnitt i samma mapp).
   - **Kontextskärning:** AI Studio behöver endast läsa domänens egen mapp för full kontextinsikt.
   - **Deterministisk kvalitet:** Källkodskvaliteten säkras av diskens tidsstämplar och terminalskriptet.
+
+  ## ADR-008: Automatiserad verifieringsspärr (CI/CD-Gate)
+- **Status**: Godkänd & Tillämpas
+- **Kontext**: Manuella kontroller av filstämplar, TDD-ordning, FSD-gränser och radantal skapar mänskliga fel och tillåter avvikelser över tid.
+- **Beslut**: Alla process- och kodregler godkänns exklusivt via deterministisk exekvering av `scripts/verify-architecture.js`. Inga källkodsändringar anses slutförda utan att skriptet returnerar felkod 0 i terminalen.
+- **Konsekvenser**:
+  - **Mekanisk spärr:** AI Studio kan inte slutföra Steg 4 utan grön status i skriptet.
+  - **Relativ typsäkerhet:** FSD-överskridanden via både absoluta och relativa sökvägar (`../../`) stoppas automatiskt.
+  - **Framtidssäkrad pipeline:** Skriptet kan köras direkt i lokal git-pre-commit hook eller GitHub Actions CI/CD.
+
+## ADR-009: Renodlade `index.ts`-fasader (Ingen affärslogik i API-ytan)
+- **Status**: Godkänd & Tillämpas
+- **Kontext**: Domänens publika gränssnitt (`src/features/[domän]/index.ts`) riskerar att bli en slasktratt där komponenter eller tillståndskrokar skrivs direkt i exportfilen.
+- **Beslut**: `index.ts` får uteslutande innehålla re-export-satser (`export * from ...` eller `export { ... }`). All faktisk kod, hooks och komponenter ska bo i sina respektive undermappar (`components/`, `hooks/`, `domain/`).
+
+## ADR-010: Maskinläsbar tillståndssynkronisering i `1a_orientera.md`
+- **Status**: Godkänd & Tillämpas
+- **Kontext**: Vid avbrutna körningar eller ny chattsession behöver systemet omedelbart identifiera var i sekvensen processen stannade utan fri texttolkning.
+- **Beslut**: `1a_orientera.md` ska alltid avslutas med ett validerat JSON-block som anger nycklarna `status`, `current_domain` och `next_step`.

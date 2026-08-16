@@ -40,8 +40,8 @@ export function PreviewCard({
 }: PreviewCardProps) {
   return (
     <div className="bg-white rounded-3xl p-6 border border-brand-ink/10 shadow-md space-y-4 relative overflow-hidden text-left">
-      {/* Dark green folded badge in top right corner - edge to edge */}
-      <div className="absolute top-0 right-0 bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-3xl rounded-bl-xl shadow-2xs">
+      {/* Sage green folded badge in top right corner - edge to edge */}
+      <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-3xl rounded-bl-xl shadow-2xs">
         SKRIV INBJUDAN
       </div>
 
@@ -70,7 +70,7 @@ export function PreviewCard({
           className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col justify-between cursor-pointer bg-brand-paper/30"
         >
           <div className="flex items-center gap-1.5 mb-1">
-            <Clock size={14} className="text-emerald-800 shrink-0" />
+            <Clock size={14} className="text-brand-accent shrink-0" />
             <span className="font-mono text-[9px] uppercase text-brand-ink/60 tracking-wider font-bold">
               VÄLJ TID & DATUM
             </span>
@@ -89,7 +89,7 @@ export function PreviewCard({
           className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col justify-between cursor-pointer bg-brand-paper/30"
         >
           <div className="flex items-center gap-1.5 mb-1">
-            <MapPin size={14} className="text-emerald-800 shrink-0" />
+            <MapPin size={14} className="text-brand-accent shrink-0" />
             <span className="font-mono text-[9px] uppercase text-brand-ink/60 tracking-wider font-bold">
               VAR SES NI?
             </span>
@@ -108,7 +108,7 @@ export function PreviewCard({
           className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col justify-between cursor-pointer bg-brand-paper/30"
         >
           <div className="flex items-center gap-1.5 mb-1">
-            <Globe size={14} className="text-emerald-800 shrink-0" />
+            <Globe size={14} className="text-brand-accent shrink-0" />
             <span className="font-mono text-[9px] uppercase text-brand-ink/60 tracking-wider font-bold">
               DELTAGARE HEMMA
             </span>
@@ -124,7 +124,7 @@ export function PreviewCard({
           className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col justify-between cursor-pointer bg-brand-paper/30"
         >
           <div className="flex items-center gap-1.5 mb-1">
-            <Users size={14} className="text-emerald-800 shrink-0" />
+            <Users size={14} className="text-brand-accent shrink-0" />
             <span className="font-mono text-[9px] uppercase text-brand-ink/60 tracking-wider font-bold">
               GRUPPER
             </span>
@@ -143,7 +143,7 @@ export function PreviewCard({
           className="w-full text-left p-2.5 rounded-xl hover:bg-brand-paper/80 transition-all border border-transparent hover:border-brand-accent/30 flex flex-col justify-between cursor-pointer bg-brand-paper/30"
         >
           <div className="flex items-center gap-1.5 mb-1">
-            <ShieldCheck size={14} className="text-emerald-800 shrink-0" />
+            <ShieldCheck size={14} className="text-brand-accent shrink-0" />
             <span className="font-mono text-[9px] uppercase text-brand-ink/60 tracking-wider font-bold">
               VEM HÅLLER I DET?
             </span>
@@ -174,7 +174,7 @@ export function PreviewCard({
             type="button"
             onClick={onSend}
             disabled={sending}
-            className="px-5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs uppercase tracking-wider font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ml-auto"
+            className="px-5 py-2 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase tracking-wider font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ml-auto"
           >
             <Send size={14} />
             <span>{sending ? "Granskar & skickar..." : "Sänd"}</span>

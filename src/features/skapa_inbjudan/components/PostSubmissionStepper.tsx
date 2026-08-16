@@ -152,7 +152,7 @@ export function PostSubmissionStepper({
           </div>
           <div className="h-1.5 w-full bg-brand-paper rounded-full overflow-hidden flex">
             <div
-              className="bg-emerald-800 transition-all duration-300 h-full"
+              className="bg-brand-accent transition-all duration-300 h-full"
               style={{ width: `${(currentStep / 4) * 100}%` }}
             />
           </div>

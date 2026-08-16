@@ -46,7 +46,7 @@ export function AdminModerationQueue({ pendingAlerts, handleModerate }: AdminMod
               <button
                 type="button"
                 onClick={() => handleModerate(item.id, "active")}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer flex items-center gap-1 font-semibold"
+                className="px-3 py-1.5 bg-brand-accent hover:bg-brand-accent/90 text-white rounded-lg transition-colors cursor-pointer flex items-center gap-1 font-semibold"
               >
                 <span>✓ Godkänn (.ja)</span>
               </button>

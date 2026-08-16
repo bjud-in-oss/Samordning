@@ -33,7 +33,7 @@ export function Step2Privacy({ consentConfirmed, setConsentConfirmed, onNext }: 
           type="checkbox"
           checked={consentConfirmed}
           onChange={e => setConsentConfirmed(e.target.checked)}
-          className="mt-0.5 rounded border-brand-ink/30 text-emerald-800 focus:ring-emerald-800 shrink-0"
+          className="mt-0.5 rounded border-brand-ink/30 text-brand-accent focus:ring-brand-accent shrink-0"
         />
         <span className="text-xs text-brand-ink leading-relaxed font-medium">
           Jag bekräftar att jag inte delar andras personuppgifter (som namn, kontaktinfo, etc) i inbjudan utan deras uttryckliga godkännande. Jag förstår att min inbjudan granskas innan publicering.
@@ -45,7 +45,7 @@ export function Step2Privacy({ consentConfirmed, setConsentConfirmed, onNext }: 
           type="button"
           disabled={!consentConfirmed}
           onClick={onNext}
-          className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3 bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
         >
           <span>Bekräfta och fortsätt</span>
           <ArrowRight size={14} />

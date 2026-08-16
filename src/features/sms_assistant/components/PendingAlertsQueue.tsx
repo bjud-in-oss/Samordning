@@ -17,7 +17,7 @@ export function PendingAlertsQueue({
   return (
     <div className="bg-white border-b border-brand-ink/10 px-4 py-3 shrink-0 z-10">
       <div className="flex items-center justify-between mb-2">
-        <span className="font-mono text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
+        <span className="font-mono text-xs font-bold uppercase tracking-wider text-brand-accent flex items-center gap-1.5">
           <span>Väntande förslag ({pendingAlerts.length})</span>
         </span>
         <button
@@ -38,7 +38,7 @@ export function PendingAlertsQueue({
               className="bg-brand-bg rounded-xl p-3 border border-brand-ink/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left"
             >
               <div className="space-y-0.5 text-xs font-sans">
-                <div className="font-mono text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+                <div className="font-mono text-[10px] font-bold text-brand-accent uppercase tracking-wider">
                   #{item.id} • {item.area} • {item.category || "Vara en vän"}
                 </div>
                 <p className="font-serif italic text-brand-ink font-medium leading-snug">
@@ -53,7 +53,7 @@ export function PendingAlertsQueue({
                 <button
                   type="button"
                   onClick={() => onApprove(item.id, false)}
-                  className="px-2.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-[10px] uppercase font-bold tracking-wider rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                  className="px-2.5 py-1.5 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-[10px] uppercase font-bold tracking-wider rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
                   title="Godkänn förslaget och publicera i flödet"
                 >
                   <Check size={12} />

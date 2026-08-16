@@ -45,7 +45,7 @@ export function Step4Reconciliation({
               type="button"
               disabled={saving}
               onClick={onConfirmSent}
-              className="py-3 px-4 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs font-bold uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="py-3 px-4 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs font-bold uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <CheckCircle2 size={16} />
               <span>{saving ? "Sparar..." : "Ja, skickat!"}</span>
@@ -62,11 +62,11 @@ export function Step4Reconciliation({
         </>
       ) : (
         <div className="space-y-4 animate-in fade-in duration-200">
-          <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-200 text-emerald-900 text-xs font-mono space-y-1">
-            <span className="font-bold uppercase block text-emerald-950">
+          <div className="bg-brand-paper rounded-2xl p-4 border border-brand-accent/30 text-brand-ink text-xs font-mono space-y-1">
+            <span className="font-bold uppercase block text-brand-ink">
               Tack! Din inbjudan har registrerats!
             </span>
-            <p className="font-sans text-emerald-800 font-light">
+            <p className="font-sans text-brand-ink/80 font-light">
               Inbjudan har sparats i dina lokaldata och väntar på granskning innan den publiceras i flödet.
             </p>
           </div>
@@ -75,7 +75,7 @@ export function Step4Reconciliation({
             <button
               type="button"
               onClick={onDownloadIcs}
-              className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <Calendar size={16} />
               <span>Lägg till i kalender (.ics)</span>

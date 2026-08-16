@@ -14,7 +14,7 @@ export function StreamNoticeCard({ item, onSelectAlert }: StreamNoticeCardProps)
       onClick={() => onSelectAlert(item.id)}
       className="bg-white rounded-2xl p-6 border border-brand-ink/5 hover:border-brand-accent/30 transition-all shadow-xs hover:shadow-md cursor-pointer space-y-3 group relative overflow-hidden text-left"
     >
-      <div className="absolute top-0 right-0 bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-2xl rounded-bl-xl shadow-2xs">
+      <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-2xl rounded-bl-xl shadow-2xs">
         {item.category || "Vara en vän"}
       </div>
 

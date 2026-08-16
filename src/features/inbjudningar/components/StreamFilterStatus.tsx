@@ -11,7 +11,7 @@ export function StreamFilterStatus({ savedTags, onOpenSettings }: StreamFilterSt
       onClick={onOpenSettings}
       className="bg-white rounded-3xl p-5 border border-brand-ink/10 shadow-xs relative overflow-hidden text-left hover:border-brand-accent/40 transition-all cursor-pointer group"
     >
-      <div className="absolute top-0 right-0 bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-3xl rounded-bl-xl shadow-2xs">
+      <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-3xl rounded-bl-xl shadow-2xs">
         AKTIVT FILTER
       </div>
 

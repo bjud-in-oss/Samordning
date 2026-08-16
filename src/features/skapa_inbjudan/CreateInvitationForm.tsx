@@ -36,8 +36,8 @@ export default function CreateInvitationForm({
     <div className="w-full space-y-4">
       {/* Toast Notification */}
       {form.toast && (
-        <div className="fixed top-4 right-4 z-50 bg-emerald-900 text-white font-mono text-xs px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-          <CheckCircle size={16} className="text-emerald-400 shrink-0" />
+        <div className="fixed top-4 right-4 z-50 bg-brand-accent text-white font-mono text-xs px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle size={16} className="text-white shrink-0" />
           <span>{form.toast}</span>
         </div>
       )}
@@ -81,7 +81,7 @@ export default function CreateInvitationForm({
                 type="checkbox"
                 checked={form.consentConfirmed}
                 onChange={e => form.setConsentConfirmed(e.target.checked)}
-                className="mt-0.5 rounded border-brand-ink/30 text-emerald-800 focus:ring-emerald-800 shrink-0"
+                className="mt-0.5 rounded border-brand-ink/30 text-brand-accent focus:ring-brand-accent shrink-0"
               />
               <span className="text-xs text-brand-ink/80 leading-relaxed font-light">
                 Jag bekräftar att jag inte delar andras personuppgifter (som namn, kontaktinfo, etc) i inbjudan utan deras uttryckliga godkännande. Jag förstår att min inbjudan granskas innan publicering.

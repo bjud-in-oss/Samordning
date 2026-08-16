@@ -82,19 +82,19 @@ export function AiReviewModal({
 
         {/* Extracted Auto-fill Recommendation */}
         {hasExtracted && onAutoFill && (
-          <div className="bg-emerald-50 rounded-2xl p-3.5 border border-emerald-200 text-xs font-mono space-y-2">
-            <div className="flex items-center gap-2 text-emerald-900 font-semibold">
-              <CheckCircle2 size={16} className="text-emerald-700 shrink-0" />
+          <div className="bg-brand-paper rounded-2xl p-3.5 border border-brand-accent/30 text-xs font-mono space-y-2">
+            <div className="flex items-center gap-2 text-brand-ink font-semibold">
+              <CheckCircle2 size={16} className="text-brand-accent shrink-0" />
               <span>Hittade detaljer i din beskrivning:</span>
             </div>
-            <p className="text-emerald-800 text-[11px] font-light">
+            <p className="text-brand-ink/80 text-[11px] font-light">
               {extractedFromText?.time && `Tid: "${extractedFromText.time}" `}
               {extractedFromText?.location && `Mötesplats: "${extractedFromText.location}"`}
             </p>
             <button
               type="button"
               onClick={() => onAutoFill(extractedFromText!)}
-              className="w-full py-2 px-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-xs"
+              className="w-full py-2 px-3 bg-brand-accent hover:bg-brand-accent/90 text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-xs"
             >
               <span>Komplettera fälten automatiskt</span>
               <ArrowRight size={14} />

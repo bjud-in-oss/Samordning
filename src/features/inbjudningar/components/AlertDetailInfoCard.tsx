@@ -39,7 +39,7 @@ export function AlertDetailInfoCard({ alert, showContact, setShowContact, uiLang
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-brand-ink/5 pt-4 font-mono text-xs">
         <div className="flex items-start gap-2.5 p-3 bg-brand-bg rounded-xl border border-brand-ink/5">
-          <Calendar className="text-emerald-800 shrink-0 mt-0.5" size={16} />
+          <Calendar className="text-brand-accent shrink-0 mt-0.5" size={16} />
           <div className="flex-1 min-w-0">
             <div className="text-[9px] uppercase font-mono font-bold text-brand-ink/60">{t.timeLabel}</div>
             <div className="text-xs font-serif italic font-semibold text-brand-ink mt-0.5">{alert.time || "Ingen fast tid"}</div>
@@ -47,7 +47,7 @@ export function AlertDetailInfoCard({ alert, showContact, setShowContact, uiLang
         </div>
 
         <div className="flex items-start gap-2.5 p-3 bg-brand-bg rounded-xl border border-brand-ink/5">
-          <MapPin className="text-emerald-800 shrink-0 mt-0.5" size={16} />
+          <MapPin className="text-brand-accent shrink-0 mt-0.5" size={16} />
           <div className="flex-1 min-w-0">
             <div className="text-[9px] uppercase font-mono font-bold text-brand-ink/60">{t.approxLocation}</div>
             <div className="text-xs font-serif italic font-semibold text-brand-ink mt-0.5">{alert.locationName || alert.area}</div>
@@ -55,20 +55,20 @@ export function AlertDetailInfoCard({ alert, showContact, setShowContact, uiLang
         </div>
 
         <div className="flex items-start gap-2.5 p-3 bg-brand-bg rounded-xl border border-brand-ink/5">
-          <ShieldCheck className="text-emerald-800 shrink-0 mt-0.5" size={16} />
+          <ShieldCheck className="text-brand-accent shrink-0 mt-0.5" size={16} />
           <div className="flex-1 min-w-0">
             <div className="text-[9px] uppercase font-mono font-bold text-brand-ink/60">Arrangör</div>
             <div className="text-xs font-serif italic font-semibold text-brand-ink mt-0.5">{alert.responsibleParty || "Församlingsledare"}</div>
             {alert.contactValue && (
               <div className="text-[11px] font-mono text-brand-ink/80 mt-1 flex items-center gap-1">
-                <Phone size={12} className="text-emerald-800 shrink-0" />
+                <Phone size={12} className="text-brand-accent shrink-0" />
                 {showContact ? (
                   <span className="select-all font-semibold">{alert.contactValue}</span>
                 ) : (
                   <button
                     type="button"
                     onClick={() => setShowContact(true)}
-                    className="text-emerald-800 hover:underline cursor-pointer"
+                    className="text-brand-accent hover:underline cursor-pointer"
                   >
                     Visa nummer
                   </button>

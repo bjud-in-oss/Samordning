@@ -190,9 +190,9 @@ export default function ActiveStream({
             {myProposals.map(prop => (
               <div
                 key={prop.id}
-                className="bg-emerald-950/5 border border-emerald-800/30 rounded-2xl p-5 shadow-2xs space-y-2 text-left relative overflow-hidden"
+                className="bg-brand-paper/50 border border-brand-accent/30 rounded-2xl p-5 shadow-2xs space-y-2 text-left relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 bg-emerald-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-2xl rounded-bl-xl shadow-2xs">
+                <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-2xl rounded-bl-xl shadow-2xs">
                   DITT FÖRSLAG • VÄNTAR PÅ GRANSKNING
                 </div>
 
@@ -211,7 +211,7 @@ export default function ActiveStream({
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-brand-ink/10 text-[10px] font-mono text-brand-ink/60 uppercase tracking-wider">
                   <span>{prop.responsibleParty}</span>
-                  <span className="italic font-sans text-emerald-800 font-semibold">Granskas av ansvariga ledare</span>
+                  <span className="italic font-sans text-brand-accent font-semibold">Granskas av ansvariga ledare</span>
                 </div>
               </div>
             ))}

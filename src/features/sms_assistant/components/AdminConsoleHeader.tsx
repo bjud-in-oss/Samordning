@@ -23,7 +23,7 @@ export function AdminConsoleHeader({ onSendSms, onInsertTemplate, onBack }: Admi
           <div>
             <h1 className="text-lg font-serif italic text-brand-ink font-medium tracking-tight leading-none flex items-center gap-2">
               <span>SMS Konsol</span>
-              <span className="text-[9px] font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full not-italic font-normal">#PAIR Aktiv</span>
+              <span className="text-[9px] font-mono bg-brand-paper text-brand-accent border border-brand-accent/20 px-2 py-0.5 rounded-full not-italic font-normal">#PAIR Aktiv</span>
             </h1>
           </div>
         </div>

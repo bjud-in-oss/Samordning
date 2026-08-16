@@ -39,8 +39,8 @@ export function Step1AiReview({ aiProposal, onNext }: Step1AiReviewProps) {
           </ul>
         </div>
       ) : (
-        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-200 text-emerald-900 text-xs font-mono flex items-center gap-2">
-          <CheckCircle2 size={18} className="text-emerald-700 shrink-0" />
+        <div className="bg-brand-paper rounded-2xl p-4 border border-brand-accent/30 text-brand-ink text-xs font-mono flex items-center gap-2">
+          <CheckCircle2 size={18} className="text-brand-accent shrink-0" />
           <span>Alla viktiga fält är ifyllda och redo för publicering!</span>
         </div>
       )}
@@ -55,7 +55,7 @@ export function Step1AiReview({ aiProposal, onNext }: Step1AiReviewProps) {
         <button
           type="button"
           onClick={onNext}
-          className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
         >
           <span>Fortsätt till nästa steg</span>
           <ArrowRight size={14} />

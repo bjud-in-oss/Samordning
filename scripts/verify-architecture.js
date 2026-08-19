@@ -1,6 +1,7 @@
 /**
- * DETERMINISTISK PROCESS- OCH KODREVISOR (v8.6 - KÄRNA)
- * Integrerar SHA-256-hashkontroll, automatisk drivrutinsdetektering (TS, Python, Rust, Go) och processsekvensering.
+ * DETERMINISTISK PROCESS- OCH KODREVISOR (v8.6 - VATTENTÄT KÄRNA)
+ * SHA-256-hashkontroll, mtime-tidsspärr mot mid-cycle hash-regenerering,
+ * automatisk drivrutinsdetektering (TS, Python, Rust, Go) och processsekvensering.
  */
 
 import fs from 'fs';
@@ -16,6 +17,7 @@ const DOC_DIR = path.join(ROOT_DIR, 'doc');
 const LAST_CYCLE_DIR = path.join(DOC_DIR, 'LAST_CYCLE');
 const SRC_DIR = path.join(ROOT_DIR, 'src');
 const HASHES_FILE = path.join(__dirname, 'hashes.json');
+const INIT_HASHES_FILE = path.join(__dirname, 'init-hashes.js');
 
 const ignoreMtime = process.argv.includes('--ignore-mtime') || process.argv.includes('--fresh-clone');
 let hasErrors = false;
@@ -39,12 +41,11 @@ function computeHash(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
 
-// Detektera språkdrivrutin baserat på projektfiler (Inklusive Go)
 function detectLanguageDriver() {
   if (fs.existsSync(path.join(ROOT_DIR, 'go.mod'))) return 'go';
   if (fs.existsSync(path.join(ROOT_DIR, 'Cargo.toml'))) return 'rust';
   if (fs.existsSync(path.join(ROOT_DIR, 'pyproject.toml')) || fs.existsSync(path.join(ROOT_DIR, 'requirements.txt'))) return 'python';
-  return 'ts'; // Standard för TypeScript/JavaScript
+  return 'ts';
 }
 
 async function runVerification() {
@@ -56,7 +57,32 @@ async function runVerification() {
   const driverLang = detectLanguageDriver();
   const driverPath = path.join(__dirname, 'drivers', `${driverLang}.js`);
 
-  // 1. SHA-256 HASH- OCH MANIPULERINGSKONTROLL
+  // 1. STEG 1 & TIDSSPÄRR FÖR SÄKERHETSMANIPULERING
+  const p1a = path.join(LAST_CYCLE_DIR, '1a_orientera.md');
+  const p1b = path.join(LAST_CYCLE_DIR, '1b_kartlagga.md');
+  const t1a = getMtime(p1a), t1b = getMtime(p1b);
+  const tScript = getMtime(__filename);
+  const tDriver = getMtime(driverPath);
+  const tHashes = getMtime(HASHES_FILE);
+  const tInitHashes = getMtime(INIT_HASHES_FILE);
+
+  if (t1a === 0 || t1b === 0) logError('STEG 1 SAKNAS', '1a_orientera.md eller 1b_kartlagga.md saknas.');
+  if (!ignoreMtime && t1b <= t1a) logError('SEKVENSFEL', '1b_kartlagga.md måste sparas strikt EFTER 1a_orientera.md.');
+
+  // VATTENTÄT SPÄRR: Inget skript eller hash-verktyg får ändras/köras EFTER att cykeln (1a) påbörjades
+  if (!ignoreMtime && t1a > 0) {
+    if (tScript > t1a) {
+      logError('SKRIPTMANIPULERING', 'scripts/verify-architecture.js har redigerats under pågående cykel.');
+    }
+    if (tDriver > t1a) {
+      logError('DRIVRUTINSMANIPULERING', `scripts/drivers/${driverLang}.js har redigerats under pågående cykel.`);
+    }
+    if (tHashes > t1a || tInitHashes > t1a) {
+      logError('HASHMANIPULERING', 'hashes.json eller init-hashes.js har ändrats/körts under pågående cykel.');
+    }
+  }
+
+  // SHA-256 INTEGRITETSKONTROLL
   if (fs.existsSync(HASHES_FILE)) {
     try {
       const storedHashes = JSON.parse(readFile(HASHES_FILE));
@@ -74,14 +100,7 @@ async function runVerification() {
     }
   }
 
-  // 2. STEG 1 & TIDSVARNING (1500 s)
-  const p1a = path.join(LAST_CYCLE_DIR, '1a_orientera.md');
-  const p1b = path.join(LAST_CYCLE_DIR, '1b_kartlagga.md');
-  const t1a = getMtime(p1a), t1b = getMtime(p1b);
-
-  if (t1a === 0 || t1b === 0) logError('STEG 1 SAKNAS', '1a_orientera.md eller 1b_kartlagga.md saknas.');
-  if (!ignoreMtime && t1b <= t1a) logError('SEKVENSFEL', '1b_kartlagga.md måste sparas strikt EFTER 1a_orientera.md.');
-
+  // TIDSVARNING (1500 s = 25 min)
   if (!ignoreMtime && t1a > 0) {
     const elapsedSeconds = (Date.now() - t1a) / 1000;
     if (elapsedSeconds > 1500) {
@@ -103,7 +122,7 @@ async function runVerification() {
     }
   }
 
-  // 3. STEG 2: STRATEGISKT NÄTVERK (TVINGANDE 2C)
+  // 2. STEG 2: STRATEGISKT NÄTVERK (TVINGANDE 2C)
   const p2a = path.join(LAST_CYCLE_DIR, '2a_forandra_utat_vision.md');
   const p2b = path.join(LAST_CYCLE_DIR, '2b_evaluera_yttre_anpassning.md');
   const p2c = path.join(LAST_CYCLE_DIR, '2c_forandra_inat_refaktorisering.md');
@@ -138,7 +157,7 @@ async function runVerification() {
     else logError('STRATEGISK SPÄRR', 'Inget "BESLUT: GÅ_TILL_DESIGN" nåddes i Steg 2.');
   }
 
-  // 4. STEG 3: DESIGNKEDJA
+  // 3. STEG 3: DESIGNKEDJA
   const p3a = path.join(LAST_CYCLE_DIR, '3a_helhet_orkestrering_och_integration.md');
   const p3b = path.join(LAST_CYCLE_DIR, '3b_doman_kontrakt_och_fraktal_dokumentation.md');
   const p3c = path.join(LAST_CYCLE_DIR, '3c_fil_operativ_kallkodsspecifikation.md');
@@ -152,7 +171,7 @@ async function runVerification() {
 
   if (!(t3c > 0 && /BESLUT:\s*GODKÄND/i.test(readFile(p3c)))) logError('DOMSTOLSSPÄRR', '3c saknar "BESLUT: GODKÄND".');
 
-  // 5. DELEGERA TILL SPRÅKDRIVRUTIN
+  // 4. DELEGERA TILL SPRÅKDRIVRUTIN
   if (fs.existsSync(driverPath)) {
     const driverModule = await import(`./drivers/${driverLang}.js`);
     const verifyFunc = driverModule.verifyCodebase || driverModule.verifyTypeScriptCodebase;

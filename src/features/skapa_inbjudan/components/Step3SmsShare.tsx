@@ -22,7 +22,7 @@ export function Step3SmsShare({
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
       <div className="flex items-center gap-3">
-        <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-800">
+        <div className="p-3 rounded-2xl bg-brand-paper text-brand-accent">
           <Send size={22} />
         </div>
         <div>
@@ -38,7 +38,7 @@ export function Step3SmsShare({
       {isMobile ? (
         <a
           href={smsHref}
-          className="w-full py-3.5 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 font-bold shadow-md cursor-pointer"
+          className="w-full py-3.5 bg-brand-accent hover:opacity-90 text-white font-mono text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 font-bold shadow-md cursor-pointer"
         >
           <Send size={15} />
           <span>Öppna SMS-app för insändning ({GATEWAY_NUMBER})</span>
@@ -62,7 +62,7 @@ export function Step3SmsShare({
         onClick={onCopyText}
         className="w-full py-2.5 bg-brand-paper hover:bg-brand-ink/10 border border-brand-ink/15 text-brand-ink font-mono text-xs uppercase font-semibold tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer"
       >
-        {copied ? <Check size={14} className="text-emerald-800" /> : <Copy size={14} />}
+        {copied ? <Check size={14} className="text-brand-accent" /> : <Copy size={14} />}
         <span>{copied ? "Text kopierad till urklipp!" : "Kopiera SMS-text / direktlänk"}</span>
       </button>
 
@@ -70,7 +70,7 @@ export function Step3SmsShare({
         <button
           type="button"
           onClick={onNext}
-          className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3 bg-brand-accent hover:opacity-90 text-white font-mono text-xs uppercase font-bold tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
         >
           <span>Fortsätt till SMS-avstämning</span>
           <ArrowRight size={14} />

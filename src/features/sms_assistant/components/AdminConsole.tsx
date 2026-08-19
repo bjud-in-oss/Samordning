@@ -163,7 +163,7 @@ export default function AdminConsole({ onBack, onPairSuccess }: AdminConsoleProp
 
   if (checkingPairing) {
     return (
-      <div className="h-[100dvh] flex flex-col items-center justify-center bg-[#F0F2F5] font-sans text-brand-ink p-4">
+      <div className="h-[100dvh] flex flex-col items-center justify-center bg-brand-bg font-sans text-brand-ink p-4">
         <div className="flex items-center gap-3 bg-white p-6 rounded-2xl shadow-xs border border-brand-ink/10">
           <RefreshCw className="animate-spin text-brand-accent" size={20} />
           <span className="font-mono text-xs uppercase tracking-wider">Verifierar enhetsparning...</span>
@@ -185,7 +185,7 @@ export default function AdminConsole({ onBack, onPairSuccess }: AdminConsoleProp
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-[#F0F2F5] font-sans text-brand-ink">
+    <div className="min-h-[100dvh] flex flex-col bg-brand-bg font-sans text-brand-ink">
       <AdminConsoleHeader onSendSms={sendSms} onInsertTemplate={insertTemplate} onBack={onBack} />
 
       <div className="bg-white px-4 py-2.5 border-b border-brand-ink/5 shrink-0 z-10 shadow-xs flex gap-3 text-xs">
@@ -217,7 +217,7 @@ export default function AdminConsole({ onBack, onPairSuccess }: AdminConsoleProp
         <AdminLogsArea logs={logs} phoneNumber={phoneNumber} onClearLogs={() => setLogs([])} />
       </div>
 
-      <div className="bg-[#F0F2F5] p-3 shrink-0 flex gap-2 border-t border-brand-ink/10">
+      <div className="bg-brand-bg p-3 shrink-0 flex gap-2 border-t border-brand-ink/10">
         <textarea 
           rows={2}
           className="flex-1 p-3 bg-white rounded-2xl border-none focus:ring-0 shadow-xs resize-none text-xs font-mono leading-relaxed" 

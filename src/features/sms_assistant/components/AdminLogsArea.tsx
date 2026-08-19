@@ -79,7 +79,7 @@ export function AdminLogsArea({ logs, phoneNumber, onClearLogs }: AdminLogsAreaP
 
   const getCardStyle = (log: LogEntry, level: "INFO" | "WARN" | "ERROR") => {
     if (log.isUser) {
-      return "bg-[#D9FDD3] text-brand-ink rounded-tr-none border border-emerald-200";
+      return "bg-brand-paper text-brand-ink rounded-tr-none border border-brand-accent/20";
     }
     switch (level) {
       case "ERROR":

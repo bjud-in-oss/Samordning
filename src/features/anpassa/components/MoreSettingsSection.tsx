@@ -1,6 +1,7 @@
 import React from "react";
 import { PhoneCall, Globe, Check } from "lucide-react";
 import { UiLanguage } from "../../mission_router";
+import { ThemeSelectorSection } from "./ThemeSelectorSection";
 
 const LANGUAGE_OPTIONS = [
   { code: "Svenska", label: "Svenska" },
@@ -35,6 +36,9 @@ export function MoreSettingsSection({
 }: MoreSettingsSectionProps) {
   return (
     <>
+      {/* Sektion: Färgtema & Kontrast */}
+      <ThemeSelectorSection />
+
       {/* Sektion 3: Deltagandesätt */}
       <div className="bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs space-y-4 animate-in fade-in duration-200">
         <div className="flex items-center gap-2.5 pb-3 border-b border-brand-ink/5">

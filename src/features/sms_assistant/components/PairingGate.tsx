@@ -17,7 +17,7 @@ export function PairingGate({
   onCheckPairingStatus
 }: PairingGateProps) {
   return (
-    <div className="h-[100dvh] flex flex-col bg-[#F0F2F5] font-sans text-brand-ink">
+    <div className="h-[100dvh] flex flex-col bg-brand-bg font-sans text-brand-ink">
       <div className="bg-white px-4 py-3 border-b border-brand-ink/10 flex items-center justify-between shadow-xs shrink-0">
         <div className="flex items-center gap-3">
           <button 

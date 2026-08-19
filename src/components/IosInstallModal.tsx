@@ -16,31 +16,31 @@ export function IosInstallModal({ onClose }: IosInstallModalProps) {
           <X size={18} />
         </button>
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mx-auto">
+          <div className="w-16 h-16 bg-brand-paper text-brand-accent rounded-full flex items-center justify-center mx-auto">
             <Smartphone size={32} />
           </div>
-          <h3 className="font-bold text-slate-900 text-lg">Installera på iPhone / iPad</h3>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <h3 className="font-serif font-bold text-brand-ink text-lg">Installera på iPhone / iPad</h3>
+          <p className="text-xs text-brand-ink/70 leading-relaxed">
             För att ta emot Web Push-aviseringar på iOS måste du lägga till denna webbapp på din hemskärm först:
           </p>
         </div>
-        <ol className="text-xs text-slate-700 space-y-3 font-medium bg-slate-50 p-4 rounded-2xl border border-slate-100">
+        <ol className="text-xs text-brand-ink/90 space-y-3 font-medium bg-brand-bg p-4 rounded-2xl border border-brand-ink/10">
           <li className="flex gap-2">
-            <span className="text-teal-600 font-bold">1.</span>
+            <span className="text-brand-accent font-bold">1.</span>
             <span>Klicka på <strong>Dela-knappen</strong> i Safari (fyrkant med pil uppåt).</span>
           </li>
           <li className="flex gap-2">
-            <span className="text-teal-600 font-bold">2.</span>
+            <span className="text-brand-accent font-bold">2.</span>
             <span>Scrolla ner och välj <strong>"Lägg till på hemskärmen"</strong>.</span>
           </li>
           <li className="flex gap-2">
-            <span className="text-teal-600 font-bold">3.</span>
+            <span className="text-brand-accent font-bold">3.</span>
             <span>Öppna appen från din hemskärm och anslut aviseringarna igen!</span>
           </li>
         </ol>
         <button
           onClick={onClose}
-          className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer"
+          className="w-full py-3 bg-brand-accent hover:opacity-90 text-white font-mono font-bold rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer"
         >
           Jag förstår
         </button>

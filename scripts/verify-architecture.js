@@ -1,6 +1,6 @@
 /**
  * DETERMINISTISK PROCESS- OCH KODREVISOR (v8.6 - KÄRNA)
- * Integrerar SHA-256-hashkontroll, automatisk drivrutinsdetektering och processsekvensering.
+ * Integrerar SHA-256-hashkontroll, automatisk drivrutinsdetektering (TS, Python, Rust, Go) och processsekvensering.
  */
 
 import fs from 'fs';
@@ -39,8 +39,9 @@ function computeHash(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
 
-// Detektera språkdrivrutin baserat på projektfiler
+// Detektera språkdrivrutin baserat på projektfiler (Inklusive Go)
 function detectLanguageDriver() {
+  if (fs.existsSync(path.join(ROOT_DIR, 'go.mod'))) return 'go';
   if (fs.existsSync(path.join(ROOT_DIR, 'Cargo.toml'))) return 'rust';
   if (fs.existsSync(path.join(ROOT_DIR, 'pyproject.toml')) || fs.existsSync(path.join(ROOT_DIR, 'requirements.txt'))) return 'python';
   return 'ts'; // Standard för TypeScript/JavaScript
@@ -73,7 +74,7 @@ async function runVerification() {
     }
   }
 
-  // 2. STEG 1 & TIDSVARNING
+  // 2. STEG 1 & TIDSVARNING (1500 s)
   const p1a = path.join(LAST_CYCLE_DIR, '1a_orientera.md');
   const p1b = path.join(LAST_CYCLE_DIR, '1b_kartlagga.md');
   const t1a = getMtime(p1a), t1b = getMtime(p1b);

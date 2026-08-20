@@ -1,6 +1,6 @@
 /**
- * DETERMINISTISK PROCESS- OCH KODREVISOR (v8.6 - VATTENTÄT KÄRNA)
- * SHA-256-hashkontroll, mtime-tidsspärr mot mid-cycle hash-regenerering,
+ * DETERMINISTISK PROCESS- OCH KODREVISOR (v8.7 - VATTENTÄT KÄRNA)
+ * SHA-256-hashkontroll, mtime-tidsspärr, Mänsklig Input-Gate (10s betänketid),
  * automatisk drivrutinsdetektering (TS, Python, Rust, Go) och processsekvensering.
  */
 
@@ -23,7 +23,7 @@ const ignoreMtime = process.argv.includes('--ignore-mtime') || process.argv.incl
 let hasErrors = false;
 
 function logError(title, message) {
-  console.error(`\n❌ [MEKANISK SPÄRR v8.6] ${title}`);
+  console.error(`\n❌ [MEKANISK SPÄRR v8.7] ${title}`);
   console.error(`   ${message}`);
   hasErrors = true;
 }
@@ -171,6 +171,20 @@ async function runVerification() {
 
   if (!(t3c > 0 && /BESLUT:\s*GODKÄND/i.test(readFile(p3c)))) logError('DOMSTOLSSPÄRR', '3c saknar "BESLUT: GODKÄND".');
 
+  // MÄNSKLIG INPUT-GATE MED TIDSSPÄRR (Minst 10 sekunders betänketid efter 3c)
+  const pApproval = path.join(LAST_CYCLE_DIR, 'APPROVAL.md');
+  const tApproval = getMtime(pApproval);
+
+  if (t3c > 0 && !ignoreMtime) {
+    if (tApproval === 0) {
+      logError('MÄNSKLIGT GODKÄNNANDE SAKNAS', 'Källkod får inte redigeras. Granska 3c och spara doc/LAST_CYCLE/APPROVAL.md för att låsa upp Steg 4.');
+    } else if (tApproval <= t3c) {
+      logError('SEKVENSFEL (APPROVAL)', 'APPROVAL.md sparades FÖRE eller SAMTIDIGT som 3c. Filen måste sparas EFTER att 3c granskats.');
+    } else if ((tApproval - t3c) < 10000) {
+      logError('AUTOMATISERAT GODKÄNNANDE UPPTÄCKT', `APPROVAL.md skapades endast ${Math.round((tApproval - t3c)/1000)}s efter 3c. Mänsklig granskning krävs (minst 10s betänketid).`);
+    }
+  }
+
   // 4. DELEGERA TILL SPRÅKDRIVRUTIN
   if (fs.existsSync(driverPath)) {
     const driverModule = await import(`./drivers/${driverLang}.js`);
@@ -189,10 +203,10 @@ async function runVerification() {
   }
 
   if (hasErrors) {
-    console.error('\n⛔ BYGGET STOPPADES AV MEKANISK KONTROLL v8.6.\n');
+    console.error('\n⛔ BYGGET STOPPADES AV MEKANISK KONTROLL v8.7.\n');
     process.exit(1);
   } else {
-    console.log(`✅ Alla sekvenser, fasader, max-domänsgränser, AI-zoner och TDD-kronologier godkända [Drivrutin: ${driverLang}] (v8.6).`);
+    console.log(`✅ Alla sekvenser, fasader, max-domänsgränser, AI-zoner, Mänsklig Gate och TDD-kronologier godkända [Drivrutin: ${driverLang}] (v8.7).`);
   }
 }
 

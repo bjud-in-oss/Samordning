@@ -1,6 +1,7 @@
 /**
- * TYPESCRIPT & FSD DRIVRUTIN (v8.6)
- * Utför global AI-skanning, fasadvalidering, FSD-gränskontroller, TDD-kronologi och domänbegränsningar.
+ * TYPESCRIPT & FSD DRIVRUTIN (v8.7)
+ * Utför global AI-skanning, fasadvalidering, FSD-gränskontroller, TDD-kronologi,
+ * domänbegränsningar, Manifestkontroll mot 3c samt Habit Hooks kodedisciplin.
  */
 
 import fs from 'fs';
@@ -16,6 +17,9 @@ export async function verifyTypeScriptCodebase({
   t4
 }) {
   const featuresDir = path.join(SRC_DIR, 'features');
+  const LAST_CYCLE_DIR = path.join(ROOT_DIR, 'doc', 'LAST_CYCLE');
+  const p3cPath = path.join(LAST_CYCLE_DIR, '3c_fil_operativ_kallkodsspecifikation.md');
+  const p3cContent = fs.existsSync(p3cPath) ? fs.readFileSync(p3cPath, 'utf-8') : '';
 
   // 1. SAMLOKALISERAD DOKUMENTATION, FASADER OCH ZONER
   if (fs.existsSync(featuresDir)) {
@@ -57,12 +61,18 @@ export async function verifyTypeScriptCodebase({
         } else if (/\.(ts|tsx|js|jsx)$/.test(file)) {
           const content = fs.readFileSync(fullPath, 'utf-8');
           const relPath = path.relative(SRC_DIR, fullPath);
+          const isTsx = file.endsWith('.tsx');
 
           // Identifiera modifierade domäner efter 3c
           if (!ignoreMtime && stat.mtimeMs > t3c) {
             if (relPath.startsWith('features' + path.sep)) {
               const domName = relPath.split(path.sep)[1];
               if (domName) modifiedDomains.add(domName);
+            }
+
+            // MANIFESTKONTROLL: Alla skapade/ändrade filer i src/ MÅSTE finnas nämnda i 3c
+            if (p3cContent && !p3cContent.includes(relPath) && !p3cContent.includes(file)) {
+              logError('MANIFESTÖVERTRÄDELSE', `Filen "${relPath}" modifierades i Steg 4 men saknas i 3c. Gör en cykelretur till 3c och speca filen först.`);
             }
           }
 
@@ -78,6 +88,33 @@ export async function verifyTypeScriptCodebase({
           if (hasAiImport && !isInsideAiZone && !isServerCode) {
             logError('AI-ISOLERINGSÖVERTRÄDELSE', `${path.relative(ROOT_DIR, fullPath)} innehåller AI-anrop utanför domain/ai_zones/.`);
           }
+
+          // --- HABIT HOOKS: KONTROLLER FÖR REACT OCH KODDISCIPLIN ---
+          if (isTsx) {
+            const useStateCount = (content.match(/useState\s*\(/g) || []).length;
+            const useEffectCount = (content.match(/useEffect\s*\(/g) || []).length;
+
+            // Tillståndsseparering (>3 hooks)
+            if (useStateCount + useEffectCount > 3) {
+              logError('HABIT-HOOK: STATE_OVERLOAD', `${path.relative(ROOT_DIR, fullPath)} har ${useStateCount + useEffectCount} hooks. Bryt ut till custom hook i hooks/.`);
+            }
+
+            // Asynkron isolering i UI
+            if (/fetch\s*\(|async\s+\(|axios\./.test(content)) {
+              logError('HABIT-HOOK: ASYNC_IN_UI', `${path.relative(ROOT_DIR, fullPath)} har direkta fetch/async-anrop. Flytta till domain/ eller service-lagret.`);
+            }
+          }
+
+          // Svalda fel (Swallowed Exception)
+          if (/catch\s*\([^)]*\)\s*\{\s*\}/.test(content)) {
+            logError('HABIT-HOOK: SWALLOWED_EXCEPTION', `${path.relative(ROOT_DIR, fullPath)} innehåller ett tomt catch-block.`);
+          }
+
+          // Förbjudet 'any'
+          if (/:s*any\b|as\s+any\b/.test(content)) {
+            logError('HABIT-HOOK: EXPLICIT_ANY', `${path.relative(ROOT_DIR, fullPath)} använder 'any'. Använd konkreta typer.`);
+          }
+          // ---------------------------------------------------------
 
           const isTest = file.includes('__tests__') || file.endsWith('.test.ts') || file.endsWith('.test.tsx');
           if (isTest) {

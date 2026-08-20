@@ -31,6 +31,14 @@ describe("CSS Theme Consistency & Regression Guard", () => {
     expect(cssContent).toContain("--color-text");
     expect(cssContent).toContain("--color-paper");
 
+    // Kontrollera knappar, flöde och modaler
+    expect(cssContent).toContain("--color-btn-invite-bg");
+    expect(cssContent).toContain("--color-btn-invite-text");
+    expect(cssContent).toContain("--color-modal-bg");
+    expect(cssContent).toContain("--color-modal-overlay");
+    expect(cssContent).toContain("--color-stream-card-bg");
+    expect(cssContent).toContain("--color-stream-card-border");
+
     // Kontrollera definierade dynamiska teman
     expect(cssContent).toContain('[data-theme="default"]');
     expect(cssContent).toContain('[data-theme="high-contrast"]');

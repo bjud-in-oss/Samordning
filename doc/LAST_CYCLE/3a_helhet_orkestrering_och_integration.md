@@ -1,8 +1,7 @@
 # Steg 3a: Helhet, Orkestrering och Integration
 
-- **Orkestrering och gränssnitt för domänen `skapa_inbjudan`**:
-  - `CreateInvitationForm.tsx` utgör huvudvyn för att samla in uppgifter om ny inbjudan (tid, plats, område, målgrupp, aktivitet, arrangör).
-  - Formuläret delegerar tillståndshantering till `useInvitationForm.ts` som i sin tur orkestrerar delhooks för dialoger, favoriter och publicering.
-  - Publiceringslogiken i `useInvitationPublishing.ts` sparar den nya inbjudan till backend (`/api/alerts`) och synkroniserar med lokal tillståndshantering.
-  - Efter slutförd publicering visas `PostSubmissionStepper.tsx` med AI-granskning, integritetsinformation, QR-kod och SMS-delningslänkar.
-  - Integrationen mot omvärlden sker uteslutande via domänfasaden `src/features/skapa_inbjudan/index.ts`.
+- **Integrationsöversikt**:
+  - `AppHeader.tsx` integreras mot `App.tsx` och tar emot `pushEnabled`, `onTogglePush`, `isToggling`, `currentView`, `onToggleSettings` och `onCreateInvitation`.
+  - `ActiveStream.tsx` skickar `pushEnabled` och `savedTags` till `StreamFilterStatus.tsx`.
+  - När aviseringar är PÅ placeras `StreamFilterStatus` efter andra eller tredje kortet i inbjudningslistan.
+  - När aviseringar är AV visas ett pedagogiskt introduktionskort överst med handledning för att aktivera notiser samt konfigurera geografiska områden och intressegrupper via inställningarna.

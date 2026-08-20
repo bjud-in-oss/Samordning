@@ -1,11 +1,14 @@
-# Steg 2c: Förändra Inåt (Tvingande Refaktorisering v8.8)
+# Steg 2c: Förändra Inåt - Refaktorisering
 
-- **Inre arkitektur och sanering av domänen `skapa_inbjudan`**:
-  - **Typdisciplin**:
-    - Ersätta all användning av `any` i `domain/types.ts`, `hooks/subhooks/useInvitationPublishing.ts` och `components/PostSubmissionStepper.tsx` med strikta TypeScript-interface (`SavedUserTags`, `InvitationPublishPayload`, `SubmissionResult`).
-  - **Asynkron isolering och Habit-Hooks**:
-    - Flytta eventuell direkt datakommunikation i `PostSubmissionStepper.tsx` till domänens hook-/servicelager så att UI-komponenter förblir rena och reaktiva.
-  - **FSD-importsanering**:
-    - Säkerställa att alla importer till delade moduler sker via `@shared` eller `../../shared/` utan orena bakåtkliv, och att domäninterna importer använder renodlade lokala sökvägar.
-  - **Datalagring och persistens**:
-    - Validera och stärka logiken i `useInvitationPublishing.ts` för att säkerställa att den skapade inbjudan alltid sparas komplett i både lokal och synkroniserad lagring.
+- **Strukturell refaktorisering**:
+  1. `AppHeader.tsx`:
+     - Omgruppera flex-behållaren: Vänster sida innehåller titeln och reglaget grupperade tillsammans med tight spacing (`gap-3`), medan höger sida behåller `Settings`-knappen och `+ Bjud in`-knappen.
+  2. `StreamFilterStatus.tsx`:
+     - Utöka interfacet `StreamFilterStatusProps` med `pushEnabled: boolean`.
+     - Skapa två distinkta renderingsgrenar:
+       - När `!pushEnabled`: Ett pedagogiskt kort ("Slå på aviseringar") som förklarar fördelen med notiser samt länk/knapp till inställningar för att filtrera områden/grupper.
+       - När `pushEnabled`: Det aktiva filterkortet, med förenklad områdestext ("Alla områden aktiva") om alla Göteborgs områden är aktiverade eller om inget begränsat urval gjorts.
+  3. `ActiveStream.tsx`:
+     - Skicka med `pushEnabled` till `StreamFilterStatus`.
+     - När `!pushEnabled`: Rendera `StreamFilterStatus` överst före inbjudningslistan.
+     - När `pushEnabled`: Rendera `StreamFilterStatus` inskjutet efter 2 (eller 3) inbjudningskort, eller överst om det finns färre än 2 inbjudningar.

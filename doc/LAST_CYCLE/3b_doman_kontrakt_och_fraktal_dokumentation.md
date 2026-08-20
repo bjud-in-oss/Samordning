@@ -1,10 +1,20 @@
 # Steg 3b: Domänkontrakt och Fraktal Dokumentation
 
-- **Samlokaliserad domändokumentation (`src/features/skapa_inbjudan/doc/`)**:
-  - `INDEX.md`: Översikt över domänen och dess huvudkomponenter.
-  - `BUSINESS_RULES.md`: Regler för obligatoriska fält, datalagring och typdisciplin.
-  - `INTEGRATIONS.md`: API- och lagringsintegrationer mot backend och shared.
-  - `UI_WORKFLOWS.md`: Flödesbeskrivning från formulärinmatning till publicering och delning.
-
-- **Fasadkontrakt (`src/features/skapa_inbjudan/index.ts`)**:
-  - Exporterar `CreateInvitationForm`, `useInvitationForm` samt relevanta TypeScript-typer.
+- **Domänkontrakt**:
+  ```typescript
+  export interface StreamFilterStatusProps {
+    savedTags?: {
+      limitedAreas?: string[];
+      primaryArea?: string;
+      limitAreas?: boolean;
+      enabledCategories?: string[];
+      languages?: string[];
+      organizations?: string[];
+    } | null;
+    pushEnabled?: boolean;
+    onOpenSettings?: () => void;
+  }
+  ```
+- **Visningsregler för områden**:
+  - Om `!savedTags?.limitAreas` eller `savedTags?.limitedAreas?.length === 0` eller om alla områden är valda -> "Alla områden aktiva".
+  - Om ett specifikt urval av områden gjorts -> Lista de valda områdena.

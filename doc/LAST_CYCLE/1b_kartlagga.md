@@ -1,19 +1,15 @@
 # Steg 1b: Kartlägga
 
-- **Empirisk inventering av domänen `skapa_inbjudan`**:
-  - **Formulär och UI-komponenter (`src/features/skapa_inbjudan/components/`)**:
-    - `CreateInvitationForm.tsx`: Huvudvy för att skapa inbjudningar, samlar dialoger, förhandsgranskning, favoritfält och publiceringssteg.
-    - `PostSubmissionStepper.tsx`: Stegvisare efter publicering (AI-granskning, integritet, SMS-delning, avstämning). Innehåller direkta asynkrona anrop och `any`-typer som ska städas och lyftas till domänlagret.
-    - `dialogs/`: Dialoger för tid, plats, aktivitet, område, målgrupp och organisation. Behöver justera importvägar till shared/domain för att respektera FSD-gränser.
-    - `PreviewCard.tsx`, `FavoritesBar.tsx`, `AiReviewModal.tsx`, `AiFlagModal.tsx`, `GatewayQrModal.tsx`: Presentationskomponenter för formulärets flöde.
-  - **Tillstånd och Hooks (`src/features/skapa_inbjudan/hooks/`)**:
-    - `useInvitationForm.ts`: Huvudhook som sammanfogar delhooks (`useInvitationBasics`, `useInvitationDialogs`, `useInvitationFavorites`, `useInvitationPublishing`).
-    - `subhooks/useInvitationPublishing.ts`: Sköter publicering mot datalagret/backend (`/api/alerts` och lokal lagring/simulering). Innehåller `any`-typer som ska ersättas med typade kontrakt.
-  - **Domänmodeller och typer (`src/features/skapa_inbjudan/domain/`)**:
-    - `types.ts`: Innehåller `savedTags?: any` och orena gränsöverskridande importer. Ska förses med strikta gränssnitt.
-    - `geocoder.ts`: Hjälpfunktioner för plats- och koordinatmatchning i Göteborg.
-    - `constants.ts`: Standardvärden och valalternativ för dialoger.
-  - **Befintliga avvikelser som ska elimineras**:
-    1. Ersätta `any` med konkreta typer (`SavedUserTags`, `InvitationPublishPayload`).
-    2. Säkerställa korrekt persistens mot datalagret vid formulärinskick.
-    3. FSD-städning av interna importer mellan komponenter och delhooks.
+- **Kartläggning av berörda filer och komponenter**:
+  1. `src/components/AppHeader.tsx`:
+     - Nuvarande struktur har titeln på vänster sida och ett samlat flex-block på höger sida innehållande push-switchen, kugghjulet och "Bjud in"-knappen.
+     - Justering: Flytta switchen så att den placeras direkt intill titeln "Se dina inbjudningar" på vänster sida.
+  2. `src/features/inbjudningar/components/StreamFilterStatus.tsx`:
+     - Behöver ta emot `pushEnabled: boolean`.
+     - När `pushEnabled` är `false`: Visa det förklarande avstängd-avisering-kortet och dölj den detaljerade sammanställningen av standardinställningar.
+     - När `pushEnabled` är `true`: Visa aktiva inställningar. Vid standardläge (alla områden valda eller inget specifikt begränsat urval) visas "Alla områden aktiva" istället för att rada upp alla 10–20 områdesnamn.
+  3. `src/features/inbjudningar/ActiveStream.tsx`:
+     - Styr placeringen av `StreamFilterStatus`:
+       - Om `pushEnabled === false`: Kortet renderas överst i flödet.
+       - Om `pushEnabled === true`: Kortet flyttas ner 2–3 steg bland de filtrerade inbjudningarna (t.ex. efter index 2 eller 3 i `filteredStream`-listan), så att de första inbjudningskorten får högsta visuella prioritet.
+     - Isolerar datamodeller och typer (`ActiveAlert`, `StreamFilterStatusProps`) och lyfter datahämtning till ren domänservice vid behov.

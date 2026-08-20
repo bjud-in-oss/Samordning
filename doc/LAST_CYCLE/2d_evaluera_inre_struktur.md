@@ -1,6 +1,6 @@
 # Steg 2d: Evaluera Inre Struktur
 
-- **Granskning av inre förändringar**:
-  - Konkreta typdefinitioner förhindrar körtidsfel och underlättar integration mot API och aktiva flöden.
-  - Genom att hålla UI-komponenter fria från asynkron I/O respekteras Habit-Hooks och separationsprinciper.
-  - Enhetstester kan köra deterministiskt mot ren affärslogik i hooks och domänfunktioner utan att förlita sig på nätverksmockar i presentationslagret.
+- **Granskning mot arkitekturregler**:
+  - Typad data och props: Alla gränssnitt definieras explicit i TypeScript utan `any`.
+  - Inga cirkulära eller förbjudna importer: Alla importer sker via fasader.
+  - Komponentrenhet: Logik för filterstatus och placeringsberäkning är modulär och testbar.

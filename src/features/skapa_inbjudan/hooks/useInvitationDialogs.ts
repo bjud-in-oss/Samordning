@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Dialog Buffers Sub-Hook
 
 import { useState } from "react";
-import { ActiveDialogType } from "../../domain/types";
+import { ActiveDialogType } from "../domain/types";
 
 interface UseInvitationDialogsParams {
   selectedTime: string;

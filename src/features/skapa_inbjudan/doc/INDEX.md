@@ -1,9 +1,9 @@
-# Feature Documentation: `skapa_inbjudan`
+# Domän: skapa_inbjudan
 
-## Scope & Purpose
-Hanterar flerstegsformuläret för inbjudningsskapande, undermodaler med temporär tillståndsbuffert, favoritmallar och publicering.
+Domänen `skapa_inbjudan` äger hela flödet för att skapa, förhandsgranska och publicera nya lokala inbjudningar i Göteborg.
 
-## Exports (`src/features/skapa_inbjudan/index.ts`)
-- `CreateInvitationForm`
-- `useInvitationForm`
-- `useInvitationDialogs`
+## Huvudkomponenter
+1. `CreateInvitationForm.tsx`: Huvudformulär med fält för tid, plats, arrangör och målgrupp.
+2. `useInvitationForm.ts`: Samordnar formulärets delhooks.
+3. `PostSubmissionStepper.tsx`: Stegvis återkoppling efter inskickad inbjudan.
+4. `dialogs/`: Modala valfönster för snabb inmatning.

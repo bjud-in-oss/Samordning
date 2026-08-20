@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Check } from "lucide-react";
-import { ORGANIZATIONS } from "../../domain/constants";
+import { ORGANIZATIONS } from "../domain/constants";
 
 interface OrganizerDialogProps {
   tempOrg: string;

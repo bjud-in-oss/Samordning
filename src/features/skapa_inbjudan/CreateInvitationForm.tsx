@@ -10,12 +10,12 @@ import { GatewayQrModal } from "./components/GatewayQrModal";
 import { AiFlagModal } from "./components/AiFlagModal";
 import { AiReviewModal } from "./components/AiReviewModal";
 import { PostSubmissionStepper } from "./components/PostSubmissionStepper";
-import { TimeDialog } from "./components/dialogs/TimeDialog";
-import { LocationDialog } from "./components/dialogs/LocationDialog";
-import { ActivityDialog } from "./components/dialogs/ActivityDialog";
-import { AreaDialog } from "./components/dialogs/AreaDialog";
-import { AudienceDialog } from "./components/dialogs/AudienceDialog";
-import { OrganizerDialog } from "./components/dialogs/OrganizerDialog";
+import { TimeDialog } from "./components/TimeDialog";
+import { LocationDialog } from "./components/LocationDialog";
+import { ActivityDialog } from "./components/ActivityDialog";
+import { AreaDialog } from "./components/AreaDialog";
+import { AudienceDialog } from "./components/AudienceDialog";
+import { OrganizerDialog } from "./components/OrganizerDialog";
 
 export default function CreateInvitationForm({
   uiLanguage,

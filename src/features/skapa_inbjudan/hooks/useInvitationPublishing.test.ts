@@ -1,5 +1,6 @@
 // [src/features/skapa_inbjudan/hooks/__tests__/useInvitationPublishing.test.ts] - Unit Test for Publishing Pre-flight & AI Review Logic
 import { describe, it, expect } from "vitest";
+import { matchLocationToArea } from "../domain/geocoder";
 
 describe("useInvitationPublishing Validation Rules", () => {
   it("detects missing required fields during pre-flight check", () => {
@@ -38,5 +39,11 @@ describe("useInvitationPublishing Validation Rules", () => {
     const needsNotice = isIndividualOrg && !organizerPersonName.trim();
 
     expect(needsNotice).toBe(true);
+  });
+
+  it("matches POI location strings to districts via matchLocationToArea", () => {
+    expect(matchLocationToArea("Kortedala Kapell")).toContain("Kortedala");
+    expect(matchLocationToArea("Träff i Kungälv")).toContain("Kungälv");
+    expect(matchLocationToArea("")).toBeNull();
   });
 });

@@ -1,6 +1,11 @@
-# Steg 2c: Förändra Inåt (Tvingande Refaktorisering v8.7)
+# Steg 2c: Förändra Inåt (Tvingande Refaktorisering v8.8)
 
-- **Inre arkitektur och Habit-Hooks i domänen `anpassa`**:
-  - **Tillståndsseparering**: Bryta ut alla lokala tillstånd och lagringsoperationer från `OnboardingWizard.tsx` till en renodlad hook `src/features/anpassa/hooks/useOnboardingState.ts`. Detta sänker antalet hooks i UI-komponenten till exakt 1 hook, i full överensstämmelse med Habit-Hook-kravet (`<= 3` hooks).
-  - **Fasad och gränssnitt**: Exponera uteslutande nödvändiga komponenter och hooks via domänens fasad `src/features/anpassa/index.ts`.
-  - **Samlokaliserad domändokumentation**: Säkerställa att `src/features/anpassa/doc/` innehåller uppdaterade domänkontrakt, arkitekturbeskrivning och testspecifikationer.
+- **Inre arkitektur och sanering av domänen `skapa_inbjudan`**:
+  - **Typdisciplin**:
+    - Ersätta all användning av `any` i `domain/types.ts`, `hooks/subhooks/useInvitationPublishing.ts` och `components/PostSubmissionStepper.tsx` med strikta TypeScript-interface (`SavedUserTags`, `InvitationPublishPayload`, `SubmissionResult`).
+  - **Asynkron isolering och Habit-Hooks**:
+    - Flytta eventuell direkt datakommunikation i `PostSubmissionStepper.tsx` till domänens hook-/servicelager så att UI-komponenter förblir rena och reaktiva.
+  - **FSD-importsanering**:
+    - Säkerställa att alla importer till delade moduler sker via `@shared` eller `../../shared/` utan orena bakåtkliv, och att domäninterna importer använder renodlade lokala sökvägar.
+  - **Datalagring och persistens**:
+    - Validera och stärka logiken i `useInvitationPublishing.ts` för att säkerställa att den skapade inbjudan alltid sparas komplett i både lokal och synkroniserad lagring.

@@ -1,8 +1,8 @@
 # Steg 3a: Helhet, Orkestrering och Integration
 
-- **Systemövergripande arkitektur och samverkan**:
-  - Domänen `anpassa` ansvarar för användarens anpassningspreferenser (geografi, målgrupper, format, språk och färgtemainställningar).
-  - Temahanteringen styrs deklarativt via HTML-attributet `data-theme` på `:root`-elementet och backas upp av `localStorage`.
-  - Alla knappar, modaler, flödeskort och taggar konsumerar de centrala CSS-variablerna (`--color-btn-invite-*`, `--color-modal-*`, `--color-stream-*`, `--color-primary`, etc.) som definieras i `src/index.css`.
-  - `OnboardingWizard.tsx` orkestrerar användarinställningarna och guidestegen. För att möta Habit-Hook-kraven bryts all tillståndshantering och biverkningar ut till `src/features/anpassa/hooks/useOnboardingState.ts`.
-  - Integrationen mot `src/App.tsx` och övriga applikationen sker uteslutande via domänfasaden `src/features/anpassa/index.ts`.
+- **Orkestrering och gränssnitt för domänen `skapa_inbjudan`**:
+  - `CreateInvitationForm.tsx` utgör huvudvyn för att samla in uppgifter om ny inbjudan (tid, plats, område, målgrupp, aktivitet, arrangör).
+  - Formuläret delegerar tillståndshantering till `useInvitationForm.ts` som i sin tur orkestrerar delhooks för dialoger, favoriter och publicering.
+  - Publiceringslogiken i `useInvitationPublishing.ts` sparar den nya inbjudan till backend (`/api/alerts`) och synkroniserar med lokal tillståndshantering.
+  - Efter slutförd publicering visas `PostSubmissionStepper.tsx` med AI-granskning, integritetsinformation, QR-kod och SMS-delningslänkar.
+  - Integrationen mot omvärlden sker uteslutande via domänfasaden `src/features/skapa_inbjudan/index.ts`.

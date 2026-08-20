@@ -1,8 +1,9 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Publishing & Pre-flight Sub-Hook
 
 import { useState } from "react";
-import { AiReviewProposal } from "../../domain/types";
-import { washAnnouncementText } from "../../../mission_router";
+import { AiReviewProposal } from "../domain/types";
+import { sendSimulatedSms, checkAnnouncementContent } from "../domain/publishService";
+import { washAnnouncementText } from "@/src/features/mission_router";
 
 interface UseInvitationPublishingParams {
   activityText: string;
@@ -90,19 +91,10 @@ export function useInvitationPublishing({
 
     // Run AI check if activityText is present
     if (activityText.trim()) {
-      try {
-        const response = await fetch("/api/wash-announcement", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: formattedText })
-        });
-        const data = await response.json();
-        if (data.result?.hasPrivacyRisk || data.result?.hasInappropriateContent) {
-          hasPrivacyFlag = true;
-          reasonCopy = data.result.reason || "Inbjudan innehåller information som kan vara känslig eller behöver extra granskning.";
-        }
-      } catch (err) {
-        console.error("AI Check error:", err);
+      const data = await checkAnnouncementContent(formattedText);
+      if (data?.result?.hasPrivacyRisk || data?.result?.hasInappropriateContent) {
+        hasPrivacyFlag = true;
+        reasonCopy = data.result.reason || "Inbjudan innehåller information som kan vara känslig eller behöver extra granskning.";
       }
     }
     setSending(false);
@@ -135,19 +127,11 @@ export function useInvitationPublishing({
   const executePublish = async () => {
     setSending(true);
     try {
-      const response = await fetch("/api/sim/sms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "0700000000",
-          body: `#WEBB\n${formattedText}`
-        })
-      });
+      const { success, id } = await sendSimulatedSms(`#WEBB\n${formattedText}`);
 
-      if (response.ok) {
-        const data = await response.json();
+      if (success) {
         const newProposal = {
-          id: data.id || `prop-${Date.now()}`,
+          id: id || `prop-${Date.now()}`,
           category: selectedAudience[0] || "Vara en vän",
           area: selectedAreas.join(", ") || locationName || "Göteborg",
           locationName,
@@ -159,8 +143,8 @@ export function useInvitationPublishing({
         };
         if (typeof localStorage !== "undefined") {
           const stored = localStorage.getItem("my_pending_proposals");
-          const list = stored ? JSON.parse(stored) : [];
-          localStorage.setItem("my_pending_proposals", JSON.stringify([newProposal, ...list.filter((p: any) => p.id !== newProposal.id)]));
+          const list: Array<{ id: string }> = stored ? JSON.parse(stored) : [];
+          localStorage.setItem("my_pending_proposals", JSON.stringify([newProposal, ...list.filter(p => p.id !== newProposal.id)]));
         }
 
         showToast("Din inbjudan har skickats in för granskning och publicering!", 1200);

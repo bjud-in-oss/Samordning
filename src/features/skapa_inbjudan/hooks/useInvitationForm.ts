@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { FavoriteItem } from "../domain/types";
-import { washAnnouncementText } from "../../mission_router";
-import { useInvitationFavorites } from "./subhooks/useInvitationFavorites";
-import { useInvitationDialogs } from "./subhooks/useInvitationDialogs";
-import { useInvitationPublishing } from "./subhooks/useInvitationPublishing";
+import { washAnnouncementText } from "@/src/features/mission_router";
+import { useInvitationFavorites } from "./useInvitationFavorites";
+import { useInvitationDialogs } from "./useInvitationDialogs";
+import { useInvitationPublishing } from "./useInvitationPublishing";
 
 export function useInvitationForm(onSuccess?: () => void) {
   // Primary Form State

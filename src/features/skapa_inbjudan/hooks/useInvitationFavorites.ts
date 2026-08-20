@@ -1,7 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Favorites Sub-Hook
 
 import { useState } from "react";
-import { FavoriteItem } from "../../domain/types";
+import { FavoriteItem } from "../domain/types";
 
 interface UseInvitationFavoritesParams {
   selectedTime: string;

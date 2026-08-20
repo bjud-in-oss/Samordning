@@ -1,43 +1,43 @@
-// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Area Selection Dialog
+// [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Audience Selection Dialog
 
 import React from "react";
 import { Check, CheckSquare, XCircle } from "lucide-react";
-import { GOTEBORG_AREAS } from "../../../anpassa";
+import { AUDIENCE_OPTIONS } from "../domain/constants";
 
-interface AreaDialogProps {
-  tempAreas: string[];
-  setTempAreas: (areas: string[]) => void;
+interface AudienceDialogProps {
+  tempAudience: string[];
+  setTempAudience: (aud: string[]) => void;
   onClose: () => void;
-  onSave: (areas: string[]) => void;
+  onSave: (aud: string[]) => void;
 }
 
-export function AreaDialog({
-  tempAreas,
-  setTempAreas,
+export function AudienceDialog({
+  tempAudience,
+  setTempAudience,
   onClose,
   onSave
-}: AreaDialogProps) {
-  const toggleArea = (areaName: string) => {
-    if (tempAreas.includes(areaName)) {
-      setTempAreas(tempAreas.filter(a => a !== areaName));
+}: AudienceDialogProps) {
+  const toggleAudience = (aud: string) => {
+    if (tempAudience.includes(aud)) {
+      setTempAudience(tempAudience.filter(a => a !== aud));
     } else {
-      setTempAreas([...tempAreas, areaName]);
+      setTempAudience([...tempAudience, aud]);
     }
   };
 
   const handleSelectAll = () => {
-    setTempAreas([...GOTEBORG_AREAS]);
+    setTempAudience([...AUDIENCE_OPTIONS]);
   };
 
   const handleClear = () => {
-    setTempAreas([]);
+    setTempAudience([]);
   };
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-brand-ink/10 pb-2 gap-2">
         <span className="font-mono text-xs uppercase font-semibold text-brand-ink">
-          Välj vilka områden som ska bjudas in
+          Målgrupp (Vilka riktar sig aktiviteten till?)
         </span>
         <div className="flex items-center gap-2 font-mono text-xs">
           <button
@@ -59,21 +59,21 @@ export function AreaDialog({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
-        {GOTEBORG_AREAS.map(areaName => {
-          const selected = tempAreas.includes(areaName);
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {AUDIENCE_OPTIONS.map(opt => {
+          const selected = tempAudience.includes(opt);
           return (
             <button
-              key={areaName}
+              key={opt}
               type="button"
-              onClick={() => toggleArea(areaName)}
+              onClick={() => toggleAudience(opt)}
               className={`p-3 rounded-2xl border font-mono text-xs text-left transition-all cursor-pointer flex items-center justify-between ${
                 selected
                   ? "bg-brand-accent text-white border-brand-accent font-semibold shadow-xs"
                   : "bg-white border-brand-ink/10 text-brand-ink hover:border-brand-accent/50"
               }`}
             >
-              <span>{areaName}</span>
+              <span>{opt}</span>
               {selected && <Check size={14} className="text-white shrink-0" />}
             </button>
           );
@@ -90,7 +90,7 @@ export function AreaDialog({
         </button>
         <button
           type="button"
-          onClick={() => onSave(tempAreas)}
+          onClick={() => onSave(tempAudience)}
           className="px-5 py-2 bg-brand-accent text-white rounded-xl font-mono text-xs uppercase font-semibold cursor-pointer hover:bg-brand-accent/90"
         >
           Spara
@@ -99,4 +99,3 @@ export function AreaDialog({
     </div>
   );
 }
-

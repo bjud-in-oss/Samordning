@@ -1,6 +1,6 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Domain Types
 
-import { UiLanguage } from "../../mission_router/translations";
+import { UiLanguage } from "@/src/features/mission_router";
 
 export type ActiveDialogType = "time" | "location" | "activity" | "area" | "audience" | "organization" | null;
 
@@ -31,7 +31,7 @@ export interface FavoriteItem {
 
 export interface CreateInvitationFormProps {
   uiLanguage: UiLanguage;
-  savedTags?: any;
+  savedTags?: Record<string, unknown>;
   isAdmin?: boolean;
   onBack?: () => void;
   onSuccess?: () => void;

@@ -1,7 +1,6 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Domain Geocoder & KML Matcher
 
-import { POI_LOCATIONS } from "./constants";
-import { GOTEBORG_AREAS } from "../../anpassa/mapData";
+import { POI_LOCATIONS, GOTEBORG_AREAS } from "./constants";
 
 export function matchLocationToArea(locationText: string): string | null {
   if (!locationText || !locationText.trim()) return null;

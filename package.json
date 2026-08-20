@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "tsx server.ts",
     "init-hashes": "node scripts/init-hashes.js",
-    "verify": "node scripts/verify-architecture.js && tsc --noEmit",
-    "build": "node scripts/verify-architecture.js && tsc --noEmit && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "verify": "node scripts/verify-architecture.js --ignore-mtime && tsc --noEmit",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",

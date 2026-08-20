@@ -1,8 +1,7 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Time Selection Dialog
 
 import React from "react";
-import { Clock } from "lucide-react";
-import { QUICK_TIMES } from "../../domain/constants";
+import { QUICK_TIMES } from "../domain/constants";
 
 interface TimeDialogProps {
   tempTime: string;

@@ -1,6 +1,6 @@
-// [src/features/skapa_inbjudan/hooks/__tests__/useInvitationForm.test.ts] - Unit Test for Form Facade Logic
+// [src/features/skapa_inbjudan/hooks/useInvitationForm.test.ts] - Unit Test for Form Facade Logic
 import { describe, it, expect } from "vitest";
-import { washAnnouncementText } from "../../../mission_router";
+import { washAnnouncementText } from "@/src/features/mission_router";
 
 describe("useInvitationForm Business Logic & Form Formatting", () => {
   it("formats output text correctly from form parameters", () => {

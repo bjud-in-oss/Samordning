@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import { AiReviewProposal } from "../domain/types";
 import { GATEWAY_NUMBER } from "../domain/constants";
-import { washAnnouncementText } from "../../mission_router";
+import { sendSimulatedSms } from "../domain/publishService";
+import { washAnnouncementText } from "@/src/features/mission_router";
 import { Step1AiReview } from "./Step1AiReview";
 import { Step2Privacy } from "./Step2Privacy";
 import { Step3SmsShare } from "./Step3SmsShare";
@@ -94,14 +95,7 @@ export function PostSubmissionStepper({
   const handleConfirmSent = async () => {
     setSaving(true);
     try {
-      await fetch("/api/sim/sms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "0700000000",
-          body: `#WEBB\n${formattedText}`
-        })
-      });
+      await sendSimulatedSms(`#WEBB\n${formattedText}`);
 
       const newProposal = {
         id: `prop-${Date.now()}`,
@@ -117,8 +111,8 @@ export function PostSubmissionStepper({
 
       if (typeof localStorage !== "undefined") {
         const stored = localStorage.getItem("my_pending_proposals");
-        const list = stored ? JSON.parse(stored) : [];
-        localStorage.setItem("my_pending_proposals", JSON.stringify([newProposal, ...list.filter((p: any) => p.id !== newProposal.id)]));
+        const list: Array<{ id: string }> = stored ? JSON.parse(stored) : [];
+        localStorage.setItem("my_pending_proposals", JSON.stringify([newProposal, ...list.filter(p => p.id !== newProposal.id)]));
       }
 
       setIsSubmitted(true);

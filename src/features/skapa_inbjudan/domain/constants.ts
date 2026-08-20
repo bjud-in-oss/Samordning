@@ -1,5 +1,8 @@
 // [CURRENT SUBDIRECTORY/CYCLE] | [src/features/skapa_inbjudan/4_Produce] - Domain Constants
 
+import { GOTEBORG_AREAS } from "@/src/features/anpassa";
+export { GOTEBORG_AREAS };
+
 export const POI_LOCATIONS = [
   "Tjörn & Stenungsund",
   "Kungälv",

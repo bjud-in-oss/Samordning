@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Check } from "lucide-react";
-import { POI_LOCATIONS } from "../../domain/constants";
+import { POI_LOCATIONS } from "../domain/constants";
 
 interface LocationDialogProps {
   tempLocation: string;

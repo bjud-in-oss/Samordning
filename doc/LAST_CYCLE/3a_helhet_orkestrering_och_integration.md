@@ -1,7 +1,8 @@
 # Steg 3a: Helhet, Orkestrering och Integration
 
-### 1. Helhetsnivå
-- Systemomfattande designintegration för accentfärger:
-  - Definierad färgtoken i Tailwind `@theme`: `var(--color-brand-accent)` (`#5e6c5c`).
-  - Ersättning av alla hårdkodade Tailwind `emerald-*` och `green-*` klasser i `src/features/skapa_inbjudan`, `src/features/inbjudningar` och `src/features/sms_assistant` med `brand-accent`, `brand-paper` och `brand-ink` motsvarigheter.
-  - Säkra god kontrast (WCAG AA) för text och ikoner mot bakgrunder.
+- **Systemövergripande arkitektur och samverkan**:
+  - Domänen `anpassa` ansvarar för användarens anpassningspreferenser (geografi, målgrupper, format, språk och färgtemainställningar).
+  - Temahanteringen styrs deklarativt via HTML-attributet `data-theme` på `:root`-elementet och backas upp av `localStorage`.
+  - Alla knappar, modaler, flödeskort och taggar konsumerar de centrala CSS-variablerna (`--color-btn-invite-*`, `--color-modal-*`, `--color-stream-*`, `--color-primary`, etc.) som definieras i `src/index.css`.
+  - `OnboardingWizard.tsx` orkestrerar användarinställningarna och guidestegen. För att möta Habit-Hook-kraven bryts all tillståndshantering och biverkningar ut till `src/features/anpassa/hooks/useOnboardingState.ts`.
+  - Integrationen mot `src/App.tsx` och övriga applikationen sker uteslutande via domänfasaden `src/features/anpassa/index.ts`.

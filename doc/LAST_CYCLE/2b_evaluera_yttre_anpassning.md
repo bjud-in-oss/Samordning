@@ -1,6 +1,6 @@
-# Steg 2b: Evaluera yttre anpassning
+# Steg 2b: Evaluera Yttre Anpassning
 
-- **Fråga 1**: Funkar det utåt?
-- **Svar**: Ja. Enhetlig färgprofil skapar visuell harmoni och överensstämmer helt med användarens förväntan. Inga API-kontrakt eller externa gränssnitt bryts.
-
-BESLUT: GÅ_TILL_DESIGN
+- **Utvärdering av visionen gentemot användarbehov**:
+  - Den centrala temadefinieringen i `src/index.css` eliminerar behovet av att manipulera enskilda komponentklasser vid stiljusteringar.
+  - Tillgängligheten höjs avsevärt genom att det dedikerade högkontrasttemat (`high-contrast`) nu även styr modaler, bakgrunder och knappar med absolut svart/vit kontrast.
+  - Förändringen bryter inte bakåtkompatibilitet och kräver inga externa beroenden.

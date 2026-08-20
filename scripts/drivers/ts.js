@@ -111,7 +111,7 @@ export async function verifyTypeScriptCodebase({
           }
 
           // Förbjudet 'any'
-          if (/:s*any\b|as\s+any\b/.test(content)) {
+          if (/:\s*any\b|as\s+any\b/.test(content)) {
             logError('HABIT-HOOK: EXPLICIT_ANY', `${path.relative(ROOT_DIR, fullPath)} använder 'any'. Använd konkreta typer.`);
           }
           // ---------------------------------------------------------

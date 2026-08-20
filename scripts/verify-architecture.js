@@ -1,7 +1,7 @@
 /**
- * DETERMINISTISK PROCESS- OCH KODREVISOR (v8.7 - VATTENTÄT KÄRNA)
- * SHA-256-hashkontroll, mtime-tidsspärr, Mänsklig Input-Gate (10s betänketid),
- * automatisk drivrutinsdetektering (TS, Python, Rust, Go) och processsekvensering.
+ * DETERMINISTISK PROCESS- OCH KODREVISOR (v8.8 - ANVÄNDARANPASSAD KÄRNA)
+ * SHA-256-hashkontroll, mtime-tidsspärr, automatisk städning av APPROVAL.md,
+ * Mänsklig Input-Gate (10s betänketid), automatisk drivrutinsdetektering.
  */
 
 import fs from 'fs';
@@ -23,7 +23,7 @@ const ignoreMtime = process.argv.includes('--ignore-mtime') || process.argv.incl
 let hasErrors = false;
 
 function logError(title, message) {
-  console.error(`\n❌ [MEKANISK SPÄRR v8.7] ${title}`);
+  console.error(`\n❌ [MEKANISK SPÄRR v8.8] ${title}`);
   console.error(`   ${message}`);
   hasErrors = true;
 }
@@ -57,10 +57,21 @@ async function runVerification() {
   const driverLang = detectLanguageDriver();
   const driverPath = path.join(__dirname, 'drivers', `${driverLang}.js`);
 
-  // 1. STEG 1 & TIDSSPÄRR FÖR SÄKERHETSMANIPULERING
   const p1a = path.join(LAST_CYCLE_DIR, '1a_orientera.md');
   const p1b = path.join(LAST_CYCLE_DIR, '1b_kartlagga.md');
+  const pApproval = path.join(LAST_CYCLE_DIR, 'APPROVAL.md');
+
   const t1a = getMtime(p1a), t1b = getMtime(p1b);
+  let tApproval = getMtime(pApproval);
+
+  // AUTOMATISK RENSNING: Om en ny cykel påbörjats, radera gamla kvittot
+  if (t1a > 0 && tApproval > 0 && tApproval < t1a) {
+    try {
+      fs.unlinkSync(pApproval);
+      tApproval = 0;
+    } catch (e) {}
+  }
+
   const tScript = getMtime(__filename);
   const tDriver = getMtime(driverPath);
   const tHashes = getMtime(HASHES_FILE);
@@ -69,20 +80,12 @@ async function runVerification() {
   if (t1a === 0 || t1b === 0) logError('STEG 1 SAKNAS', '1a_orientera.md eller 1b_kartlagga.md saknas.');
   if (!ignoreMtime && t1b <= t1a) logError('SEKVENSFEL', '1b_kartlagga.md måste sparas strikt EFTER 1a_orientera.md.');
 
-  // VATTENTÄT SPÄRR: Inget skript eller hash-verktyg får ändras/köras EFTER att cykeln (1a) påbörjades
   if (!ignoreMtime && t1a > 0) {
-    if (tScript > t1a) {
-      logError('SKRIPTMANIPULERING', 'scripts/verify-architecture.js har redigerats under pågående cykel.');
-    }
-    if (tDriver > t1a) {
-      logError('DRIVRUTINSMANIPULERING', `scripts/drivers/${driverLang}.js har redigerats under pågående cykel.`);
-    }
-    if (tHashes > t1a || tInitHashes > t1a) {
-      logError('HASHMANIPULERING', 'hashes.json eller init-hashes.js har ändrats/körts under pågående cykel.');
-    }
+    if (tScript > t1a) logError('SKRIPTMANIPULERING', 'scripts/verify-architecture.js har redigerats under pågående cykel.');
+    if (tDriver > t1a) logError('DRIVRUTINSMANIPULERING', `scripts/drivers/${driverLang}.js har redigerats under pågående cykel.`);
+    if (tHashes > t1a || tInitHashes > t1a) logError('HASHMANIPULERING', 'hashes.json eller init-hashes.js har ändrats/körts under pågående cykel.');
   }
 
-  // SHA-256 INTEGRITETSKONTROLL
   if (fs.existsSync(HASHES_FILE)) {
     try {
       const storedHashes = JSON.parse(readFile(HASHES_FILE));
@@ -100,14 +103,6 @@ async function runVerification() {
     }
   }
 
-  // TIDSVARNING (1500 s = 25 min)
-  if (!ignoreMtime && t1a > 0) {
-    const elapsedSeconds = (Date.now() - t1a) / 1000;
-    if (elapsedSeconds > 1500) {
-      console.warn(`\n⏳ [TIDSVARNING] Pågående cykel har pågått i ${Math.round(elapsedSeconds)}s. Spara tillstånd till disk.\n`);
-    }
-  }
-
   if (t1a > 0) {
     const jsonMatch = readFile(p1a).match(/```json\s*([\s\S]*?)\s*```/);
     if (!jsonMatch) {
@@ -122,7 +117,6 @@ async function runVerification() {
     }
   }
 
-  // 2. STEG 2: STRATEGISKT NÄTVERK (TVINGANDE 2C)
   const p2a = path.join(LAST_CYCLE_DIR, '2a_forandra_utat_vision.md');
   const p2b = path.join(LAST_CYCLE_DIR, '2b_evaluera_yttre_anpassning.md');
   const p2c = path.join(LAST_CYCLE_DIR, '2c_forandra_inat_refaktorisering.md');
@@ -133,7 +127,7 @@ async function runVerification() {
   const t2a = getMtime(p2a), t2b = getMtime(p2b), t2c = getMtime(p2c);
   const t2d = getMtime(p2d), t2e = getMtime(p2e), t2f = getMtime(p2f);
 
-  if (t2c === 0) logError('MÅSTE KÖRA 2C', 'Steg 2c är tvingande i v8.6 för att förhindra arkitekturskuld.');
+  if (t2c === 0) logError('MÅSTE KÖRA 2C', 'Steg 2c är tvingande för att förhindra arkitekturskuld.');
 
   if (!ignoreMtime) {
     if (t2a <= t1b) logError('SEKVENSFEL', '2a måste sparas EFTER 1b.');
@@ -157,7 +151,6 @@ async function runVerification() {
     else logError('STRATEGISK SPÄRR', 'Inget "BESLUT: GÅ_TILL_DESIGN" nåddes i Steg 2.');
   }
 
-  // 3. STEG 3: DESIGNKEDJA
   const p3a = path.join(LAST_CYCLE_DIR, '3a_helhet_orkestrering_och_integration.md');
   const p3b = path.join(LAST_CYCLE_DIR, '3b_doman_kontrakt_och_fraktal_dokumentation.md');
   const p3c = path.join(LAST_CYCLE_DIR, '3c_fil_operativ_kallkodsspecifikation.md');
@@ -171,10 +164,6 @@ async function runVerification() {
 
   if (!(t3c > 0 && /BESLUT:\s*GODKÄND/i.test(readFile(p3c)))) logError('DOMSTOLSSPÄRR', '3c saknar "BESLUT: GODKÄND".');
 
-  // MÄNSKLIG INPUT-GATE MED TIDSSPÄRR (Minst 10 sekunders betänketid efter 3c)
-  const pApproval = path.join(LAST_CYCLE_DIR, 'APPROVAL.md');
-  const tApproval = getMtime(pApproval);
-
   if (t3c > 0 && !ignoreMtime) {
     if (tApproval === 0) {
       logError('MÄNSKLIGT GODKÄNNANDE SAKNAS', 'Källkod får inte redigeras. Granska 3c och spara doc/LAST_CYCLE/APPROVAL.md för att låsa upp Steg 4.');
@@ -185,7 +174,6 @@ async function runVerification() {
     }
   }
 
-  // 4. DELEGERA TILL SPRÅKDRIVRUTIN
   if (fs.existsSync(driverPath)) {
     const driverModule = await import(`./drivers/${driverLang}.js`);
     const verifyFunc = driverModule.verifyCodebase || driverModule.verifyTypeScriptCodebase;
@@ -203,10 +191,10 @@ async function runVerification() {
   }
 
   if (hasErrors) {
-    console.error('\n⛔ BYGGET STOPPADES AV MEKANISK KONTROLL v8.7.\n');
+    console.error('\n⛔ BYGGET STOPPADES AV MEKANISK KONTROLL v8.8.\n');
     process.exit(1);
   } else {
-    console.log(`✅ Alla sekvenser, fasader, max-domänsgränser, AI-zoner, Mänsklig Gate och TDD-kronologier godkända [Drivrutin: ${driverLang}] (v8.7).`);
+    console.log(`✅ Alla sekvenser, fasader, max-domänsgränser, AI-zoner, Mänsklig Gate och TDD-kronologier godkända [Drivrutin: ${driverLang}] (v8.8).`);
   }
 }
 

@@ -1,7 +1,7 @@
 /**
- * TYPESCRIPT & FSD DRIVRUTIN (v8.7)
+ * TYPESCRIPT & FSD DRIVRUTIN (v8.8)
  * Utför global AI-skanning, fasadvalidering, FSD-gränskontroller, TDD-kronologi,
- * domänbegränsningar, Manifestkontroll mot 3c samt Habit Hooks kodedisciplin.
+ * domänbegränsningar, Manifestkontroll mot 3c samt pedagogiska felmeddelanden.
  */
 
 import fs from 'fs';
@@ -21,7 +21,6 @@ export async function verifyTypeScriptCodebase({
   const p3cPath = path.join(LAST_CYCLE_DIR, '3c_fil_operativ_kallkodsspecifikation.md');
   const p3cContent = fs.existsSync(p3cPath) ? fs.readFileSync(p3cPath, 'utf-8') : '';
 
-  // 1. SAMLOKALISERAD DOKUMENTATION, FASADER OCH ZONER
   if (fs.existsSync(featuresDir)) {
     for (const domain of fs.readdirSync(featuresDir)) {
       const domainPath = path.join(featuresDir, domain);
@@ -34,7 +33,6 @@ export async function verifyTypeScriptCodebase({
         if (invalidLine) logError('FASAD-ÖVERTRÄDELSE (ADR-009)', `${path.relative(ROOT_DIR, indexPath)} har otillåten rad: "${invalidLine}"`);
       }
 
-      // Validering av AI-Säkerhetszoner (Sanitizer får ej läcka globala API:er)
       const sanitizerPath = path.join(domainPath, 'domain', 'ai_zones', 'sanitizer.ts');
       if (fs.existsSync(sanitizerPath)) {
         const content = fs.readFileSync(sanitizerPath, 'utf-8');
@@ -45,7 +43,6 @@ export async function verifyTypeScriptCodebase({
     }
   }
 
-  // 2. KÄLLKODS- OCH TDD-SKANNING (INKL GLOBAL AI-SKANNING OCH MAX 1 DOMÄN)
   if (fs.existsSync(SRC_DIR)) {
     let oldestTestTime = Infinity, oldestProdCodeTime = Infinity;
     let newestProdCodeTime = 0, newestTestTime = 0;
@@ -63,14 +60,12 @@ export async function verifyTypeScriptCodebase({
           const relPath = path.relative(SRC_DIR, fullPath);
           const isTsx = file.endsWith('.tsx');
 
-          // Identifiera modifierade domäner efter 3c
           if (!ignoreMtime && stat.mtimeMs > t3c) {
             if (relPath.startsWith('features' + path.sep)) {
               const domName = relPath.split(path.sep)[1];
               if (domName) modifiedDomains.add(domName);
             }
 
-            // MANIFESTKONTROLL: Alla skapade/ändrade filer i src/ MÅSTE finnas nämnda i 3c
             if (p3cContent && !p3cContent.includes(relPath) && !p3cContent.includes(file)) {
               logError('MANIFESTÖVERTRÄDELSE', `Filen "${relPath}" modifierades i Steg 4 men saknas i 3c. Gör en cykelretur till 3c och speca filen först.`);
             }
@@ -80,7 +75,6 @@ export async function verifyTypeScriptCodebase({
             logError('SEKVENSFEL', `Källkodsfilen "${path.relative(ROOT_DIR, fullPath)}" sparades FÖRE 3c.`);
           }
 
-          // Global AI-Skanning: AI-anrop/moduler FÅR ENDAST finnas i domain/ai_zones/ eller server/
           const hasAiImport = /(@google\/genai|openai|fetch\(['"]\/api\/ai)/i.test(content);
           const isInsideAiZone = relPath.includes(`domain${path.sep}ai_zones`);
           const isServerCode = path.relative(ROOT_DIR, fullPath).startsWith('server');
@@ -89,32 +83,26 @@ export async function verifyTypeScriptCodebase({
             logError('AI-ISOLERINGSÖVERTRÄDELSE', `${path.relative(ROOT_DIR, fullPath)} innehåller AI-anrop utanför domain/ai_zones/.`);
           }
 
-          // --- HABIT HOOKS: KONTROLLER FÖR REACT OCH KODDISCIPLIN ---
           if (isTsx) {
             const useStateCount = (content.match(/useState\s*\(/g) || []).length;
             const useEffectCount = (content.match(/useEffect\s*\(/g) || []).length;
 
-            // Tillståndsseparering (>3 hooks)
             if (useStateCount + useEffectCount > 3) {
-              logError('HABIT-HOOK: STATE_OVERLOAD', `${path.relative(ROOT_DIR, fullPath)} har ${useStateCount + useEffectCount} hooks. Bryt ut till custom hook i hooks/.`);
+              logError('Snyggar till: För mycket logik i samma vy', `${path.relative(ROOT_DIR, fullPath)} har ${useStateCount + useEffectCount} hooks. Bryt ut beräkningarna till en custom hook under hooks/.`);
             }
 
-            // Asynkron isolering i UI
             if (/fetch\s*\(|async\s+\(|axios\./.test(content)) {
-              logError('HABIT-HOOK: ASYNC_IN_UI', `${path.relative(ROOT_DIR, fullPath)} har direkta fetch/async-anrop. Flytta till domain/ eller service-lagret.`);
+              logError('Prestanda: Datahämtning i gränssnittet', `${path.relative(ROOT_DIR, fullPath)} hämtar data direkt i vyn. Flytta till domain/ eller servicelagret.`);
             }
           }
 
-          // Svalda fel (Swallowed Exception)
           if (/catch\s*\([^)]*\)\s*\{\s*\}/.test(content)) {
-            logError('HABIT-HOOK: SWALLOWED_EXCEPTION', `${path.relative(ROOT_DIR, fullPath)} innehåller ett tomt catch-block.`);
+            logError('Felhantering: Dolda fel i koden', `${path.relative(ROOT_DIR, fullPath)} har ett tomt catch-block som sväljer fel.`);
           }
 
-          // Förbjudet 'any'
           if (/:\s*any\b|as\s+any\b/.test(content)) {
-            logError('HABIT-HOOK: EXPLICIT_ANY', `${path.relative(ROOT_DIR, fullPath)} använder 'any'. Använd konkreta typer.`);
+            logError('Typkontroll: Koden saknade tydliga beskrivningar av sin data', `${path.relative(ROOT_DIR, fullPath)} använder 'any'. Ange konkreta datatyper.`);
           }
-          // ---------------------------------------------------------
 
           const isTest = file.includes('__tests__') || file.endsWith('.test.ts') || file.endsWith('.test.tsx');
           if (isTest) {
@@ -138,12 +126,10 @@ export async function verifyTypeScriptCodebase({
 
     scanSrc(SRC_DIR);
 
-    // Spärr mot fler än 1 domän per cykel
     if (modifiedDomains.size > 1) {
       logError('DOMÄNÖVERTRÄDELSE (MAX 1 DOMÄN)', `Ändringar upptäcktes i ${modifiedDomains.size} domäner samtidigt (${Array.from(modifiedDomains).join(', ')}). Dela upp i separata cykler.`);
     }
 
-    // Spärr mot tom kodproduktion
     if (t4 > 0 && newestProdCodeTime <= t3c && newestTestTime <= t3c) {
       logError('TOM PRODUKTION', '4_producera.md skapades men inga källkods- eller testfiler i src/ har ändrats efter 3c.');
     }

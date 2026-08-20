@@ -1,12 +1,12 @@
 // [src/features/anpassa/OnboardingWizard.tsx] - Onboarding Wizard Preferences Component
 
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import { MapPin, Check, X, Sparkles, Settings } from "lucide-react";
-import { GOTEBORG_AREAS } from "./mapData";
 import { UiLanguage } from "../mission_router";
 import Step1Geography from "./Step1Geography";
 import { MoreSettingsSection } from "./components/MoreSettingsSection";
 import { TargetGroupsSection } from "./components/TargetGroupsSection";
+import { useOnboardingState, OnboardingStateSavedTags } from "./hooks/useOnboardingState";
 
 interface OnboardingWizardProps {
   onSave: (tags: {
@@ -24,21 +24,7 @@ interface OnboardingWizardProps {
     targetGroups?: string[];
     allowDigital?: boolean;
   }) => void;
-  savedTags?: {
-    areas: string[];
-    primaryArea?: string;
-    limitAreas?: boolean;
-    limitedAreas?: string[];
-    limitOrganizations?: boolean;
-    limitedOrganizations?: string[];
-    languages?: string[];
-    organization?: string;
-    formats: ("physical" | "telephone")[];
-    alwaysNotify: boolean;
-    spiritualTips: boolean;
-    targetGroups?: string[];
-    allowDigital?: boolean;
-  };
+  savedTags?: OnboardingStateSavedTags;
   pushEnabled: boolean;
   onEnablePush: () => void;
   onDisablePush: () => void;
@@ -50,108 +36,28 @@ export default function OnboardingWizard({
   onSave,
   savedTags,
   uiLanguage,
-  onClose
+  onClose,
 }: OnboardingWizardProps) {
-  const [primaryArea, setPrimaryArea] = useState<string | undefined>(savedTags?.primaryArea);
-  const [limitAreas, setLimitAreas] = useState<boolean>(savedTags?.limitAreas ?? false);
-  const [limitedAreas, setLimitedAreas] = useState<string[]>(savedTags?.limitedAreas || []);
-  
-  const [targetGroups, setTargetGroups] = useState<string[]>(
-    savedTags?.targetGroups || ["all"]
-  );
-
-  const [formats, setFormats] = useState<("physical" | "telephone")[]>(
-    savedTags?.formats || ["physical", "telephone"]
-  );
-  const [allowDigital, setAllowDigital] = useState<boolean>(
-    savedTags?.allowDigital ?? true
-  );
-  const [spiritualTips, setSpiritualTips] = useState<boolean>(
-    savedTags?.spiritualTips ?? true
-  );
-
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
-    savedTags?.languages || ["Svenska"]
-  );
-
-  const [organization] = useState<string>(
-    savedTags?.organization || ""
-  );
-  const [limitOrganizations] = useState<boolean>(
-    savedTags?.limitOrganizations ?? false
-  );
-  const [limitedOrganizations] = useState<string[]>(
-    savedTags?.limitedOrganizations || []
-  );
-  const [alwaysNotify] = useState<boolean>(
-    savedTags?.alwaysNotify ?? true
-  );
-
-  const [showMoreSettings, setShowMoreSettings] = useState<boolean>(false);
-
-  const onSaveRef = useRef(onSave);
-
-  useEffect(() => {
-    onSaveRef.current = onSave;
-  }, [onSave]);
-
-  useEffect(() => {
-    onSaveRef.current({
-      areas: limitAreas ? (primaryArea ? [primaryArea, ...limitedAreas.filter(a => a !== primaryArea)] : limitedAreas) : GOTEBORG_AREAS,
-      primaryArea,
-      limitAreas,
-      limitedAreas,
-      limitOrganizations,
-      limitedOrganizations,
-      languages: selectedLanguages,
-      organization,
-      formats,
-      alwaysNotify,
-      spiritualTips,
-      targetGroups,
-      allowDigital
-    });
-  }, [
+  const {
     primaryArea,
+    setPrimaryArea,
     limitAreas,
+    setLimitAreas,
     limitedAreas,
-    limitOrganizations,
-    limitedOrganizations,
-    selectedLanguages,
-    organization,
-    formats,
-    alwaysNotify,
-    spiritualTips,
+    setLimitedAreas,
     targetGroups,
-    allowDigital
-  ]);
-
-  const toggleTargetGroup = (groupId: string) => {
-    setTargetGroups(prev => {
-      if (groupId === "all") {
-        return ["all"];
-      }
-      const filtered = prev.filter(g => g !== "all");
-      if (filtered.includes(groupId)) {
-        const next = filtered.filter(g => g !== groupId);
-        return next.length === 0 ? ["all"] : next;
-      } else {
-        return [...filtered, groupId];
-      }
-    });
-  };
-
-  const toggleLanguage = (langCode: string) => {
-    setSelectedLanguages(prev =>
-      prev.includes(langCode) ? prev.filter(l => l !== langCode) : [...prev, langCode]
-    );
-  };
-
-  const toggleFormat = (format: "physical" | "telephone") => {
-    setFormats(prev =>
-      prev.includes(format) ? prev.filter(f => f !== format) : [...prev, format]
-    );
-  };
+    toggleTargetGroup,
+    formats,
+    toggleFormat,
+    allowDigital,
+    setAllowDigital,
+    spiritualTips,
+    setSpiritualTips,
+    selectedLanguages,
+    toggleLanguage,
+    showMoreSettings,
+    setShowMoreSettings,
+  } = useOnboardingState({ onSave, savedTags });
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto pb-24 relative animate-in fade-in duration-200 text-left">
@@ -208,7 +114,7 @@ export default function OnboardingWizard({
       <div className="pt-2 flex justify-center">
         <button
           type="button"
-          onClick={() => setShowMoreSettings(prev => !prev)}
+          onClick={() => setShowMoreSettings((prev) => !prev)}
           className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-brand-paper border border-brand-ink/10 text-brand-ink text-xs font-mono uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs"
         >
           <Settings size={14} className="text-brand-accent" />

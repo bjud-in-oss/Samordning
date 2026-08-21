@@ -1,25 +1,11 @@
-// [src/features/inbjudningar/ActiveStream.tsx] - Stream Container Component
-
 import React, { useState, useEffect } from "react";
 import { ShieldAlert } from "lucide-react";
 import { ActiveAlert, UiLanguage } from "../mission_router";
 import { CreateInvitationForm } from "../skapa_inbjudan";
-import { subscribeToFirestoreAlerts } from "../../main/config/firebaseClient";
-import { AdminModerationQueue } from "./components/AdminModerationQueue";
-import { StreamFilterStatus, SavedFilterTags } from "./components/StreamFilterStatus";
+import { subscribeToFirestoreAlerts } from "@/src/main/config/firebaseClient";
 import { StreamNoticeCard } from "./components/StreamNoticeCard";
-
-interface PendingProposal {
-  id: string;
-  time?: string;
-  area?: string;
-  locationName?: string;
-  scrubbedText?: string;
-  activityText?: string;
-  responsibleParty?: string;
-  createdAt?: string;
-  status?: string;
-}
+import { StreamFilterStatus, SavedFilterTags } from "./components/StreamFilterStatus";
+import { AdminModerationQueue } from "./components/AdminModerationQueue";
 
 interface ActiveStreamProps {
   onSelectAlert: (id: string) => void;
@@ -28,9 +14,10 @@ interface ActiveStreamProps {
   onStreamCountChange?: (filteredCount: number, totalCount: number) => void;
   inlineCreate?: boolean;
   isAdmin?: boolean;
-  onBack?: () => void;
   pushEnabled?: boolean;
+  onBack?: () => void;
   onOpenSettings?: () => void;
+  onEnablePush?: () => void;
 }
 
 export default function ActiveStream({
@@ -40,53 +27,57 @@ export default function ActiveStream({
   onStreamCountChange,
   inlineCreate = false,
   isAdmin = false,
-  onBack,
   pushEnabled = false,
-  onOpenSettings
+  onBack,
+  onOpenSettings,
+  onEnablePush,
 }: ActiveStreamProps) {
   const [stream, setStream] = useState<ActiveAlert[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [myProposals, setMyProposals] = useState<any[]>([]);
 
-  const [myProposals] = useState<PendingProposal[]>(() => {
-    if (typeof localStorage !== "undefined") {
-      try {
-        const stored = localStorage.getItem("my_pending_proposals");
-        return stored ? JSON.parse(stored) : [];
-      } catch (err) {
-        console.warn("Could not parse my_pending_proposals from localStorage", err);
-        return [];
-      }
+  const handleEnableAndOpenSettings = () => {
+    if (onEnablePush) {
+      onEnablePush();
     }
-    return [];
-  });
+    if (onOpenSettings) {
+      onOpenSettings();
+    }
+  };
 
   const fetchStream = async () => {
     try {
       setLoading(true);
       setError(null);
       const res = await fetch("/api/alerts");
-      if (!res.ok) {
-        throw new Error("Gick inte att läsa in aktiva anslag.");
-      }
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Servern returnerade inte JSON vid hämtning av anslag.");
-      }
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
-      setStream(Array.isArray(data) ? data : []);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Tekniskt fel vid inläsning.";
-      setError(msg);
+      setStream(data);
+    } catch (err: any) {
+      console.warn("API error fetching stream, using local fallback:", err);
+      setStream([]);
+      setError("Kunde inte hämta inbjudningar från servern.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    const rawLocal = localStorage.getItem("sm_my_proposals");
+    if (rawLocal) {
+      try {
+        setMyProposals(JSON.parse(rawLocal));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     let firestoreReceivedData = false;
-    const unsubscribeFirestore = subscribeToFirestoreAlerts((firestoreAlerts) => {
-      if (Array.isArray(firestoreAlerts) && firestoreAlerts.length > 0) {
+    const unsubscribeFirestore = subscribeToFirestoreAlerts(firestoreAlerts => {
+      if (firestoreAlerts && firestoreAlerts.length > 0) {
         firestoreReceivedData = true;
         setStream(firestoreAlerts);
         setLoading(false);
@@ -158,15 +149,15 @@ export default function ActiveStream({
         <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-3">
           <div className="w-8 h-8 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="font-mono text-[10px] uppercase tracking-wider text-brand-ink/60">
-            {uiLanguage === "sv" ? "Hämtar inbjudningar..." : "Loading invitations..."}
+            Hämtar inbjudningar...
           </p>
         </div>
       );
     }
 
-    if (error) {
+    if (error && stream.length === 0) {
       return (
-        <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-2">
+        <div className="bg-white rounded-2xl p-8 border border-brand-error/20 text-center space-y-2">
           <ShieldAlert size={24} className="text-brand-error mx-auto opacity-80" />
           <p className="text-xs font-mono text-brand-error uppercase tracking-wider">{error}</p>
         </div>
@@ -177,7 +168,12 @@ export default function ActiveStream({
       return (
         <div className="space-y-4">
           {pushEnabled && (
-            <StreamFilterStatus savedTags={savedTags} pushEnabled={pushEnabled} onOpenSettings={onOpenSettings} />
+            <StreamFilterStatus
+              savedTags={savedTags}
+              pushEnabled={pushEnabled}
+              onOpenSettings={onOpenSettings}
+              onEnableAndOpenSettings={handleEnableAndOpenSettings}
+            />
           )}
           <div className="bg-white rounded-2xl p-8 sm:p-10 border border-brand-ink/5 text-center space-y-4">
             <p className="font-serif italic text-base sm:text-lg text-brand-ink/80 leading-relaxed">
@@ -200,7 +196,12 @@ export default function ActiveStream({
           {topItems.map(item => (
             <StreamNoticeCard key={item.id} item={item} onSelectAlert={onSelectAlert} />
           ))}
-          <StreamFilterStatus savedTags={savedTags} pushEnabled={pushEnabled} onOpenSettings={onOpenSettings} />
+          <StreamFilterStatus
+            savedTags={savedTags}
+            pushEnabled={pushEnabled}
+            onOpenSettings={onOpenSettings}
+            onEnableAndOpenSettings={handleEnableAndOpenSettings}
+          />
           {remainingItems.map(item => (
             <StreamNoticeCard key={item.id} item={item} onSelectAlert={onSelectAlert} />
           ))}
@@ -223,7 +224,7 @@ export default function ActiveStream({
         <div className="animate-in fade-in zoom-in-95 duration-200">
           <CreateInvitationForm
             uiLanguage={uiLanguage}
-            savedTags={savedTags}
+            savedTags={savedTags as any}
             isAdmin={isAdmin}
             onBack={onBack}
             onSuccess={fetchStream}
@@ -232,7 +233,12 @@ export default function ActiveStream({
       )}
 
       {!pushEnabled && (
-        <StreamFilterStatus savedTags={savedTags} pushEnabled={pushEnabled} onOpenSettings={onOpenSettings} />
+        <StreamFilterStatus
+          savedTags={savedTags}
+          pushEnabled={pushEnabled}
+          onOpenSettings={onOpenSettings}
+          onEnableAndOpenSettings={handleEnableAndOpenSettings}
+        />
       )}
 
       {isAdmin && <AdminModerationQueue pendingAlerts={pendingAlerts} handleModerate={handleModerate} />}

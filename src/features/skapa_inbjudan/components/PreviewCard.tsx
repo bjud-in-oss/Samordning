@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Clock, MapPin, Users, Globe, ShieldCheck, Send } from "lucide-react";
-import { washAnnouncementText } from "@/src/features/mission_router";
+import { washAnnouncementText } from "../../mission_router";
 import { ActiveDialogType } from "../domain/types";
 
 interface PreviewCardProps {
@@ -177,7 +177,7 @@ export function PreviewCard({
             className="px-5 py-2 bg-brand-accent hover:bg-brand-accent/90 text-white font-mono text-xs uppercase tracking-wider font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ml-auto"
           >
             <Send size={14} />
-            <span>{sending ? "Granskar & skickar..." : "Sänd"}</span>
+            <span>{sending ? "Granskar & skickar..." : "Ge en inbjudan"}</span>
           </button>
         )}
       </div>

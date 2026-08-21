@@ -6,13 +6,25 @@ import { ActiveAlert, UiLanguage } from "../mission_router";
 import { CreateInvitationForm } from "../skapa_inbjudan";
 import { subscribeToFirestoreAlerts } from "../../main/config/firebaseClient";
 import { AdminModerationQueue } from "./components/AdminModerationQueue";
-import { StreamFilterStatus } from "./components/StreamFilterStatus";
+import { StreamFilterStatus, SavedFilterTags } from "./components/StreamFilterStatus";
 import { StreamNoticeCard } from "./components/StreamNoticeCard";
+
+interface PendingProposal {
+  id: string;
+  time?: string;
+  area?: string;
+  locationName?: string;
+  scrubbedText?: string;
+  activityText?: string;
+  responsibleParty?: string;
+  createdAt?: string;
+  status?: string;
+}
 
 interface ActiveStreamProps {
   onSelectAlert: (id: string) => void;
   uiLanguage: UiLanguage;
-  savedTags?: any;
+  savedTags?: SavedFilterTags | null;
   onStreamCountChange?: (filteredCount: number, totalCount: number) => void;
   inlineCreate?: boolean;
   isAdmin?: boolean;
@@ -36,7 +48,7 @@ export default function ActiveStream({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [myProposals] = useState<any[]>(() => {
+  const [myProposals] = useState<PendingProposal[]>(() => {
     if (typeof localStorage !== "undefined") {
       try {
         const stored = localStorage.getItem("my_pending_proposals");
@@ -63,18 +75,17 @@ export default function ActiveStream({
       }
       const data = await res.json();
       setStream(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      setError(err.message || "Tekniskt fel vid inläsning.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Tekniskt fel vid inläsning.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    let unsubscribeFirestore = () => {};
     let firestoreReceivedData = false;
-
-    unsubscribeFirestore = subscribeToFirestoreAlerts((firestoreAlerts) => {
+    const unsubscribeFirestore = subscribeToFirestoreAlerts((firestoreAlerts) => {
       if (Array.isArray(firestoreAlerts) && firestoreAlerts.length > 0) {
         firestoreReceivedData = true;
         setStream(firestoreAlerts);
@@ -83,15 +94,11 @@ export default function ActiveStream({
     });
 
     const fallbackTimer = setTimeout(() => {
-      if (!firestoreReceivedData) {
-        fetchStream();
-      }
+      if (!firestoreReceivedData) fetchStream();
     }, 1000);
 
     const interval = setInterval(() => {
-      if (!firestoreReceivedData) {
-        fetchStream();
-      }
+      if (!firestoreReceivedData) fetchStream();
     }, 15000);
 
     return () => {
@@ -106,31 +113,18 @@ export default function ActiveStream({
 
   const filteredStream = activeStream.filter(item => {
     if (!savedTags) return true;
-
     if (savedTags.limitAreas && savedTags.limitedAreas && savedTags.limitedAreas.length > 0) {
-      if (item.area && !savedTags.limitedAreas.includes(item.area)) {
-        return false;
-      }
+      if (item.area && !savedTags.limitedAreas.includes(item.area)) return false;
     }
-
     if (savedTags.enabledCategories && savedTags.enabledCategories.length > 0) {
-      if (item.category && !savedTags.enabledCategories.includes(item.category)) {
-        return false;
-      }
+      if (item.category && !savedTags.enabledCategories.includes(item.category)) return false;
     }
-
     if (savedTags.organizations && savedTags.organizations.length > 0) {
-      if (item.responsibleParty && !savedTags.organizations.includes(item.responsibleParty)) {
-        return false;
-      }
+      if (item.responsibleParty && !savedTags.organizations.includes(item.responsibleParty)) return false;
     }
-
     if (savedTags.languages && savedTags.languages.length > 0) {
-      if (item.language && !savedTags.languages.includes(item.language)) {
-        return false;
-      }
+      if (item.language && !savedTags.languages.includes(item.language)) return false;
     }
-
     return true;
   });
 
@@ -158,6 +152,71 @@ export default function ActiveStream({
     }
   }, [filteredStream.length, activeStream.length, onStreamCountChange]);
 
+  const renderStreamWithStatus = () => {
+    if (loading) {
+      return (
+        <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-3">
+          <div className="w-8 h-8 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="font-mono text-[10px] uppercase tracking-wider text-brand-ink/60">
+            {uiLanguage === "sv" ? "Hämtar inbjudningar..." : "Loading invitations..."}
+          </p>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-2">
+          <ShieldAlert size={24} className="text-brand-error mx-auto opacity-80" />
+          <p className="text-xs font-mono text-brand-error uppercase tracking-wider">{error}</p>
+        </div>
+      );
+    }
+
+    if (filteredStream.length === 0) {
+      return (
+        <div className="space-y-4">
+          {pushEnabled && (
+            <StreamFilterStatus savedTags={savedTags} pushEnabled={pushEnabled} onOpenSettings={onOpenSettings} />
+          )}
+          <div className="bg-white rounded-2xl p-8 sm:p-10 border border-brand-ink/5 text-center space-y-4">
+            <p className="font-serif italic text-base sm:text-lg text-brand-ink/80 leading-relaxed">
+              {pushEnabled 
+                ? "Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en avisering så fort en ny inbjudan läggs upp." 
+                : "Just nu finns inga aktiva inbjudningar i dina valda områden. Du ser nya inbjudningar här så fort de läggs upp."}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (pushEnabled) {
+      const splitIndex = Math.min(4, filteredStream.length);
+      const topItems = filteredStream.slice(0, splitIndex);
+      const remainingItems = filteredStream.slice(splitIndex);
+
+      return (
+        <div className="space-y-4">
+          {topItems.map(item => (
+            <StreamNoticeCard key={item.id} item={item} onSelectAlert={onSelectAlert} />
+          ))}
+          <StreamFilterStatus savedTags={savedTags} pushEnabled={pushEnabled} onOpenSettings={onOpenSettings} />
+          {remainingItems.map(item => (
+            <StreamNoticeCard key={item.id} item={item} onSelectAlert={onSelectAlert} />
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {filteredStream.map(item => (
+          <StreamNoticeCard key={item.id} item={item} onSelectAlert={onSelectAlert} />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 w-full max-w-2xl mx-auto text-left">
       {inlineCreate && (
@@ -172,17 +231,11 @@ export default function ActiveStream({
         </div>
       )}
 
-      <StreamFilterStatus
-        savedTags={savedTags}
-        onOpenSettings={onOpenSettings}
-      />
-
-      {isAdmin && (
-        <AdminModerationQueue
-          pendingAlerts={pendingAlerts}
-          handleModerate={handleModerate}
-        />
+      {!pushEnabled && (
+        <StreamFilterStatus savedTags={savedTags} pushEnabled={pushEnabled} onOpenSettings={onOpenSettings} />
       )}
+
+      {isAdmin && <AdminModerationQueue pendingAlerts={pendingAlerts} handleModerate={handleModerate} />}
 
       <div className="space-y-4 text-left">
         {myProposals.length > 0 && (
@@ -193,7 +246,7 @@ export default function ActiveStream({
                 className="bg-brand-paper/50 border border-brand-accent/30 rounded-2xl p-5 shadow-2xs space-y-2 text-left relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-2xl rounded-bl-xl shadow-2xs">
-                  DITT FÖRSLAG • VÄNTAR PÅ GRANSKNING
+                  DIN INBJUDAN • FÖRBEREDS
                 </div>
 
                 <div className="flex items-center justify-between pr-52 pt-1">
@@ -202,47 +255,23 @@ export default function ActiveStream({
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-serif italic text-lg text-brand-ink font-medium">
-                    {prop.area}
-                  </h3>
+                  <h3 className="font-serif italic text-lg text-brand-ink font-medium">{prop.area}</h3>
                   <p className="text-xs text-brand-ink/80 font-light line-clamp-2 mt-1 leading-relaxed">
                     {prop.scrubbedText || prop.activityText}
                   </p>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-brand-ink/10 text-[10px] font-mono text-brand-ink/60 uppercase tracking-wider">
                   <span>{prop.responsibleParty}</span>
-                  <span className="italic font-sans text-brand-accent font-semibold">Granskas av ansvariga ledare</span>
+                  <span className="italic font-sans text-brand-accent font-semibold">
+                    Förbereds för utskick i församlingsområdet
+                  </span>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {loading ? (
-          <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-3">
-            <div className="w-8 h-8 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="font-mono text-[10px] uppercase tracking-wider text-brand-ink/60">
-              {uiLanguage === "sv" ? "Hämtar anslag..." : "Loading notices..."}
-            </p>
-          </div>
-        ) : error ? (
-          <div className="bg-white rounded-2xl p-8 border border-brand-ink/5 text-center space-y-2">
-            <ShieldAlert size={24} className="text-brand-error mx-auto opacity-80" />
-            <p className="text-xs font-mono text-brand-error uppercase tracking-wider">{error}</p>
-          </div>
-        ) : filteredStream.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 sm:p-10 border border-brand-ink/5 text-center space-y-4">
-            <p className="font-serif italic text-base sm:text-lg text-brand-ink/80 leading-relaxed">
-              {pushEnabled 
-                ? "Just nu finns inga aktiva inbjudningar i dina valda områden. Du får en avisering så fort en ny inbjudan läggs upp." 
-                : "Just nu finns inga aktiva inbjudningar i dina valda områden. Du ser nya inbjudningar här så fort de läggs upp."}
-            </p>
-          </div>
-        ) : (
-          filteredStream.map(item => (
-            <StreamNoticeCard key={item.id} item={item} onSelectAlert={onSelectAlert} />
-          ))
-        )}
+        {renderStreamWithStatus()}
       </div>
     </div>
   );

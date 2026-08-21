@@ -65,7 +65,7 @@ export default function OnboardingWizard({
   return (
     <div className="space-y-6 max-w-2xl mx-auto pb-24 relative animate-in fade-in duration-200 text-left">
       {!pushEnabled && (
-        <div className="bg-brand-paper/90 border border-brand-accent/30 border-l-4 border-l-brand-accent rounded-2xl p-4 text-brand-ink text-xs sm:text-sm font-sans flex items-center gap-3 shadow-2xs">
+        <div className="bg-brand-paper/90 border border-brand-accent/25 rounded-2xl p-4 text-brand-ink text-xs sm:text-sm font-sans flex items-center gap-3 shadow-xs">
           <Sparkles size={18} className="text-brand-accent shrink-0" />
           <p>
             Slå på <strong>&apos;Ta emot inbjudningar&apos;</strong> i toppfältet för att aktivera dina val.

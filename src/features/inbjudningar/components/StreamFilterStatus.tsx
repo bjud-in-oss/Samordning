@@ -32,7 +32,7 @@ export function StreamFilterStatus({
     return (
       <div
         onClick={onOpenSettings}
-        className="bg-brand-paper/90 rounded-3xl p-6 border border-brand-accent/25 border-l-4 border-l-brand-accent shadow-xs relative overflow-hidden text-left hover:border-brand-accent/50 hover:bg-brand-paper transition-all cursor-pointer group space-y-2.5"
+        className="bg-brand-paper/90 rounded-3xl p-6 border border-brand-accent/25 shadow-sm relative overflow-hidden text-left hover:border-brand-accent/40 hover:bg-brand-paper transition-all cursor-pointer group space-y-2.5"
       >
         <h2 className="font-serif italic text-xl sm:text-2xl font-medium text-brand-ink group-hover:text-brand-accent transition-colors">
           Välj att ta emot inbjudningar
@@ -49,11 +49,11 @@ export function StreamFilterStatus({
     );
   }
 
-  // When push is ON (Funktionen är PÅ - Plats 3 i flödet)
+  // When push is ON (Funktionen är PÅ - Plats 3 i flödet, Index 2)
   return (
     <div
       onClick={onOpenSettings}
-      className="bg-brand-paper/90 rounded-3xl p-5 border border-brand-accent/25 border-l-4 border-l-brand-accent shadow-xs relative overflow-hidden text-left hover:border-brand-accent/50 hover:bg-brand-paper transition-all cursor-pointer group space-y-2"
+      className="bg-brand-paper/90 rounded-3xl p-5 border border-brand-accent/25 shadow-sm relative overflow-hidden text-left hover:border-brand-accent/40 hover:bg-brand-paper transition-all cursor-pointer group space-y-2"
     >
       <div className="absolute top-0 right-0 bg-brand-accent text-white font-mono text-[9px] uppercase font-bold tracking-wider px-3 py-1 rounded-tr-3xl rounded-bl-xl shadow-2xs">
         {hasLimitedAreas ? "Anpassat urval" : "Begränsa din tillgänglighet"}

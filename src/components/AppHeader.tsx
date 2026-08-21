@@ -19,7 +19,7 @@ export function AppHeader({
   onCreateInvitation
 }: AppHeaderProps) {
   return (
-    <div className="bg-white border-b border-brand-ink/10 w-full shadow-xs">
+    <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-brand-ink/10 w-full shadow-xs">
       <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between gap-2 overflow-hidden select-none">
         {/* VÄNSTER SIDA: Text "Ta emot inbjudningar" + Switch dockad direkt intill med gemensam klickyta */}
         <div className="flex items-center gap-2.5 min-w-0">

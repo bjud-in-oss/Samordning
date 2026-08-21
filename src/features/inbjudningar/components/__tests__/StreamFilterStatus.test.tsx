@@ -4,7 +4,7 @@ import { renderToString } from "react-dom/server";
 import { StreamFilterStatus } from "../StreamFilterStatus";
 
 describe("StreamFilterStatus", () => {
-  it("renders correct copy when push notifications are turned OFF", () => {
+  it("renders correct copy when push notifications are turned OFF and hides AVISERINGAR AV tag", () => {
     const html = renderToString(
       <StreamFilterStatus savedTags={null} pushEnabled={false} />
     );
@@ -12,7 +12,7 @@ describe("StreamFilterStatus", () => {
     expect(html).toContain(
       "Du ser direkt när någon behöver ditt stöd. Du är helt anonym och ingen kan se dina val eller begränsningar. Du kan när som helst välja var du vill vara tillgänglig."
     );
-    expect(html).toContain("AVISERINGAR AV");
+    expect(html).not.toContain("AVISERINGAR AV");
   });
 
   it("renders standard parish area copy when push is ON and no custom area is limited", () => {

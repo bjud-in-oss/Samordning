@@ -191,7 +191,7 @@ export default function ActiveStream({
     }
 
     if (pushEnabled) {
-      const splitIndex = Math.min(4, filteredStream.length);
+      const splitIndex = Math.min(2, filteredStream.length);
       const topItems = filteredStream.slice(0, splitIndex);
       const remainingItems = filteredStream.slice(splitIndex);
 

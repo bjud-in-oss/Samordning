@@ -1,22 +1,24 @@
-# Steg 4: Producera (Domäner: inbjudningar & skapa_inbjudan)
+# Steg 4: Producera (Domäner: inbjudningar, anpassa)
 
 - **Exekverade källkodsändringar och domänisolering**:
-  1. `src/components/AppHeader.tsx`:
-     - Texten ändrad till `"Ta emot inbjudningar"`.
-     - Switchen dockad direkt intill texten med en gemensam klickyta (`onTogglePush`) för direkt toggling.
-     - Inställningskugghjulet behåller sin separata plats till höger för att öppna/stänga inställningar.
-  2. `src/features/inbjudningar/components/StreamFilterStatus.tsx`:
-     - Implementerat stöd för `pushEnabled: boolean`.
-     - När funktionen är AV: Rubrik `"Välj att ta emot inbjudningar"` och brödtext `"Du ser direkt när någon behöver ditt stöd. Du är helt anonym och ingen kan se dina val eller begränsningar. Du kan när som helst välja var du vill vara tillgänglig."`.
-     - När funktionen är PÅ:
-       - Standardläge: Tagg `"Begränsa din tillgänglighet"`, Rubrik `"Tillgänglig i hela församlingens område"`, Brödtext `"Du tar emot inbjudningar från hela församlingsområdet. Klicka på kortet eller kugghjulet om du vill snäva av dina platser."`.
-       - Anpassat läge: Tagg `"Anpassat urval"`, Rubrik `"Dina valda områden"`, Brödtext `"Du tar emot inbjudningar för dina valda platser i församlingsområdet."` med lista över valda områden.
-  3. `src/features/inbjudningar/ActiveStream.tsx`:
-     - Dynamisk placering: När `pushEnabled` är `true` infogas `StreamFilterStatus` på `min(4, filteredStream.length)` (position 5 vid $\ge 4$ inbjudningar).
-     - När `pushEnabled` är `false` renderas den överst i flödet.
-     - Uppdaterat statusbrickan på egna förslag till `"DIN INBJUDAN • FÖRBEREDS"` och undertexten till `"Förbereds för utskick i församlingsområdet"`.
-  4. `src/features/skapa_inbjudan/components/PreviewCard.tsx`:
-     - Uppdaterat knappen från `"Sänd"` / `"Publicera"` till `"Ge en inbjudan"`.
+  1. `index.html`:
+     - Uppdaterat `<title>` till `"Andlighet, Vänskap och Stöd"`.
+  2. `src/components/AppHeader.tsx`:
+     - Förankrat toppraden som fast (`sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-brand-ink/10 shadow-xs`) så att den alltid är synlig vid scroll.
+     - Texten `"Ta emot inbjudningar"` och switchen delar gemensam klickyta för smidig toggling.
+  3. `src/features/inbjudningar/components/StreamFilterStatus.tsx`:
+     - Visuell differentiering: Mjukt tonad bakgrund (`bg-brand-paper/90`) med vänsteraccentkant (`border-l-4 border-l-brand-accent rounded-3xl border border-brand-accent/25 shadow-xs`) för att tydligt skilja statuskortet från vanliga inbjudningskort.
+     - När funktionen är AV: Döljer taggen `"AVISERINGAR AV"`, visar rubriken `"Välj att ta emot inbjudningar"` och förklarande text om anonymitet och tillgänglighet.
+     - När funktionen är PÅ: Visar standardläge ("Tillgänglig i hela församlingens område") eller anpassat läge ("Dina valda områden") med synliga tags.
+  4. `src/features/inbjudningar/ActiveStream.tsx`:
+     - När funktionen är AV: Placerar förklaringskortet allra överst i flödet (Plats 1).
+     - När funktionen är PÅ: Placerar statuskortet som kort 3 i listan (direkt efter de 2 första inbjudningskorten, index 2).
+  5. `src/features/anpassa/OnboardingWizard.tsx`:
+     - Panelrubrik satt till `"Anpassa din tillgänglighet"`.
+     - Slutknapp uppdaterad till `"Spara val"`.
+     - Visar en översta påminnelsebox när funktionen är avstängd: `"Slå på 'Ta emot inbjudningar' i toppfältet för att aktivera dina val."`.
+  6. `src/features/inbjudningar/components/__tests__/StreamFilterStatus.test.tsx`:
+     - Tester uppdaterade och verifierade mot nya layoutregler och borttagen tagg.
 
 - **Verifiering**:
-  - `npm run verify` och `compile_applet` exekveras för att säkerställa 100% felfri TypeScript- och arkitekturkompilering.
+  - `compile_applet` och `npx vitest run` exekveras för att säkerställa 100% felfri TypeScript- och komponentkompilering.

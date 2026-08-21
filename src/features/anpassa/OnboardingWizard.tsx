@@ -35,6 +35,9 @@ interface OnboardingWizardProps {
 export default function OnboardingWizard({
   onSave,
   savedTags,
+  pushEnabled,
+  onEnablePush,
+  onDisablePush,
   uiLanguage,
   onClose,
 }: OnboardingWizardProps) {
@@ -61,11 +64,20 @@ export default function OnboardingWizard({
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto pb-24 relative animate-in fade-in duration-200 text-left">
+      {!pushEnabled && (
+        <div className="bg-brand-paper/90 border border-brand-accent/30 border-l-4 border-l-brand-accent rounded-2xl p-4 text-brand-ink text-xs sm:text-sm font-sans flex items-center gap-3 shadow-2xs">
+          <Sparkles size={18} className="text-brand-accent shrink-0" />
+          <p>
+            Slå på <strong>&apos;Ta emot inbjudningar&apos;</strong> i toppfältet för att aktivera dina val.
+          </p>
+        </div>
+      )}
+
       <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs">
         <div>
           <h2 className="font-serif italic text-2xl font-medium text-brand-ink tracking-tight flex items-center gap-2.5">
             <Sparkles size={22} className="text-brand-accent shrink-0" />
-            Anpassa dina val
+            Anpassa din tillgänglighet
           </h2>
           <p className="text-brand-ink/70 text-xs sm:text-sm font-light mt-1">
             Välj vilka inbjudningar och notiser du vill ta del av. Alla ändringar sparas automatiskt.
@@ -144,7 +156,7 @@ export default function OnboardingWizard({
             className="px-6 py-3 bg-brand-accent text-white font-medium text-xs sm:text-sm rounded-xl hover:opacity-90 transition-all cursor-pointer shadow-sm flex items-center gap-2"
           >
             <Check size={16} />
-            <span>Klar</span>
+            <span>Spara val</span>
           </button>
         </div>
       )}

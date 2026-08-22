@@ -1,8 +1,16 @@
 # Steg 2a: Förändra Utåt - Vision
 
 ## Användarens Upplevelse
-1. **Ren och rogivande översikt**: När användaren öppnar inställningarna möts hen av rubriken "Välj var du vill ta emot inbjudningar". Den rena typografin ger ett moget och avskalat intryck utan distraherande ikoner.
-2. **Direkt handling framför instruktion**:
-   - I stället för att mötas av en passiv ruta som förklarar vad användaren "borde göra i toppfältet", finns en aktiv, varmt formgiven knapp högst upp: `"Slå på 'Ta emot inbjudningar'"`.
-   - Med ett enkelt tryck tänds funktionen upp och användaren kan direkt göra sina områdesval utan att lämna panelen.
-3. **Mjuk papperskänsla**: Hela panelen smälter in i appens övriga papperstoner med mjuka hörn och distinkta valknappar.
+
+1. **Ett varmare och mer avskalat första intryck**:
+   - När användaren besöker startsidan möts de av ingångskortet med rubriken `"Anpassa din tillgänglighet"`.
+   - Den diskreta klicktexten `"(Klicka för att anpassa)"` utan hård skiljelinje skapar en mjuk övergång och ett luftigt formspråk.
+
+2. **Klassisk redaktionell värdighet med pull quote**:
+   - Direkt under det första ingångskortet framträder det redaktionella citatet:
+     *”När ni är i era medmänniskors tjänst är ni endast i er Guds tjänst.”*
+     *Mosiah 2:17*
+   - Citatet presenteras helt utan hårda ramar eller skuggor och förmedlar en känsla av en vacker tidningsartikel eller ett klassiskt tryckalster som påminner om syftet med tjänande och gemenskap.
+
+3. **Harmoni och flöde**:
+   - Textens proportioner, radavstånd och centrering skapar en naturlig visuell vilopunkt innan de aktiva inbjudningarna tar vid.

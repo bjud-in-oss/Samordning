@@ -1,15 +1,35 @@
 # Steg 3b: Domänkontrakt och Fraktal Dokumentation
 
-## Domän: `anpassa`
-- **Huvudkomponent**: `src/features/anpassa/OnboardingWizard.tsx`
+## Domän: `inbjudningar`
+
+### 1. Komponenter och Gränssnitt
+
+#### A. `src/features/inbjudningar/components/StreamFilterStatus.tsx`
 - **Interface**:
 ```typescript
-export interface OnboardingWizardProps {
-  onSave: (tags: OnboardingTags) => void;
-  onClose: () => void;
-  initialTags?: OnboardingTags | null;
+export interface SavedFilterTags {
+  limitAreas?: boolean;
+  limitedAreas?: string[];
+  primaryArea?: string;
+  enabledCategories?: string[];
+  languages?: string[];
+  organizations?: string[];
+}
+
+export interface StreamFilterStatusProps {
+  savedTags?: SavedFilterTags | null;
   pushEnabled?: boolean;
-  onEnablePush?: () => void;
+  onOpenSettings?: () => void;
 }
 ```
-- **Integrationspunkt**: `src/components/MainViewContent.tsx`
+
+#### B. `src/features/inbjudningar/components/StreamQuoteCard.tsx`
+- **Interface**:
+```typescript
+export interface StreamQuoteCardProps {
+  className?: string;
+}
+```
+
+### 2. Fraktal dokumentation
+- Dokumentation uppdateras i `src/features/inbjudningar/doc/INDEX.md` och `src/features/inbjudningar/doc/UI_WORKFLOWS.md`.

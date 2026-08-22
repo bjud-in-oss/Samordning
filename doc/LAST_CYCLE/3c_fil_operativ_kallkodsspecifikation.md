@@ -1,45 +1,65 @@
-# Steg 3c: Fil-operativ Källkodsspecifikation (Anpassningspanelen)
+# Steg 3c: Fil-operativ Källkodsspecifikation (Startsida & Citatkort)
 
-## 1. Anpassningspanelen (`src/features/anpassa/OnboardingWizard.tsx`)
-- **Rubrik**:
-  - Byt rubrik längst upp till `"Välj var du vill ta emot inbjudningar"`.
-  - Ta bort ikonen `<Sparkles ... />` framför rubriken.
-- **Rensa gamla påminnelser**:
-  - Ta bort den passiva textrutan med texten `"Slå på 'Ta emot inbjudningar' i toppfältet för att aktivera dina val."`.
-- **Aktiv aktiveringsknapp längst upp**:
-  - Om `!pushEnabled` visas en aktiv knapp:
+## 1. Ingångskort (`src/features/inbjudningar/components/StreamFilterStatus.tsx`)
+- **Rubrikändring i inaktivt läge (`!pushEnabled`)**:
+  - Ändra rubriken från `"Välj att ta emot inbjudningar"` till `"Anpassa din tillgänglighet"`.
+- **Rensa skiljelinje & förenkla text**:
+  - Ta bort klassen `border-t border-brand-ink/5` från paragrafen med klicktexten.
+  - Ändra texten från `"(Klicka för att anpassa områden och inställningar)"` till `"(Klicka för att anpassa)"`.
+- **Props**: Bevaras oförändrade (`savedTags`, `pushEnabled`, `onOpenSettings`).
+
+## 2. Redaktionellt Citatkort (`src/features/inbjudningar/components/StreamQuoteCard.tsx`)
+- **Ny fristående komponent**:
+  - Helt ramlös, icke-klickbar, utan bakgrundsskugga.
+  - Citat: *”När ni är i era medmänniskors tjänst är ni endast i er Guds tjänst.”* med `font-serif italic text-lg sm:text-xl md:text-2xl text-center leading-relaxed text-brand-ink/90`.
+  - Källhänvisning: *Mosiah 2:17* som `font-mono text-xs sm:text-sm text-brand-ink/50 text-center mt-2 tracking-wide`.
+  - Struktur:
+    ```tsx
+    import React from "react";
+
+    export interface StreamQuoteCardProps {
+      className?: string;
+    }
+
+    export function StreamQuoteCard({ className = "" }: StreamQuoteCardProps) {
+      return (
+        <div className={`py-6 px-4 text-center select-none ${className}`}>
+          <blockquote className="font-serif italic text-lg sm:text-xl md:text-2xl text-brand-ink/90 leading-relaxed max-w-xl mx-auto">
+            ”När ni är i era medmänniskors tjänst är ni endast i er Guds tjänst.”
+          </blockquote>
+          <p className="font-mono text-xs sm:text-sm text-brand-ink/50 mt-2 tracking-wide">
+            Mosiah 2:17
+          </p>
+        </div>
+      );
+    }
+    ```
+
+## 3. Flödesplacering (`src/features/inbjudningar/ActiveStream.tsx`)
+- **Import**:
+  - Importera `StreamQuoteCard` från `./components/StreamQuoteCard`.
+- **Placering**:
+  - Placera `<StreamQuoteCard />` direkt under ingångskortet i flödet:
     ```tsx
     {!pushEnabled && (
-      <button
-        type="button"
-        onClick={onEnablePush}
-        className="w-full bg-brand-accent hover:bg-brand-accent/90 text-white rounded-2xl p-4 text-xs sm:text-sm font-sans font-medium flex items-center justify-between shadow-xs transition-all cursor-pointer group"
-      >
-        <span className="font-sans">
-          Slå på <strong>&apos;Ta emot inbjudningar&apos;</strong>
-        </span>
-        <span className="text-[11px] uppercase tracking-wider font-mono opacity-90 group-hover:opacity-100 flex items-center gap-1">
-          Aktivera nu <ArrowRight size={14} />
-        </span>
-      </button>
+      <>
+        <StreamFilterStatus savedTags={savedTags} pushEnabled={pushEnabled} onOpenSettings={onOpenSettings} />
+        <StreamQuoteCard />
+      </>
     )}
     ```
-- **Interface & Props**:
-  - `pushEnabled?: boolean`
-  - `onEnablePush?: () => void`
-  - `onSave: (tags: OnboardingTags) => void`
-  - `onClose: () => void`
-  - `initialTags?: OnboardingTags | null`
 
-## 2. Integrationsvy (`src/components/MainViewContent.tsx`)
-- Säkerställ att `onEnablePush={() => { if (!pushEnabled) onTogglePush(); }}` skickas till `OnboardingWizard`.
+## 4. Enhetstester & Verifiering
+- `src/features/inbjudningar/components/__tests__/StreamFilterStatus.test.tsx`:
+  - Uppdatera förväntad rubrik till `"Anpassa din tillgänglighet"` och klicktext till `"(Klicka för att anpassa)"`.
+- `src/features/inbjudningar/components/__tests__/StreamQuoteCard.test.tsx`:
+  - Skapa test med rendering och assertion på citattext samt källhänvisning.
 
-## 3. Tester (`src/features/anpassa/__tests__/OnboardingWizard.test.tsx`)
-- Verifiera att knappen visas när `pushEnabled={false}`, att klick anropar `onEnablePush`, och att knappen döljs när `pushEnabled={true}` med interaktionspåståenden (`fireEvent`, `toHaveBeenCalled`).
-
-## 4. Berörda Källkodsfiler i Steg 4
-1. `src/features/anpassa/OnboardingWizard.tsx`
-2. `src/components/MainViewContent.tsx`
-3. `src/features/anpassa/__tests__/OnboardingWizard.test.tsx`
+## 5. Berörda Källkodsfiler i Steg 4 (Strikt domän `inbjudningar`)
+1. `src/features/inbjudningar/components/StreamFilterStatus.tsx`
+2. `src/features/inbjudningar/components/StreamQuoteCard.tsx`
+3. `src/features/inbjudningar/ActiveStream.tsx`
+4. `src/features/inbjudningar/components/__tests__/StreamFilterStatus.test.tsx`
+5. `src/features/inbjudningar/components/__tests__/StreamQuoteCard.test.tsx`
 
 BESLUT: GODKÄND

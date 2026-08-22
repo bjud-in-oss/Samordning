@@ -1,15 +1,27 @@
-# Steg 1a: Orientera (Förenkling och Förbättring av Anpassningspanelen)
+# Steg 1a: Orientera (Harmonisk Startsida & Redaktionellt Citatkort)
 
 ## 1. Bakgrund och Mål
-Denna cykel etablerar en renare, varmare och mer intuitiv anpassningspanel (`OnboardingWizard.tsx`) inom domänen `anpassa`:
-1. **Ny och ren rubrik**: Ändra panelens huvudrubrik till `"Välj var du vill ta emot inbjudningar"` i klassisk serif, och ta bort stjärnikonen (`Sparkles`) framför rubriken för ett lugnt och harmoniskt typografiskt uttryck.
-2. **Rensa passiva påminnelser**: Ta bort den gamla passiva rutan med instruktionstext om att slå på inbjudningar i toppfältet.
-3. **Aktiv knapp i panelen**: Om panelen öppnas medan inbjudningsfunktionen är avstängd (`!pushEnabled`), visa en tydlig och inbjudande knapp längst upp: `"Slå på 'Ta emot inbjudningar'"` som omedelbart aktiverar mottagandet direkt inifrån panelen.
+Denna cykel genomför en harmonisk och estetisk uppdatering av startsidans flöde, strikt avgränsad till domänen `inbjudningar` (`src/features/inbjudningar/`):
+
+1. **Ingångskort (`StreamFilterStatus.tsx`)**:
+   - Uppdatera rubriken i inaktivt läge (`!pushEnabled`) till `"Anpassa din tillgänglighet"`.
+   - Ta bort skiljelinjen (`border-t`) ovanför klicktexten för ett renare, lugnare och mer integrerat uttryck.
+   - Förenkla klicktexten till `"(Klicka för att anpassa)"`.
+
+2. **Redaktionellt Citatkort (`StreamQuoteCard.tsx`)**:
+   - Skapa en ny fristående komponent i `src/features/inbjudningar/components/StreamQuoteCard.tsx`.
+   - Utforma kortet helt ramlöst, icke-klickbart och utan bakgrundsskugga.
+   - Ge kortet en klassisk tidningskänsla (pull quote):
+     - Citat: *”När ni är i era medmänniskors tjänst är ni endast i er Guds tjänst.”* i stor, mjuk, centrerad serif-kursiv med luftigt radavstånd.
+     - Källhänvisning: *Mosiah 2:17* som en mindre, diskret och centrerad text under citatet.
+
+3. **Flödesplacering (`ActiveStream.tsx`)**:
+   - Placera `StreamQuoteCard` i flödet direkt under det första ingångskortet för att ge en varm, eftertänksam och tidlös känsla på startsidan.
 
 ```json
 {
   "status": "ORIENTERING_KLAR",
-  "current_domain": "anpassa",
+  "current_domain": "inbjudningar",
   "next_step": "1b_kartlagga"
 }
 ```

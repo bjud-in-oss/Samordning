@@ -65,22 +65,27 @@ export default function OnboardingWizard({
   return (
     <div className="space-y-6 max-w-2xl mx-auto pb-24 relative animate-in fade-in duration-200 text-left">
       {!pushEnabled && (
-        <div className="bg-brand-paper/90 border border-brand-accent/25 rounded-2xl p-4 text-brand-ink text-xs sm:text-sm font-sans flex items-center gap-3 shadow-xs">
-          <Sparkles size={18} className="text-brand-accent shrink-0" />
-          <p>
-            Slå på <strong>&apos;Ta emot inbjudningar&apos;</strong> i toppfältet för att aktivera dina val.
+        <div className="bg-brand-paper/90 border border-brand-accent/25 rounded-2xl p-4 text-brand-ink text-xs sm:text-sm font-sans flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+          <p className="font-medium text-brand-ink/90">
+            Inbjudningar är för tillfället inaktiverade.
           </p>
+          <button
+            type="button"
+            onClick={onEnablePush}
+            className="w-full sm:w-auto px-4 py-2.5 bg-brand-accent text-white font-medium text-xs sm:text-sm rounded-xl hover:opacity-90 transition-all cursor-pointer shadow-xs whitespace-nowrap"
+          >
+            Slå på &apos;Ta emot inbjudningar&apos;
+          </button>
         </div>
       )}
 
       <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-brand-ink/5 shadow-xs">
         <div>
-          <h2 className="font-serif italic text-2xl font-medium text-brand-ink tracking-tight flex items-center gap-2.5">
-            <Sparkles size={22} className="text-brand-accent shrink-0" />
+          <h2 className="font-serif italic text-2xl font-medium text-brand-ink tracking-tight">
             Anpassa din tillgänglighet
           </h2>
           <p className="text-brand-ink/70 text-xs sm:text-sm font-light mt-1">
-            Välj vilka inbjudningar och notiser du vill ta del av. Alla ändringar sparas automatiskt.
+            Ställ in var och för vem du vill vara tillgänglig. Du är anonym och kan ändra dig eller ta en paus när du vill.
           </p>
         </div>
         {onClose && (
@@ -103,8 +108,8 @@ export default function OnboardingWizard({
         </div>
         <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
           {uiLanguage === "sv" 
-            ? "Vilka områden brukar du träffa andra i?" 
-            : "Which areas do you usually meet others in?"}
+            ? "Vilka områden brukar du träffa andra i eller erbjuda stöd i?" 
+            : "Which areas do you usually meet others or offer support in?"}
         </p>
         <Step1Geography
           primaryArea={primaryArea}

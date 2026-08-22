@@ -55,8 +55,8 @@ export default function Step1Geography({
           <h3 className="font-serif italic text-xl font-medium text-brand-ink">Dina områden</h3>
           <p className="text-brand-ink/70 text-xs leading-relaxed font-light">
             {uiLanguage === "sv" 
-              ? "Vilka områden brukar du träffa andra i?"
-              : "Which areas do you usually meet others in?"}
+              ? "Vilka områden brukar du träffa andra i eller erbjuda stöd i?"
+              : "Which areas do you usually meet others or offer support in?"}
           </p>
         </div>
       )}

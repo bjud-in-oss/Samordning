@@ -2,15 +2,10 @@
 
 ## Utvärdering av Design och Tillgänglighet
 
-1. **Typografisk hierarki**:
-   - Rubriken *"Anpassa din tillgänglighet"* klargör omedelbart vad kortet erbjuder.
-   - Den borttagna kantlinjen ger ett sammanhållet kort och minskar visuell fragmentering.
-   - Citatet i mjuk serif-kursiv kontrasterar elegant mot de informativa korten och skapar en tidlös och varm atmosfär.
+1. **Typografisk hierarki & Visuell ro**:
+   - Genom att ta bort stjärnikonen från huvudrubriken får panelen ett mer seriöst och lugnt intryck.
+   - Textens proportioner och radavstånd ger hög läsbarhet (WCAG AA-krav uppfylls med mörkbläck mot pappersbakgrund).
 
-2. **Responsivitet och läsbarhet**:
-   - Citatet skalas mjukt från `text-lg` på mobila enheter till `text-xl` / `text-2xl` på större skärmar.
-   - Kontrasten uppfyller WCAG AA-krav med mörkbläck mot pappersbakgrund (`text-brand-ink/90` och `text-brand-ink/50`).
-
-3. **Interaktionsdesign**:
-   - Ingångskortet behåller sin interaktiva karaktär med pekfinger-cursor och hover-effekt.
-   - Citatkortet är helt icke-interaktivt och statiskt, vilket gör att användaren omedelbart uppfattar det som ett redaktionellt element.
+2. **Interaktionsdesign & Klickbarhet**:
+   - Aktiveringsknappen vid `!pushEnabled` designas med tydlig knappform, distinkt kontrast och tydlig hover-effekt.
+   - Knappen har lämplig touch-yta (minst 44px) för både mobil och desktop.

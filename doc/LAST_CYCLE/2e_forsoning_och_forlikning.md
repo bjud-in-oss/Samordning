@@ -2,9 +2,10 @@
 
 ## Harmonisering och Gränsfall
 
-1. **Gränsfall: Inga aktiva inbjudningar**:
-   - Citatkortet ligger synligt i strömmen under ingångskortet och förhöjer upplevelsen även när det för tillfället saknas inbjudningar i området.
-2. **Gränsfall: Responsiv skalning**:
-   - Texten i citatet radbryts elegant på små skärmar och behåller sin harmoniska centrering.
+1. **Gränsfall: Olika språk (`uiLanguage`)**:
+   - Svenska texter får de nya precisa formuleringarna.
+   - Engelska texter bevaras/anpassas mjukt vid behov utan regression.
+2. **Gränsfall: Skärmstorlek & Mobilanpassning**:
+   - Aktiveringsknappen och textavsnitten anpassas responsivt med god läsbarhet och tydliga marginaler.
 3. **Ingen ADR-påverkan**:
-   - Inga globala datamodeller eller säkerhetszoner påverkas; förändringen är ren UI-komposition inom domänen `inbjudningar`.
+   - Inga körtidsregler, API-kontrakt eller datamodeller påverkas; förändringen är ren UI-komposition inom domänen `anpassa`.

@@ -1,27 +1,25 @@
-# Steg 1a: Orientera (Harmonisk Startsida & Redaktionellt Citatkort)
+# Steg 1a: Orientera (Harmonisering av Anpassa-panelen)
 
 ## 1. Bakgrund och Mål
-Denna cykel genomför en harmonisk och estetisk uppdatering av startsidans flöde, strikt avgränsad till domänen `inbjudningar` (`src/features/inbjudningar/`):
+Denna cykel genomför en förfinad och harmonisk uppdatering av inställningspanelen, strikt avgränsad till domänen `anpassa` (`src/features/anpassa/`):
 
-1. **Ingångskort (`StreamFilterStatus.tsx`)**:
-   - Uppdatera rubriken i inaktivt läge (`!pushEnabled`) till `"Anpassa din tillgänglighet"`.
-   - Ta bort skiljelinjen (`border-t`) ovanför klicktexten för ett renare, lugnare och mer integrerat uttryck.
-   - Förenkla klicktexten till `"(Klicka för att anpassa)"`.
+1. **Huvudrubrik och underrubrik i toppsektionen (`OnboardingWizard.tsx`)**:
+   - Huvudrubriken sätts till `"Anpassa din tillgänglighet"` utan stjärnikon (`Sparkles` tas bort från rubriken).
+   - Underrubriken sätts direkt under till:
+     *"Ställ in var och för vem du vill vara tillgänglig. Du är anonym och kan ändra dig eller ta en paus när du vill."*
 
-2. **Redaktionellt Citatkort (`StreamQuoteCard.tsx`)**:
-   - Skapa en ny fristående komponent i `src/features/inbjudningar/components/StreamQuoteCard.tsx`.
-   - Utforma kortet helt ramlöst, icke-klickbart och utan bakgrundsskugga.
-   - Ge kortet en klassisk tidningskänsla (pull quote):
-     - Citat: *”När ni är i era medmänniskors tjänst är ni endast i er Guds tjänst.”* i stor, mjuk, centrerad serif-kursiv med luftigt radavstånd.
-     - Källhänvisning: *Mosiah 2:17* som en mindre, diskret och centrerad text under citatet.
+2. **Aktiveringsknapp vid inaktivt läge (`!pushEnabled`)**:
+   - Längst upp i panelen, när notiser/inbjudningar är inaktiverade (`!pushEnabled`), ska aktiveringsknappen finnas kvar högst upp:
+     *"Slå på 'Ta emot inbjudningar'"* för att göra det enkelt och smidigt att aktivera mottagandet direkt via `onEnablePush`.
 
-3. **Flödesplacering (`ActiveStream.tsx`)**:
-   - Placera `StreamQuoteCard` i flödet direkt under det första ingångskortet för att ge en varm, eftertänksam och tidlös känsla på startsidan.
+3. **Steg 1 – Områdesval (`OnboardingWizard.tsx` & `Step1Geography.tsx`)**:
+   - Rubrik: `"1. Dina områden"`
+   - Underrubrik: `"Vilka områden brukar du träffa andra i eller erbjuda stöd i?"`
 
 ```json
 {
   "status": "ORIENTERING_KLAR",
-  "current_domain": "inbjudningar",
+  "current_domain": "anpassa",
   "next_step": "1b_kartlagga"
 }
 ```

@@ -1,30 +1,24 @@
 # Steg 1b: Kartlägga (Befintlig Kodbas och Beroenden)
 
-## 1. Nulägesanalys av berörda filer i domänen `inbjudningar`
+## 1. Nulägesanalys av berörda filer i domänen `anpassa`
 
-### A. `src/features/inbjudningar/components/StreamFilterStatus.tsx`
+### A. `src/features/anpassa/OnboardingWizard.tsx`
 - **Nuläge**:
-  - Vid `!pushEnabled` har komponenten rubriken `"Välj att ta emot inbjudningar"`.
-  - Botten har en skiljelinje `border-t border-brand-ink/5 pt-2` och texten `"(Klicka för att anpassa områden och inställningar)"`.
+  - Vid `!pushEnabled` visas en gulaktig informationsruta med enbart text. Ingen direkt klickbar knapp för att slå på funktionen (`onEnablePush`).
+  - Huvudrubriken har en `<Sparkles size={22} className="text-brand-accent shrink-0" />`-ikon och texten `"Anpassa din tillgänglighet"`.
+  - Underrubriken är `"Välj vilka inbjudningar och notiser du vill ta del av. Alla ändringar sparas automatiskt."`.
+  - Steg 1 har underrubriken `"Vilka områden brukar du träffa andra i?"`.
 - **Mål**:
-  - Rubrik ändras till `"Anpassa din tillgänglighet"`.
-  - Skiljelinje `border-t` tas bort från klicktexten.
-  - Klicktexten förenklas till `"(Klicka för att anpassa)"`.
+  - Översta sektionen vid `!pushEnabled`: Visa en tydlig, användarvänlig aktiveringsknapp med texten `"Slå på 'Ta emot inbjudningar'"` kopplad till `onEnablePush`.
+  - Huvudrubrik: `"Anpassa din tillgänglighet"` utan stjärnikon (`Sparkles`).
+  - Underrubrik: `"Ställ in var och för vem du vill vara tillgänglig. Du är anonym och kan ändra dig eller ta en paus när du vill."`.
+  - Steg 1: Rubrik `"1. Dina områden"` och underrubrik `"Vilka områden brukar du träffa andra i eller erbjuda stöd i?"`.
 
-### B. `src/features/inbjudningar/components/StreamQuoteCard.tsx` (Ny komponent)
-- **Krav**:
-  - Fristående komponent under `src/features/inbjudningar/components/StreamQuoteCard.tsx`.
-  - Helt ramlös (`border-0` / ingen kantlinje), icke-klickbar (`cursor-default` / utan hover-effekt) och utan bakgrundsskugga (`shadow-none` / transparent eller diskret pappersyta utan skuggor).
-  - Citat: *”När ni är i era medmänniskors tjänst är ni endast i er Guds tjänst.”* med `font-serif italic text-lg sm:text-xl md:text-2xl text-center leading-relaxed text-brand-ink/90`.
-  - Källa: *Mosiah 2:17* som `font-mono text-xs sm:text-sm text-brand-ink/50 text-center mt-2 tracking-wide`.
-
-### C. `src/features/inbjudningar/ActiveStream.tsx`
+### B. `src/features/anpassa/Step1Geography.tsx`
 - **Nuläge**:
-  - Vid `!pushEnabled` renderas `<StreamFilterStatus />` först i huvudvyn.
-  - Därefter kommer förfrågningar och aktiva anslag.
+  - Vid icke-inline visning finns underrubriken `"Vilka områden brukar du träffa andra i?"`.
 - **Mål**:
-  - Importera `StreamQuoteCard` och placera den direkt under det översta ingångskortet.
+  - Uppdatera svensk text till `"Vilka områden brukar du träffa andra i eller erbjuda stöd i?"`.
 
-### D. Tester & Gränssnitt
-- `src/features/inbjudningar/components/__tests__/StreamFilterStatus.test.tsx` uppdateras för den nya rubriken och texten.
-- `src/features/inbjudningar/components/__tests__/StreamQuoteCard.test.tsx` skapas för att verifiera det redaktionella citatkortet.
+### C. Tester och gränssnittsverifiering
+- Skapa/uppdatera tester under `src/features/anpassa/components/__tests__/` och `src/features/anpassa/hooks/__tests__/` för att säkerställa att rubriker, knappar och texter renderas korrekt och kan klickas.

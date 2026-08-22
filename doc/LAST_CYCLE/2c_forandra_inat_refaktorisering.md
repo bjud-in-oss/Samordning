@@ -2,13 +2,9 @@
 
 ## Refaktorisering och Arkitekturkontroll
 
-1. **Modularisering & Återanvändbarhet**:
-   - `StreamQuoteCard.tsx` skapas som en ren, presentationsstyrd komponent i `src/features/inbjudningar/components/`.
-   - Den är fri från sidoeffekter, state och externa nätverksanrop, vilket gör den snabb och lätthanterlig.
+1. **Inga onödiga gränssnittsförändringar**:
+   - `OnboardingWizardProps` och `Step1GeographyProps` bibehåller alla nödvändiga callbacks (`onEnablePush`, `onDisablePush`, `onSave`, `onClose`).
+   - Inga props tas bort eller ändras.
 
-2. **Inga onödiga gränssnittsförändringar**:
-   - `StreamFilterStatusProps` förblir oförändrad, vilket garanterar full bakåtkompatibilitet.
-   - `ActiveStream.tsx` behåller all befintlig strömnings- och modereringslogik.
-
-3. **Strikt FSD-isolering**:
-   - Alla förändringar och nya komponenter stannar inom domänen `src/features/inbjudningar/`.
+2. **Strikt FSD-isolering**:
+   - Samtliga ändringar är strikt avgränsade till domänen `src/features/anpassa/`.

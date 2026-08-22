@@ -2,15 +2,11 @@
 
 ## Dataflöde & Komposition
 
-1. **Rendering i `ActiveStream.tsx`**:
-   - Ingångskortet `<StreamFilterStatus />` renderas överst vid inaktivt läge (`!pushEnabled`).
-   - Direkt under ingångskortet renderas det nya redaktionella citatkortet `<StreamQuoteCard />`.
-   - Därefter renderas eventuella förberedda inbjudningar och det aktiva flödet av inbjudningar.
+1. **Rendering i `OnboardingWizard.tsx`**:
+   - Vid `!pushEnabled`: En framträdande aktiveringsknapp med texten `"Slå på 'Ta emot inbjudningar'"` placeras överst i panelen som anropar `onEnablePush()`.
+   - Toppsektionen: Huvudrubriken renderas som `"Anpassa din tillgänglighet"` utan stjärnikon.
+   - Underrubriken under huvudrubriken: *"Ställ in var och för vem du vill vara tillgänglig. Du är anonym och kan ändra dig eller ta en paus när du vill."*.
+   - Steg 1-sektionen: Rubrik `"1. Dina områden"` med underrubrik `"Vilka områden brukar du träffa andra i eller erbjuda stöd i?"`.
 
-2. **Ingångskortet (`StreamFilterStatus.tsx`)**:
-   - I inaktivt läge visas rubriken `"Anpassa din tillgänglighet"`.
-   - Bottenraden renderas utan `border-t` med den enkla texten `"(Klicka för att anpassa)"`.
-
-3. **Citatkortet (`StreamQuoteCard.tsx`)**:
-   - Rent redaktionellt element med centrerad typografi.
-   - Helt ramlöst och utan skuggor eller interaktiva hovringsstilar.
+2. **Rendering i `Step1Geography.tsx`**:
+   - Om inte inline, visa motsvarande uppdaterade frågetext på svenska: `"Vilka områden brukar du träffa andra i eller erbjuda stöd i?"`.

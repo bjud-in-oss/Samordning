@@ -1,35 +1,36 @@
 # Steg 3b: Domänkontrakt och Fraktal Dokumentation
 
-## Domän: `inbjudningar`
+## Domän: `anpassa`
 
 ### 1. Komponenter och Gränssnitt
 
-#### A. `src/features/inbjudningar/components/StreamFilterStatus.tsx`
+#### A. `src/features/anpassa/OnboardingWizard.tsx`
 - **Interface**:
 ```typescript
-export interface SavedFilterTags {
-  limitAreas?: boolean;
-  limitedAreas?: string[];
-  primaryArea?: string;
-  enabledCategories?: string[];
-  languages?: string[];
-  organizations?: string[];
-}
-
-export interface StreamFilterStatusProps {
-  savedTags?: SavedFilterTags | null;
-  pushEnabled?: boolean;
-  onOpenSettings?: () => void;
-}
-```
-
-#### B. `src/features/inbjudningar/components/StreamQuoteCard.tsx`
-- **Interface**:
-```typescript
-export interface StreamQuoteCardProps {
-  className?: string;
+interface OnboardingWizardProps {
+  onSave: (tags: {
+    areas: string[];
+    primaryArea?: string;
+    limitAreas?: boolean;
+    limitedAreas?: string[];
+    limitOrganizations?: boolean;
+    limitedOrganizations?: string[];
+    languages: string[];
+    organization: string;
+    formats: ("physical" | "telephone")[];
+    alwaysNotify: boolean;
+    spiritualTips: boolean;
+    targetGroups?: string[];
+    allowDigital?: boolean;
+  }) => void;
+  savedTags?: OnboardingStateSavedTags;
+  pushEnabled: boolean;
+  onEnablePush: () => void;
+  onDisablePush: () => void;
+  uiLanguage: UiLanguage;
+  onClose?: () => void;
 }
 ```
 
 ### 2. Fraktal dokumentation
-- Dokumentation uppdateras i `src/features/inbjudningar/doc/INDEX.md` och `src/features/inbjudningar/doc/UI_WORKFLOWS.md`.
+- Uppdatering i `src/features/anpassa/doc/INDEX.md` och `src/features/anpassa/doc/UI_WORKFLOWS.md`.

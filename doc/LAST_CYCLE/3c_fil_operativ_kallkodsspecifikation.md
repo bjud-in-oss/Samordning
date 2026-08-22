@@ -1,65 +1,69 @@
-# Steg 3c: Fil-operativ Källkodsspecifikation (Startsida & Citatkort)
+# Steg 3c: Fil-operativ Källkodsspecifikation (Anpassa-panelen)
 
-## 1. Ingångskort (`src/features/inbjudningar/components/StreamFilterStatus.tsx`)
-- **Rubrikändring i inaktivt läge (`!pushEnabled`)**:
-  - Ändra rubriken från `"Välj att ta emot inbjudningar"` till `"Anpassa din tillgänglighet"`.
-- **Rensa skiljelinje & förenkla text**:
-  - Ta bort klassen `border-t border-brand-ink/5` från paragrafen med klicktexten.
-  - Ändra texten från `"(Klicka för att anpassa områden och inställningar)"` till `"(Klicka för att anpassa)"`.
-- **Props**: Bevaras oförändrade (`savedTags`, `pushEnabled`, `onOpenSettings`).
-
-## 2. Redaktionellt Citatkort (`src/features/inbjudningar/components/StreamQuoteCard.tsx`)
-- **Ny fristående komponent**:
-  - Helt ramlös, icke-klickbar, utan bakgrundsskugga.
-  - Citat: *”När ni är i era medmänniskors tjänst är ni endast i er Guds tjänst.”* med `font-serif italic text-lg sm:text-xl md:text-2xl text-center leading-relaxed text-brand-ink/90`.
-  - Källhänvisning: *Mosiah 2:17* som `font-mono text-xs sm:text-sm text-brand-ink/50 text-center mt-2 tracking-wide`.
-  - Struktur:
+## 1. Huvudrubrik och underrubrik i panelen (`src/features/anpassa/OnboardingWizard.tsx`)
+- **Ta bort stjärnikon & sätt ren huvudrubrik**:
+  - Ändra rubrikraden från:
     ```tsx
-    import React from "react";
-
-    export interface StreamQuoteCardProps {
-      className?: string;
-    }
-
-    export function StreamQuoteCard({ className = "" }: StreamQuoteCardProps) {
-      return (
-        <div className={`py-6 px-4 text-center select-none ${className}`}>
-          <blockquote className="font-serif italic text-lg sm:text-xl md:text-2xl text-brand-ink/90 leading-relaxed max-w-xl mx-auto">
-            ”När ni är i era medmänniskors tjänst är ni endast i er Guds tjänst.”
-          </blockquote>
-          <p className="font-mono text-xs sm:text-sm text-brand-ink/50 mt-2 tracking-wide">
-            Mosiah 2:17
-          </p>
-        </div>
-      );
-    }
+    <h2 className="font-serif italic text-2xl font-medium text-brand-ink tracking-tight flex items-center gap-2.5">
+      <Sparkles size={22} className="text-brand-accent shrink-0" />
+      Anpassa din tillgänglighet
+    </h2>
+    ```
+    till:
+    ```tsx
+    <h2 className="font-serif italic text-2xl font-medium text-brand-ink tracking-tight">
+      Anpassa din tillgänglighet
+    </h2>
+    ```
+- **Sätt ny underrubrik**:
+  - Ändra paragrafen direkt under till:
+    ```tsx
+    <p className="text-brand-ink/70 text-xs sm:text-sm font-light mt-1">
+      Ställ in var och för vem du vill vara tillgänglig. Du är anonym och kan ändra dig eller ta en paus när du vill.
+    </p>
     ```
 
-## 3. Flödesplacering (`src/features/inbjudningar/ActiveStream.tsx`)
-- **Import**:
-  - Importera `StreamQuoteCard` från `./components/StreamQuoteCard`.
-- **Placering**:
-  - Placera `<StreamQuoteCard />` direkt under ingångskortet i flödet:
+## 2. Aktiveringsknapp vid inaktivt läge (`!pushEnabled`)
+- **Placering högst upp i panelen**:
+  - Ersätt den befintliga passiva textrutan med en direkt klickbar aktiveringsknapp:
     ```tsx
     {!pushEnabled && (
-      <>
-        <StreamFilterStatus savedTags={savedTags} pushEnabled={pushEnabled} onOpenSettings={onOpenSettings} />
-        <StreamQuoteCard />
-      </>
+      <div className="bg-brand-paper/90 border border-brand-accent/25 rounded-2xl p-4 text-brand-ink text-xs sm:text-sm font-sans flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+        <p className="font-medium text-brand-ink/90">
+          Inbjudningar är för tillfället inaktiverade.
+        </p>
+        <button
+          type="button"
+          onClick={onEnablePush}
+          className="w-full sm:w-auto px-4 py-2.5 bg-brand-accent text-white font-medium text-xs sm:text-sm rounded-xl hover:opacity-90 transition-all cursor-pointer shadow-xs whitespace-nowrap"
+        >
+          Slå på &apos;Ta emot inbjudningar&apos;
+        </button>
+      </div>
     )}
     ```
 
-## 4. Enhetstester & Verifiering
-- `src/features/inbjudningar/components/__tests__/StreamFilterStatus.test.tsx`:
-  - Uppdatera förväntad rubrik till `"Anpassa din tillgänglighet"` och klicktext till `"(Klicka för att anpassa)"`.
-- `src/features/inbjudningar/components/__tests__/StreamQuoteCard.test.tsx`:
-  - Skapa test med rendering och assertion på citattext samt källhänvisning.
+## 3. Steg 1 – Områdesval (`src/features/anpassa/OnboardingWizard.tsx` & `src/features/anpassa/Step1Geography.tsx`)
+- **OnboardingWizard.tsx**:
+  - Rubrik: `"1. Dina områden"`
+  - Underrubrik:
+    ```tsx
+    <p className="text-brand-ink/70 text-xs font-light leading-relaxed">
+      {uiLanguage === "sv" 
+        ? "Vilka områden brukar du träffa andra i eller erbjuda stöd i?" 
+        : "Which areas do you usually meet others or offer support in?"}
+    </p>
+    ```
+- **Step1Geography.tsx**:
+  - Vid `!isInline`: Uppdatera frågetexten till `"Vilka områden brukar du träffa andra i eller erbjuda stöd i?"`.
 
-## 5. Berörda Källkodsfiler i Steg 4 (Strikt domän `inbjudningar`)
-1. `src/features/inbjudningar/components/StreamFilterStatus.tsx`
-2. `src/features/inbjudningar/components/StreamQuoteCard.tsx`
-3. `src/features/inbjudningar/ActiveStream.tsx`
-4. `src/features/inbjudningar/components/__tests__/StreamFilterStatus.test.tsx`
-5. `src/features/inbjudningar/components/__tests__/StreamQuoteCard.test.tsx`
+## 4. Enhetstester & Verifiering
+- Skapa/uppdatera `src/features/anpassa/components/__tests__/OnboardingWizard.test.tsx` med interaktionstester (`fireEvent.click`) på aktiveringsknappen och textverifiering av de nya rubrikerna och formuleringarna.
+
+## 5. Berörda Källkodsfiler i Steg 4 (Strikt domän `anpassa`)
+1. `src/features/anpassa/OnboardingWizard.tsx`
+2. `src/features/anpassa/Step1Geography.tsx`
+3. `src/features/anpassa/components/__tests__/OnboardingWizard.test.tsx`
+4. `src/features/anpassa/doc/UI_WORKFLOWS.md`
 
 BESLUT: GODKÄND

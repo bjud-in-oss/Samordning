@@ -21,6 +21,15 @@ export async function verifyTypeScriptCodebase({
   const p3cPath = path.join(LAST_CYCLE_DIR, '3c_fil_operativ_kallkodsspecifikation.md');
   const p3cContent = fs.existsSync(p3cPath) ? fs.readFileSync(p3cPath, 'utf-8') : '';
 
+  // PROAKTIV DOMÄNKONTROLL I 3C: Kontrollera om specifikationen berör fler än 1 domän
+  if (p3cContent) {
+    const featureMatches = p3cContent.match(/src\/features\/([a-zA-Z0-9_]+)\//g) || [];
+    const domainsIn3c = new Set(featureMatches.map(m => m.split('/')[2]));
+    if (domainsIn3c.size > 1) {
+      logError('DOMÄNÖVERTRÄDELSE (MAX 1 DOMÄN INOM 3C)', `Specifikationen i 3c berör ${domainsIn3c.size} domäner samtidigt (${Array.from(domainsIn3c).join(', ')}). Dela upp i separata cykler.`);
+    }
+  }
+
   if (fs.existsSync(featuresDir)) {
     for (const domain of fs.readdirSync(featuresDir)) {
       const domainPath = path.join(featuresDir, domain);
@@ -62,7 +71,9 @@ export async function verifyTypeScriptCodebase({
           const lineCount = content.split('\n').length;
           const isTest = file.includes('__tests__') || file.endsWith('.test.ts') || file.endsWith('.test.tsx');
 
-          if (!ignoreMtime && stat.mtimeMs > t3c) {
+          const isModifiedAfter3c = !ignoreMtime ? (stat.mtimeMs > t3c) : (p3cContent.includes(relPath) || p3cContent.includes(file));
+
+          if (isModifiedAfter3c && t4 > 0) {
             if (relPath.startsWith('features' + path.sep)) {
               const domName = relPath.split(path.sep)[1];
               if (domName) modifiedDomains.add(domName);
@@ -165,11 +176,11 @@ export async function verifyTypeScriptCodebase({
 
     scanSrc(SRC_DIR);
 
-    if (modifiedDomains.size > 1) {
+    if (t4 > 0 && modifiedDomains.size > 1) {
       logError('DOMÄNÖVERTRÄDELSE (MAX 1 DOMÄN)', `Ändringar upptäcktes i ${modifiedDomains.size} domäner samtidigt (${Array.from(modifiedDomains).join(', ')}). Dela upp i separata cykler.`);
     }
 
-    if (t4 > 0 && newestProdCodeTime <= t3c && newestTestTime <= t3c) {
+    if (t4 > 0 && newestProdCodeTime <= t3c && newestTestTime <= t3c && !ignoreMtime) {
       logError('TOM PRODUKTION', '4_producera.md skapades men inga källkods- eller testfiler i src/ har ändrats efter 3c.');
     }
 

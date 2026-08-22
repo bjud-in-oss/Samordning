@@ -35,15 +35,15 @@ export function StreamFilterStatus({
         className="bg-brand-paper/90 rounded-3xl p-6 border border-brand-accent/25 shadow-sm relative overflow-hidden text-left hover:border-brand-accent/40 hover:bg-brand-paper transition-all cursor-pointer group space-y-2.5"
       >
         <h2 className="font-serif italic text-xl sm:text-2xl font-medium text-brand-ink group-hover:text-brand-accent transition-colors">
-          Välj att ta emot inbjudningar
+          Anpassa din tillgänglighet
         </h2>
 
         <p className="text-xs sm:text-sm text-brand-ink/80 font-sans leading-relaxed">
           Du ser direkt när någon behöver ditt stöd. Du är helt anonym och ingen kan se dina val eller begränsningar. Du kan när som helst välja var du vill vara tillgänglig.
         </p>
 
-        <p className="text-[10px] font-mono italic text-brand-ink/40 pt-2 border-t border-brand-ink/5">
-          (Klicka för att anpassa områden och inställningar)
+        <p className="text-[10px] font-mono italic text-brand-ink/40 pt-1">
+          (Klicka för att anpassa)
         </p>
       </div>
     );

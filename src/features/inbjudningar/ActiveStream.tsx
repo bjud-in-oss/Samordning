@@ -8,6 +8,7 @@ import { subscribeToFirestoreAlerts } from "../../main/config/firebaseClient";
 import { AdminModerationQueue } from "./components/AdminModerationQueue";
 import { StreamFilterStatus, SavedFilterTags } from "./components/StreamFilterStatus";
 import { StreamNoticeCard } from "./components/StreamNoticeCard";
+import { StreamQuoteCard } from "./components/StreamQuoteCard";
 
 interface PendingProposal {
   id: string;
@@ -232,7 +233,10 @@ export default function ActiveStream({
       )}
 
       {!pushEnabled && (
-        <StreamFilterStatus savedTags={savedTags} pushEnabled={pushEnabled} onOpenSettings={onOpenSettings} />
+        <>
+          <StreamFilterStatus savedTags={savedTags} pushEnabled={pushEnabled} onOpenSettings={onOpenSettings} />
+          <StreamQuoteCard />
+        </>
       )}
 
       {isAdmin && <AdminModerationQueue pendingAlerts={pendingAlerts} handleModerate={handleModerate} />}

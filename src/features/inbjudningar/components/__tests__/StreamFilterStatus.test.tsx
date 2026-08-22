@@ -1,33 +1,42 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import React from "react";
-import { renderToString } from "react-dom/server";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { StreamFilterStatus } from "../StreamFilterStatus";
 
 describe("StreamFilterStatus", () => {
-  it("renders correct copy when push notifications are turned OFF and hides AVISERINGAR AV tag", () => {
-    const html = renderToString(
-      <StreamFilterStatus savedTags={null} pushEnabled={false} />
+  it("renders correct copy when push notifications are turned OFF and handles click event", () => {
+    const handleOpenSettings = vi.fn();
+    render(
+      <StreamFilterStatus savedTags={null} pushEnabled={false} onOpenSettings={handleOpenSettings} />
     );
-    expect(html).toContain("Välj att ta emot inbjudningar");
-    expect(html).toContain(
-      "Du ser direkt när någon behöver ditt stöd. Du är helt anonym och ingen kan se dina val eller begränsningar. Du kan när som helst välja var du vill vara tillgänglig."
-    );
-    expect(html).not.toContain("AVISERINGAR AV");
+    expect(screen.getByText("Anpassa din tillgänglighet")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Du ser direkt när någon behöver ditt stöd/i)
+    ).toBeInTheDocument();
+    expect(screen.getByText("(Klicka för att anpassa)")).toBeInTheDocument();
+    expect(screen.queryByText("AVISERINGAR AV")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Anpassa din tillgänglighet"));
+    expect(handleOpenSettings).toHaveBeenCalledTimes(1);
   });
 
-  it("renders standard parish area copy when push is ON and no custom area is limited", () => {
-    const html = renderToString(
-      <StreamFilterStatus savedTags={{ limitAreas: false }} pushEnabled={true} />
+  it("renders standard parish area copy when push is ON and handles click event", () => {
+    const handleOpenSettings = vi.fn();
+    render(
+      <StreamFilterStatus savedTags={{ limitAreas: false }} pushEnabled={true} onOpenSettings={handleOpenSettings} />
     );
-    expect(html).toContain("Begränsa din tillgänglighet");
-    expect(html).toContain("Tillgänglig i hela församlingens område");
-    expect(html).toContain(
-      "Du tar emot inbjudningar från hela församlingsområdet. Klicka på kortet eller kugghjulet om du vill snäva av dina platser."
-    );
+    expect(screen.getByText("Begränsa din tillgänglighet")).toBeInTheDocument();
+    expect(screen.getByText("Tillgänglig i hela församlingens område")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Du tar emot inbjudningar från hela församlingsområdet/i)
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Tillgänglig i hela församlingens område"));
+    expect(handleOpenSettings).toHaveBeenCalledTimes(1);
   });
 
   it("renders customized areas copy and chips when push is ON and limited areas are selected", () => {
-    const html = renderToString(
+    render(
       <StreamFilterStatus
         savedTags={{
           limitAreas: true,
@@ -36,10 +45,9 @@ describe("StreamFilterStatus", () => {
         pushEnabled={true}
       />
     );
-    expect(html).toContain("Anpassat urval");
-    expect(html).toContain("Dina valda områden");
-    expect(html).toContain("Du tar emot inbjudningar för dina valda platser i församlingsområdet.");
-    expect(html).toContain("Majorna");
-    expect(html).toContain("Linné");
+    expect(screen.getByText("Anpassat urval")).toBeInTheDocument();
+    expect(screen.getByText("Dina valda områden")).toBeInTheDocument();
+    expect(screen.getByText("Majorna")).toBeInTheDocument();
+    expect(screen.getByText("Linné")).toBeInTheDocument();
   });
 });

@@ -120,3 +120,9 @@
 - **Konsekvenser**:
   - **Verklig funktionsverifiering:** Användarflöden och klickbara knappar testas på riktigt.
   - **Skydd mot tomma testskal:** Förhindrar att tester passerar utan reell verifiering.
+
+## ADR-017: Tidsåtskild granskning vid Steg 3c
+- **Status**: Godkänd & Tillämpas (v9.1)
+- **Kontext**: För att säkerställa att användaren som arkitekt hinner läsa och godkänna den operativa specifikationen delas varje cykel upp i två separata chatt-turer.
+- **Beslut**: I Chatt-tur 1 skapas filerna 1a till 3c på disken, varpå AI Studio presenterar sin Användarsammanfattning i chatten och inväntar användarens klartecken. I Chatt-tur 2 skapas APPROVAL.md på disken och Steg 4 exekveras.
+- **Konsekvenser**: Skriptet verify-architecture.js kräver att APPROVAL.md finns på disken innan källkoden verifieras i Steg 4, vilket garanterar att varje källkodsändring föregås av en tidsåtskild granskning.

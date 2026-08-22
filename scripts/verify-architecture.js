@@ -182,12 +182,12 @@ async function runVerification() {
 
   if (!(t3c > 0 && /BESLUT:\s*GODKÄND/i.test(readFile(p3c)))) logError('DOMSTOLSSPÄRR', '3c saknar "BESLUT: GODKÄND".');
 
-  if (t3c > 0 && !ignoreMtime) {
+  if (t3c > 0) {
     if (tApproval === 0) {
       logError('MÄNSKLIGT GODKÄNNANDE SAKNAS', 'Källkod får inte redigeras. Granska 3c och spara doc/LAST_CYCLE/APPROVAL.md för att låsa upp Steg 4.');
-    } else if (tApproval <= t3c) {
+    } else if (!ignoreMtime && tApproval <= t3c) {
       logError('SEKVENSFEL (APPROVAL)', 'APPROVAL.md sparades FÖRE eller SAMTIDIGT som 3c. Filen måste sparas EFTER att 3c granskats.');
-    } else if ((tApproval - t3c) < 2000) {
+    } else if (!ignoreMtime && (tApproval - t3c) < 2000) {
       logError('AUTOMATISERAT GODKÄNNANDE UPPTÄCKT', `APPROVAL.md skapades endast ${Math.round((tApproval - t3c)/1000)}s efter 3c. Mänsklig granskning krävs (minst 2s betänketid).`);
     } else {
       createPreStep4Snapshots(readFile(p3c));

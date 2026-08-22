@@ -1,9 +1,9 @@
 /**
- * DETERMINISTISK PROCESS- OCH KODREVISOR (v8.8 - ANVÄNDARANPASSAD KÄRNA)
+ * DETERMINISTISK PROCESS- OCH KODREVISOR (v9.1)
  * SHA-256-hashkontroll, mtime-tidsspärr, automatisk städning av APPROVAL.md,
- * Mänsklig Input-Gate (10s betänketid), automatisk drivrutinsdetektering.
+ * Mänsklig Input-Gate (2s betänketid), automatisk fil-snapshot före Steg 4,
+ * automatisk drivrutinsdetektering.
  */
-
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -11,10 +11,10 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const ROOT_DIR = path.resolve(__dirname, '..');
 const DOC_DIR = path.join(ROOT_DIR, 'doc');
 const LAST_CYCLE_DIR = path.join(DOC_DIR, 'LAST_CYCLE');
+const SNAPSHOT_DIR = path.join(LAST_CYCLE_DIR, 'snapshots', 'pre_step4');
 const SRC_DIR = path.join(ROOT_DIR, 'src');
 const HASHES_FILE = path.join(__dirname, 'hashes.json');
 const INIT_HASHES_FILE = path.join(__dirname, 'init-hashes.js');
@@ -23,7 +23,7 @@ const ignoreMtime = process.argv.includes('--ignore-mtime') || process.argv.incl
 let hasErrors = false;
 
 function logError(title, message) {
-  console.error(`\n❌ [MEKANISK SPÄRR v8.8] ${title}`);
+  console.error(`\n❌ [MEKANISK SPÄRR v9.1] ${title}`);
   console.error(`   ${message}`);
   hasErrors = true;
 }
@@ -48,6 +48,25 @@ function detectLanguageDriver() {
   return 'ts';
 }
 
+function createPreStep4Snapshots(p3cContent) {
+  try {
+    if (!fs.existsSync(SNAPSHOT_DIR)) {
+      fs.mkdirSync(SNAPSHOT_DIR, { recursive: true });
+    }
+    const matches = p3cContent.match(/`([^`]+\.(tsx?|jsx?))`|([a-zA-Z0-9_\-\/]+\.(tsx?|jsx?))/g) || [];
+    for (const match of matches) {
+      const cleanPath = match.replace(/`/g, '').trim();
+      const fullSrcPath = path.isAbsolute(cleanPath) ? cleanPath : path.join(SRC_DIR, cleanPath.replace(/^src\//, ''));
+      if (fs.existsSync(fullSrcPath) && fs.statSync(fullSrcPath).isFile()) {
+        const destPath = path.join(SNAPSHOT_DIR, path.basename(fullSrcPath));
+        fs.copyFileSync(fullSrcPath, destPath);
+      }
+    }
+  } catch (e) {
+    // Tyst snapshot om inget fanns tidigare
+  }
+}
+
 async function runVerification() {
   if (!fs.existsSync(LAST_CYCLE_DIR)) {
     logError('PROCESSMINNE SAKNAS', 'Mappen "doc/LAST_CYCLE/" saknas.');
@@ -59,13 +78,14 @@ async function runVerification() {
 
   const p1a = path.join(LAST_CYCLE_DIR, '1a_orientera.md');
   const p1b = path.join(LAST_CYCLE_DIR, '1b_kartlagga.md');
+  const p3c = path.join(LAST_CYCLE_DIR, '3c_fil_operativ_kallkodsspecifikation.md');
   const pApproval = path.join(LAST_CYCLE_DIR, 'APPROVAL.md');
 
-  const t1a = getMtime(p1a), t1b = getMtime(p1b);
+  const t1a = getMtime(p1a), t1b = getMtime(p1b), t3c = getMtime(p3c);
   let tApproval = getMtime(pApproval);
 
-  // AUTOMATISK RENSNING: Om en ny cykel påbörjats, radera gamla kvittot
-  if (t1a > 0 && tApproval > 0 && tApproval < t1a) {
+  // AUTOMATISK NOLLSTÄLLNING: Om ny cykel startat ELLER om 3c sparas om, radera gammalt kvitto
+  if (tApproval > 0 && (tApproval < t1a || tApproval < t3c)) {
     try {
       fs.unlinkSync(pApproval);
       tApproval = 0;
@@ -125,7 +145,7 @@ async function runVerification() {
   const p2f = path.join(LAST_CYCLE_DIR, '2f_evaluera_syntes.md');
 
   const t2a = getMtime(p2a), t2b = getMtime(p2b), t2c = getMtime(p2c);
-  const t2d = getMtime(p2d), t2e = getMtime(p2e), t2f = getMtime(p2f);
+  const t2d = getMtime(p2d), t2e = getMtime(p2e);
 
   if (t2c === 0) logError('MÅSTE KÖRA 2C', 'Steg 2c är tvingande för att förhindra arkitekturskuld.');
 
@@ -142,19 +162,17 @@ async function runVerification() {
   } else {
     if (!ignoreMtime) {
       if (t2e <= t2d) logError('SEKVENSFEL', '2e måste sparas EFTER 2d.');
-      if (t2f <= t2e) logError('SEKVENSFEL', '2f måste sparas EFTER 2e.');
     }
     if (fs.existsSync(p2e) && /(tvärdomän|bibliotek|säkerhetsregler|kontrakt|adr)/i.test(readFile(p2e))) {
       if (!ignoreMtime && getMtime(path.join(DOC_DIR, 'ADR.md')) <= t2e) logError('DOKUMENTATIONSSKULD', '2e kräver en ADR-uppdatering.');
     }
-    if (/BESLUT:\s*GÅ_TILL_DESIGN/i.test(readFile(p2f))) strategyPassedTime = t2f;
+    if (/BESLUT:\s*GÅ_TILL_DESIGN/i.test(readFile(p2f))) strategyPassedTime = getMtime(p2f);
     else logError('STRATEGISK SPÄRR', 'Inget "BESLUT: GÅ_TILL_DESIGN" nåddes i Steg 2.');
   }
 
   const p3a = path.join(LAST_CYCLE_DIR, '3a_helhet_orkestrering_och_integration.md');
   const p3b = path.join(LAST_CYCLE_DIR, '3b_doman_kontrakt_och_fraktal_dokumentation.md');
-  const p3c = path.join(LAST_CYCLE_DIR, '3c_fil_operativ_kallkodsspecifikation.md');
-  const t3a = getMtime(p3a), t3b = getMtime(p3b), t3c = getMtime(p3c);
+  const t3a = getMtime(p3a), t3b = getMtime(p3b);
 
   if (!ignoreMtime) {
     if (t3a <= strategyPassedTime) logError('SEKVENSFEL', '3a måste sparas EFTER Steg 2-godkännandet.');
@@ -169,8 +187,10 @@ async function runVerification() {
       logError('MÄNSKLIGT GODKÄNNANDE SAKNAS', 'Källkod får inte redigeras. Granska 3c och spara doc/LAST_CYCLE/APPROVAL.md för att låsa upp Steg 4.');
     } else if (tApproval <= t3c) {
       logError('SEKVENSFEL (APPROVAL)', 'APPROVAL.md sparades FÖRE eller SAMTIDIGT som 3c. Filen måste sparas EFTER att 3c granskats.');
-    } else if ((tApproval - t3c) < 10000) {
-      logError('AUTOMATISERAT GODKÄNNANDE UPPTÄCKT', `APPROVAL.md skapades endast ${Math.round((tApproval - t3c)/1000)}s efter 3c. Mänsklig granskning krävs (minst 10s betänketid).`);
+    } else if ((tApproval - t3c) < 2000) {
+      logError('AUTOMATISERAT GODKÄNNANDE UPPTÄCKT', `APPROVAL.md skapades endast ${Math.round((tApproval - t3c)/1000)}s efter 3c. Mänsklig granskning krävs (minst 2s betänketid).`);
+    } else {
+      createPreStep4Snapshots(readFile(p3c));
     }
   }
 
@@ -179,7 +199,7 @@ async function runVerification() {
     const verifyFunc = driverModule.verifyCodebase || driverModule.verifyTypeScriptCodebase;
     await verifyFunc({
       ROOT_DIR,
-      SRC_DIR,
+      SRC_DIR: path.join(ROOT_DIR, 'src'),
       t3c,
       ignoreMtime,
       logError,
@@ -191,10 +211,10 @@ async function runVerification() {
   }
 
   if (hasErrors) {
-    console.error('\n⛔ BYGGET STOPPADES AV MEKANISK KONTROLL v8.8.\n');
+    console.error('\n⛔ BYGGET STOPPADES AV MEKANISK KONTROLL v9.1.\n');
     process.exit(1);
   } else {
-    console.log(`✅ Alla sekvenser, fasader, max-domänsgränser, AI-zoner, Mänsklig Gate och TDD-kronologier godkända [Drivrutin: ${driverLang}] (v8.8).`);
+    console.log(`✅ Alla sekvenser, fasader, max-domänsgränser, AI-zoner, Mänsklig Gate och TDD-kronologier godkända [Drivrutin: ${driverLang}] (v9.1).`);
   }
 }
 

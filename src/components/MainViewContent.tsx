@@ -73,7 +73,6 @@ export function MainViewContent({
             inlineCreate={false}
             isAdmin={isAdmin}
             pushEnabled={pushEnabled}
-            onEnablePush={handleEnablePush}
             onOpenSettings={() => setCurrentView('settings')}
           />
         )}
@@ -87,7 +86,6 @@ export function MainViewContent({
             inlineCreate={true}
             isAdmin={isAdmin}
             pushEnabled={pushEnabled}
-            onEnablePush={handleEnablePush}
             onBack={() => setActiveTab("stream")}
             onOpenSettings={() => setCurrentView('settings')}
           />

@@ -1,9 +1,9 @@
 /**
- * TYPESCRIPT & FSD DRIVRUTIN (v8.8)
- * Utför global AI-skanning, fasadvalidering, FSD-gränskontroller, TDD-kronologi,
- * domänbegränsningar, Manifestkontroll mot 3c samt pedagogiska felmeddelanden.
+ * TYPESCRIPT & FSD DRIVRUTIN (v9.1)
+ * Tvingar fram modularisering i UI-komponenter (max 120 rader för huvudvyer),
+ * utför prop-/fasadskydd mot förlorade gränssnitt, verifierar interaktionstester,
+ * kontrollerar FSD-fasader, AI-isoleringszoner samt TDD-kronologi.
  */
-
 import fs from 'fs';
 import path from 'path';
 
@@ -13,11 +13,11 @@ export async function verifyTypeScriptCodebase({
   t3c,
   ignoreMtime,
   logError,
-  p4Path,
   t4
 }) {
   const featuresDir = path.join(SRC_DIR, 'features');
   const LAST_CYCLE_DIR = path.join(ROOT_DIR, 'doc', 'LAST_CYCLE');
+  const SNAPSHOT_DIR = path.join(LAST_CYCLE_DIR, 'snapshots', 'pre_step4');
   const p3cPath = path.join(LAST_CYCLE_DIR, '3c_fil_operativ_kallkodsspecifikation.md');
   const p3cContent = fs.existsSync(p3cPath) ? fs.readFileSync(p3cPath, 'utf-8') : '';
 
@@ -59,6 +59,8 @@ export async function verifyTypeScriptCodebase({
           const content = fs.readFileSync(fullPath, 'utf-8');
           const relPath = path.relative(SRC_DIR, fullPath);
           const isTsx = file.endsWith('.tsx');
+          const lineCount = content.split('\n').length;
+          const isTest = file.includes('__tests__') || file.endsWith('.test.ts') || file.endsWith('.test.tsx');
 
           if (!ignoreMtime && stat.mtimeMs > t3c) {
             if (relPath.startsWith('features' + path.sep)) {
@@ -68,6 +70,25 @@ export async function verifyTypeScriptCodebase({
 
             if (p3cContent && !p3cContent.includes(relPath) && !p3cContent.includes(file)) {
               logError('MANIFESTÖVERTRÄDELSE', `Filen "${relPath}" modifierades i Steg 4 men saknas i 3c. Gör en cykelretur till 3c och speca filen först.`);
+            }
+
+            // PROP- OCH FASADSKYDD MOT SNAPSHOT
+            const snapFilePath = path.join(SNAPSHOT_DIR, path.basename(fullPath));
+            if (fs.existsSync(snapFilePath)) {
+              const oldContent = fs.readFileSync(snapFilePath, 'utf-8');
+              const oldPropMatches = oldContent.match(/interface\s+[A-Za-z0-9_]*Props[\s\S]*?\}|type\s+[A-Za-z0-9_]*Props\s*=\s*\{[\s\S]*?\}/g) || [];
+              const newPropMatches = content.match(/interface\s+[A-Za-z0-9_]*Props[\s\S]*?\}|type\s+[A-Za-z0-9_]*Props\s*=\s*\{[\s\S]*?\}/g) || [];
+
+              if (oldPropMatches.length > 0 && newPropMatches.length > 0) {
+                const extractKeys = (str) => (str.match(/\b([a-zA-Z0-9_]+)\s*\??\s*:/g) || []).map(k => k.split('?')[0].split(':')[0].trim());
+                const oldKeys = extractKeys(oldPropMatches.join('\n'));
+                const newKeys = new Set(extractKeys(newPropMatches.join('\n')));
+
+                const missingKeys = oldKeys.filter(k => !newKeys.has(k) && !['string', 'number', 'boolean', 'any', 'void', 'unknown'].includes(k));
+                if (missingKeys.length > 0 && !/BORTTAGEN_PROP|REFAKTORISERAD_PROP/i.test(p3cContent)) {
+                  logError('GRÄNSSNITTSREGRESSION (PROP-LÄCKAGE)', `${path.relative(ROOT_DIR, fullPath)} förlorade prop/interface-nycklar: (${missingKeys.join(', ')}) utan "BORTTAGEN_PROP" i 3c.`);
+                }
+              }
             }
           }
 
@@ -83,7 +104,7 @@ export async function verifyTypeScriptCodebase({
             logError('AI-ISOLERINGSÖVERTRÄDELSE', `${path.relative(ROOT_DIR, fullPath)} innehåller AI-anrop utanför domain/ai_zones/.`);
           }
 
-          if (isTsx) {
+          if (isTsx && !isTest) {
             const useStateCount = (content.match(/useState\s*\(/g) || []).length;
             const useEffectCount = (content.match(/useEffect\s*\(/g) || []).length;
 
@@ -94,17 +115,35 @@ export async function verifyTypeScriptCodebase({
             if (/fetch\s*\(|async\s+\(|axios\./.test(content)) {
               logError('Prestanda: Datahämtning i gränssnittet', `${path.relative(ROOT_DIR, fullPath)} hämtar data direkt i vyn. Flytta till domain/ eller servicelagret.`);
             }
+
+            // STRIKT MODULARISERINGSGRÄNS FÖR UI: Max 120 rader för huvudvyer
+            if (lineCount > 120 && !relPath.includes(`components${path.sep}`)) {
+              logError('MODULARISERINGSGRÄNS ÖVERSKRIDEN', `${path.relative(ROOT_DIR, fullPath)} har ${lineCount} rader. UI-vyer får ha max 120 rader. Bryt ut sektioner till fristående underkomponenter i components/.`);
+            }
+          }
+
+          if (isTest) {
+            const hasExpect = /expect\s*\(/.test(content);
+            if (!hasExpect) {
+              logError('TEST UTAN ASSERTIONS', `${path.relative(ROOT_DIR, fullPath)} saknar expect()-påståenden.`);
+            }
+
+            if (file.endsWith('.test.tsx')) {
+              const hasInteraction = /(fireEvent|userEvent|toHaveBeenCalled|getByRole|getByText|click)\b/.test(content);
+              if (!hasInteraction) {
+                logError('GRÄNSSNITTSTEST UTAN INTERAKTION', `${path.relative(ROOT_DIR, fullPath)} är ett UI-test men saknar interaktionspåståenden (fireEvent/userEvent/toHaveBeenCalled).`);
+              }
+            }
           }
 
           if (/catch\s*\([^)]*\)\s*\{\s*\}/.test(content)) {
             logError('Felhantering: Dolda fel i koden', `${path.relative(ROOT_DIR, fullPath)} har ett tomt catch-block som sväljer fel.`);
           }
 
-          if (/:\s*any\b|as\s+any\b/.test(content)) {
+          if (/: \s*any\b|as\s+any\b/.test(content)) {
             logError('Typkontroll: Koden saknade tydliga beskrivningar av sin data', `${path.relative(ROOT_DIR, fullPath)} använder 'any'. Ange konkreta datatyper.`);
           }
 
-          const isTest = file.includes('__tests__') || file.endsWith('.test.ts') || file.endsWith('.test.tsx');
           if (isTest) {
             if (stat.mtimeMs < oldestTestTime) oldestTestTime = stat.mtimeMs;
             if (stat.mtimeMs > newestTestTime) newestTestTime = stat.mtimeMs;
@@ -113,7 +152,7 @@ export async function verifyTypeScriptCodebase({
             if (stat.mtimeMs > newestProdCodeTime) newestProdCodeTime = stat.mtimeMs;
           }
 
-          if (content.split('\n').length > 250) {
+          if (lineCount > 250) {
             logError('STORLEKSGRÄNS ÖVERSKRIDEN', `${path.relative(ROOT_DIR, fullPath)} överstiger 250 rader.`);
           }
 

@@ -1,9 +1,9 @@
 # Steg 2c: Refaktorisering och Rensning
 
-## 1. Rensa Passiva Element
-- Ta bort all passiv påminnelsetext i `OnboardingWizard.tsx`.
-- Ersätt stjärnikonen (`Sparkles`) framför rubriken med ren typografi.
-- Implementera en tydlig primärknapp `Slå på 'Ta emot inbjudningar'` som direkt sätter `pushEnabled = true`.
+## 1. Rensning av Passiv UI-kod
+- Radera den gamla passiva `<div>`-boxen med texten `"Slå på 'Ta emot inbjudningar' i toppfältet för att aktivera dina val."`.
+- Avlägsna ikonen `<Sparkles size={24} className="text-brand-accent" />` från rubriken.
 
-## 2. Rensa Hårda Designbalkar
-- Se till att alla statuskort använder mjuka pappersramar (`border-brand-accent/25 shadow-sm rounded-3xl`) och att inga hårdkodade otillåtna färger (t.ex. raw hex eller otillåtna namn) bryter mot CSS-temats regressionsvakt.
+## 2. Aktiv Aktiveringsknapp
+- Skapa en dedikerad, responsiv knapp längst upp i panelen när `!pushEnabled`.
+- Knappen utformas med `bg-brand-accent text-white hover:bg-brand-accent/90 rounded-2xl p-4 text-xs sm:text-sm font-sans font-medium flex items-center justify-between shadow-xs transition-all cursor-pointer group` och en tydlig handlingspil (`ArrowRight`).

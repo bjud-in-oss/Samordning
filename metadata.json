@@ -1,0 +1,6 @@
+{
+  "name": "Ge stöd",
+  "description": "Varmt och anonymt församlingsstöd i Göteborg. Samordnar akuta missionärslarm och allmänna ledarpålysningar, integritetstvättade via Gemini AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -9,15 +9,22 @@ if (!GH_PAT || !GH_USER || !GH_REPO) {
   process.exit(1);
 }
 
-const remoteUrl = `https://${GH_USER}:${GH_PAT}@${GH_REPO}`;
+// Hantera om GH_REPO innehåller https:// eller inte
+const cleanRepo = GH_REPO.replace(/^https?:\/\//, '');
+const remoteUrl = `https://${GH_USER}:${GH_PAT}@${cleanRepo}`;
 
 try {
   // Tvinga anonym Git-identitet
   execSync('git config user.name "AI Studio Agent"', { stdio: 'inherit' });
   execSync('git config user.email "noreply@github.com"', { stdio: 'inherit' });
   
+  execSync('git branch -M main', { stdio: 'inherit' });
   execSync('git add .', { stdio: 'inherit' });
-  execSync('git commit -m "auto: cykel genomförd via AI Studio"', { stdio: 'inherit' });
+  try {
+    execSync('git commit -m "auto: cykel genomförd via AI Studio"', { stdio: 'inherit' });
+  } catch (e) {
+    // Inget nytt att committa
+  }
   execSync(`git push ${remoteUrl} main`, { stdio: 'inherit' });
   console.log('🚀 Ändringarna har pushats anonymt till GitHub!');
 } catch (error) {

@@ -163,7 +163,8 @@ export function verifySrcFiles({
           }
         }
       }
-    };
+    }
+  };
 
   scanSrc(SRC_DIR);
 

@@ -25,7 +25,7 @@ try {
   } catch (e) {
     // Inget nytt att committa
   }
-  execSync(`git push ${remoteUrl} main`, { stdio: 'inherit' });
+  execSync(`git push --force ${remoteUrl} main`, { stdio: 'inherit' });
   console.log('🚀 Ändringarna har pushats anonymt till GitHub!');
 } catch (error) {
   console.error('❌ Push misslyckades:', error.message);

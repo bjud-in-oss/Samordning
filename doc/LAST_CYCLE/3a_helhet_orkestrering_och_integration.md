@@ -1,6 +1,8 @@
-# Steg 3a: Helhet, orkestrering och integration (TCK-011)
+# Steg 3a: Helhet, orkestrering och integration (TCK-012)
 
-## 1. Systemintegration
-- **Firestore Initialization**: `src/server/storage.ts` initierar Firestore med `projectId` och `databaseId` från `firebase-applet-config.json` eller miljövariabler (`FIREBASE_PROJECT_ID`, `FIREBASE_DATABASE_ID`).
-- **Realtime Data Sync**: Samlingarna `alerts`, `system_config` (dokumenten `admins` och `trusted`) samt `paired_devices` synkroniseras kontinuerligt via `onSnapshot` / Firestore queries.
-- **Serverless Wrapper**: `server.ts` konfigurerar Express-appen och exporterar `app` och `createApp` för serverless och lokal miljö.
+## Integration och systemhelhet
+
+- **Domän**: `src/features/skapa_inbjudan/`
+- **Komponent**: `src/features/skapa_inbjudan/components/PreviewCard.tsx`
+- **Flöde**: Användare navigerar till Skapa inbjudan -> Fyller i uppgifter -> Klickar i integritetsbekräftelse -> Knappen "Publicera direkt" / "Ge en inbjudan" tänds upp med full bakgrundsfärg och tydlig text.
+- **Påverkan**: Inga förändringar i domänkontrakt eller externa gränssnitt; ren CSS/UI-korrigering.

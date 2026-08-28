@@ -1,10 +1,8 @@
-# Steg 3b: Domänkontrakt och fraktal dokumentation (TCK-011)
+# Steg 3b: Domänkontrakt och fraktal dokumentation (TCK-012)
 
-## 1. Datalagringskontrakt
-- **Firestore Samlingar**:
-  - `alerts`: Dokument per ID (innehåller `ActiveAlert`).
-  - `system_config`: Dokument `admins` (`{ numbers: string[] }`) och `trusted` (`{ numbers: string[] }`).
-  - `paired_devices`: Dokument per token (`{ token: string, pairedAt: number }`).
-- **Server Export**:
-  - `src/server/storage.ts`: `initServerStorage`, `saveActiveAlerts`, `saveAdmins`, `saveTrusted`, `savePairedDevices`, `pairDeviceToken`.
-  - `src/server/__tests__/storage.test.ts`: TDD-enhetstest för datalagring och Firestore-abstraktion.
+## Domänkontrakt och typdefinitioner
+
+- **Domängränser**: `src/features/skapa_inbjudan/index.ts` exporterar `CreateInvitationForm`.
+- **Props**: `PreviewCardProps` behåller alla befintliga props oförändrade.
+- **Zod-schema**: Valideringsreglerna i `src/features/skapa_inbjudan/domain/schema.ts` förblir intakta.
+- **Dokumentationsgränser**: `src/features/skapa_inbjudan/doc/CONSTRAINTS.md` är under 40 rader.

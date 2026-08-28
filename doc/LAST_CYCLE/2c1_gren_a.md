@@ -1,6 +1,18 @@
-# Steg 2c1: Gren A – Endast asynkrona Firestore-anrop vid varje request (TCK-011)
+# Steg 2c1: Arkitekturgren A (Harmonisera med bg-brand-accent)
 
-## 1. Beskrivning av Gren A
-Alla anrop till `activeAlerts`, `adminNumbers` etc. görs asynkront mot Firestore vid varje enskild HTTP-begäran.
-- **Fördel**: Inget lokalt tillstånd alls i processen.
-- **Nackdel**: Kan addera 50–150ms nätverkslatens på varje begäran och kräver omfattande omskrivning av synkrona anrop i `smsRoutes.ts` och `smsCommands.ts`.
+## Förslag i Gren A: Direkt konsumtion av bg-brand-accent i PreviewCard
+
+I `PreviewCard.tsx` ersätts referensen `bg-brand-primary` med den redan fullt etablerade klassen `bg-brand-accent`. 
+
+### Genomförande:
+```tsx
+className={`px-5 py-2.5 text-white font-mono text-xs uppercase tracking-wider font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer ml-auto ${
+  !consentConfirmed 
+    ? "bg-brand-ink/30 cursor-not-allowed opacity-60" 
+    : "bg-brand-accent hover:bg-brand-accent/90"
+}`}
+```
+
+### Fördelar:
+- Inga förändringar krävs i globala stylesheet-filer.
+- Samma färgtema och trygghet över alla vyer.

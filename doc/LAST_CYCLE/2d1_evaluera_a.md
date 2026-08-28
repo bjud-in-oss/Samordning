@@ -1,5 +1,13 @@
-# Steg 2d1: Evaluera Gren A (TCK-011)
+# Steg 2d1: Evaluera Gren A
 
-## 1. Utvärdering
-- Att tvinga alla funktioner att bli asynkrona i `storage.ts` kan bryta synkrona gränssnitt som `activeAlerts[id]` och kräva omfattande refaktorisering i `missionaryChatEngine.ts` och `smsCommands.ts`.
-- **Coachningsfråga för Gren B**: Kan vi kombinera transparent Firestore-persistens i bakgrunden med realtidslyssnare (`onSnapshot`) / minnescache i RAM så att alla synkrona åtkomster förblir blixtsnabba (0ms) samtidigt som all data sparas och synkas mot Firestore?
+## Utvärdering av Gren A
+
+Gren A löser problemet omedelbart och isolerat i `PreviewCard.tsx`.
+
+### Styrkor:
+- Enkel och helt säker förändring inom domänen `skapa_inbjudan`.
+- Noll risk för sidoeffekter på andra komponenter.
+
+### Kvarvarande osäkerheter & gränssnittskrav för nästa gren:
+- Kan andra komponenter i framtiden försöka använda klassen `bg-brand-primary` och råka ut för samma sak?
+- Gren B bör analysera huruvida vi även bör komplettera `src/index.css` med aliaset `--color-brand-primary: var(--color-primary);` för fullständig robusthet i hela Tailwind-temat.

@@ -1,7 +1,12 @@
-# Steg 2d2: Evaluera Gren B (TCK-011)
+# Steg 2d2: Evaluera Gren B
 
-## 1. Utvärdering
-- Gren B ger 0ms responstid för inkommande SMS och API-anrop tack vare RAM-cachen.
-- Garanterar omedelbar synkronisering mellan alla instanser via Cloud Firestore.
-- Kräver inga förändringar i anropande moduler (`smsRoutes.ts`, `smsCommands.ts`, `missionaryChatEngine.ts`).
-- Väljs som grund för den slutgiltiga arkitektursyntesen.
+## Utvärdering av Gren B
+
+Gren B kombinerar lokal domänsäkerhet med global temasäkring.
+
+### Styrkor:
+- Löser färgförlusten direkt i `skapa_inbjudan` utan tveksamhet.
+- Ger ett framtidssäkert skydd mot att odefinierade `brand-primary`-klasser orsakar transparenta element i gränssnittet.
+
+### Kvarvarande osäkerheter & gränssnittskrav för nästa gren:
+- Inga kvarvarande osäkerheter. Alla fyra tillståndsvektorer (State, Contract, Effects, Resilience) är fullständigt belysta och adresserade.

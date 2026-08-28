@@ -17,3 +17,7 @@
 | TCK-DOC-002 | inbjudningar: Kompaktering av doc/ till CONSTRAINTS.md & Zod-schema | Refactor | inbjudningar | Closed |
 | TCK-DOC-003 | anpassa: Kompaktering av doc/ till CONSTRAINTS.md & Zod-schema | Refactor | anpassa | Closed |
 | TCK-011 | Serverless-migrering: Firebase Cloud Functions v2 & Firestore-datalagring | Refactor | Global | Closed |
+| TCK-EPIC-002 | Epik: UI-ergonomi, SMS-sessionsfönster och kontextuellt platsminne | Epic | Global | Open |
+| TCK-012 | skapa_inbjudan: Återställ färgmarkering för 'Publicera direkt' vid integritetsbekräftelse | Bug | skapa_inbjudan | Closed |
+| TCK-013 | sms_assistant: Implementera 5-minuters sessionsfönster för admin-SMS | Feature | Global | Open |
+| TCK-014 | sms_assistant: Kontext- och platsminne i SMS-chatt | Feature | Global | Open |

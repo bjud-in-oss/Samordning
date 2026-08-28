@@ -1,6 +1,10 @@
-# Steg 2a: Förändra utåt – Vision (TCK-011)
+# Steg 2a: Förändra utåt (Vision för TCK-012)
 
-## 1. Yttre vision och serverless-arkitektur
-- **Tillståndslös server**: Samordning ska fungera 100 % serverless utan lokala filer i `data/*.json`.
-- **Snabbhet & Noll latency**: Läsningar tillgodoses från snabb minnescache och synkas transparent mot Firestore med realtidsuppdateringar.
-- **Serverless Cloud Function Export**: Hela Express-applikationen med samtliga API-rutter (`/api/alerts`, `/api/incoming-sms`, `/api/admin/*`, `/api/wash`) ska exporteras som en standard Firebase Cloud Function `onRequest`-kompatibel handler samtidigt som dev-servern med Vite behålls.
+## Vision för användarupplevelse och visuell ergonomi
+
+När administratören eller en medlem skapar en inbjudan och bockar för integritetsbekräftelsen ska åtgärdsknappen "Publicera direkt" / "Ge en inbjudan" tydligt och distinkt tändas upp med församlingens varma signaturfärg (`bg-brand-accent` eller `bg-brand-primary`). 
+
+### Visuell målbild:
+- **Inaktiverad**: Dämpad, halvtransparent grå/bläckton (`bg-brand-ink/20 text-brand-ink/50 cursor-not-allowed`) som indikerar att villkor kvarstår.
+- **Aktiverad (Integritet godkänd)**: Solid grön/bärnsten/skymningston i enlighet med aktivt tema (`bg-brand-accent hover:bg-brand-accent/90 text-white shadow-sm`), med vit text och tydlig kontrast.
+- **Ingen osynlighet**: Knappen förlorar aldrig sin bakgrund eller kontrast vid tillståndsövergången.

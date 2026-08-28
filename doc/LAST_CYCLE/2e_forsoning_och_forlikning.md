@@ -1,13 +1,10 @@
-# Steg 2e: Försoning och förlikning (TCK-011)
+# Steg 2e: Försoning och förlikning (Syntes för TCK-012)
 
-## 1. Syntes och beslut
-Arkitektursyntesen etablerar:
-1. **Firestore-persistens i `src/server/storage.ts`**:
-   - Använder Firebase Modular SDK (`firebase/app`, `firebase/firestore`) mot samlingarna `alerts`, `system_config` och `paired_devices`.
-   - Initierar realtidslyssnare vid uppstart som fyller och kontinuerligt uppdaterar in-memory objekten `activeAlerts`, `adminNumbers`, `trustedNumbers` och `pairedDevices`.
-   - Alla skrivoperationer persisteras asynkront till Firestore utan disk-I/O mot `data/*.json`.
-2. **Serverless Cloud Function Wrapper i `server.ts`**:
-   - Skapar och konfigurerar Express-appen med `setupRoutes(app)`.
-   - Exporterar `app` och startar servern i fristående läge eller som Cloud Functions v2 `onRequest`-handler.
-3. **Dokumentation och ADR-uppdatering**:
-   - `doc/DECISIONS.md` uppdateras för att återspegla Firestore som kanonisk molndatabas och serverless arkitektur.
+## Jämkning och syntes
+
+Vi väljer syntesen från Gren B:
+1. Vi harmoniserar `PreviewCard.tsx` med den solida klassen `bg-brand-accent hover:bg-brand-accent/90 text-white` vid aktivt tillstånd (`consentConfirmed === true`).
+2. Vi bevarar dämpad stil (`bg-brand-ink/30 cursor-not-allowed opacity-60 text-white`) när villkoren inte är uppfyllda.
+3. Den visuella presentationen förblir kristallklar för såväl admin som vanliga medlemmar.
+
+**MÄTTNAD: JA**

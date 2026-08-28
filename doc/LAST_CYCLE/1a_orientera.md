@@ -1,22 +1,17 @@
-# Steg 1a: Orientera (TCK-011)
+# Steg 1a: Orientera (TCK-012: Återställ färgmarkering för 'Publicera direkt')
 
-## 1. Bakgrund och målbild
-Samordning ska migreras från en tillståndsberoende Express-instans med lokala JSON-filer (`data/*.json`) på Render (som lider av 30–50 sekunders cold-starts) till en serverless-arkitektur på Firebase (Firebase Cloud Functions v2 + Cloud Firestore):
-- **Tillståndslös datalagring**: Ersätta diskbaserad filskrivning i `src/server/storage.ts` med Cloud Firestore för `activeAlerts`, `adminNumbers`, `trustedNumbers` och `pairedDevices`.
-- **Serverless Express Wrapper**: Exponera Express-appen via ett modulärt gränssnitt som både stöder standard Node/Vite (i dev/container) och serverless Cloud Function export (`onRequest`) med bevarad webhook-validering (`x-api-secret`).
-- **Oförändrad kärnlogik**: Bevara all SMS-kommandohantering, AI-tvätt med Gemini och push-tjänster intakta.
+## Sokratiska GROW-frågor (Vektorbaserad analys)
 
-## 2. Sokratiska GROW-coachningsfrågor
-1. **Goal (Mål)**: Hur konfigurerar vi Firestore i `src/server/storage.ts` så att alla läsningar och skrivningar sker tillförlitligt, snabbt (< 1-3s) och asynkront mot Firestore-databasen `ai-studio-lskadelaochbjudi-8f1f880e-4630-4f7d-ad96-d842f26ef2d1` samtidigt som en snabb minnescache hålls i RAM för omedelbar respons?
-2. **Reality (Nuläge & Antaganden)**: `src/server/storage.ts` använder idag `fs.readFileSync` och `fs.writeFileSync` mot lokala filer i `data/`. `src/main/config/firebaseClient.ts` innehåller grundläggande klientkonfiguration men saknar server/backend-inläsning för konfigurerade databas-ID:n.
-3. **Obstacles & Options (Hinder och vägar framåt)**: Hur garanterar vi att SMS-webhooks, simuleringar och Express-rutter svarar omedelbart utan att blockeras av externa nätverksanrop, och hur säkerställer vi full bakåtkompatibilitet med befintliga tester och gränssnitt?
+1. **State**: Hur påverkas `consentConfirmed` och knappens visuella tillstånd vid skifte från inaktiverad (`opacity-60 bg-brand-ink/30`) till aktiverad admin-vy?
+2. **Contract**: Vilka CSS-klasser och tematiserade tokens (`bg-brand-primary`, `bg-brand-accent`, `bg-primary`) definieras i Tailwind `@theme` och konsumeras i `PreviewCard.tsx` samt `Step2Privacy.tsx` för att garantera att knappen bibehåller solid bakgrundsfärg?
+3. **Resilience**: Hur säkerställer vi att färgkontrasten uppfyller WCAG AA och förblir helt intakt i samtliga säsongsteman (default, high-contrast, autumn, spring, winter)?
 
 ```json
 {
   "status": "IN_PROGRESS",
-  "current_domain": "Global",
+  "current_domain": "skapa_inbjudan",
   "next_step": "1b_kartlagga",
-  "ticket_id": "TCK-011",
+  "ticket_id": "TCK-012",
   "active_skill": "wayfinder"
 }
 ```

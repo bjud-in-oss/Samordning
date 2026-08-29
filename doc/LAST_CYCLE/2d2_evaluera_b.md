@@ -2,11 +2,7 @@
 
 ## Utvärdering av Gren B
 
-Gren B kombinerar lokal domänsäkerhet med global temasäkring.
-
-### Styrkor:
-- Löser färgförlusten direkt i `skapa_inbjudan` utan tveksamhet.
-- Ger ett framtidssäkert skydd mot att odefinierade `brand-primary`-klasser orsakar transparenta element i gränssnittet.
+Gren B är ren, transparent och stänger epiken i full överensstämmelse med projektets arbetsordning.
 
 ### Kvarvarande osäkerheter & gränssnittskrav för nästa gren:
-- Inga kvarvarande osäkerheter. Alla fyra tillståndsvektorer (State, Contract, Effects, Resilience) är fullständigt belysta och adresserade.
+- Inga kvarvarande osäkerheter.

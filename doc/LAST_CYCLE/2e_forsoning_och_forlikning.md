@@ -1,10 +1,9 @@
-# Steg 2e: Försoning och förlikning (Syntes för TCK-012)
+# Steg 2e: Försoning och förlikning (Syntes för TCK-EPIC-002)
 
-## Jämkning och syntes
+## Syntes och förlikning
 
-Vi väljer syntesen från Gren B:
-1. Vi harmoniserar `PreviewCard.tsx` med den solida klassen `bg-brand-accent hover:bg-brand-accent/90 text-white` vid aktivt tillstånd (`consentConfirmed === true`).
-2. Vi bevarar dämpad stil (`bg-brand-ink/30 cursor-not-allowed opacity-60 text-white`) när villkoren inte är uppfyllda.
-3. Den visuella presentationen förblir kristallklar för såväl admin som vanliga medlemmar.
+Vi antar Gren B i dess helhet:
+1. `TCK-EPIC-002` sätts till `Closed` i `doc/TICKETS.md`.
+2. Cykeln avslutas som icke-kodande epik-stängning.
 
 **MÄTTNAD: JA**

@@ -1,17 +1,17 @@
-# Steg 1a: Orientera (TCK-012: Återställ färgmarkering för 'Publicera direkt')
+# Steg 1a: Orientera (TCK-EPIC-002: Epik-utvärdering & stängning)
 
 ## Sokratiska GROW-frågor (Vektorbaserad analys)
 
-1. **State**: Hur påverkas `consentConfirmed` och knappens visuella tillstånd vid skifte från inaktiverad (`opacity-60 bg-brand-ink/30`) till aktiverad admin-vy?
-2. **Contract**: Vilka CSS-klasser och tematiserade tokens (`bg-brand-primary`, `bg-brand-accent`, `bg-primary`) definieras i Tailwind `@theme` och konsumeras i `PreviewCard.tsx` samt `Step2Privacy.tsx` för att garantera att knappen bibehåller solid bakgrundsfärg?
-3. **Resilience**: Hur säkerställer vi att färgkontrasten uppfyller WCAG AA och förblir helt intakt i samtliga säsongsteman (default, high-contrast, autumn, spring, winter)?
+1. **State**: Är alla tre delmål (UI-färgmarkering i `skapa_inbjudan`, 5-minuters sessionsfönster för admin-SMS och ackumulerande kontext- och platsminne i `sms_assistant`) fullt integrerade och verifierade mot appens tillstånd?
+2. **Contract**: Uppfyller de implementerade gränssnitten och typdefinitionerna de ställda kraven i domänfasaderna och servermotorerna utan kvarvarande avvikelser?
+3. **Resilience**: Har alla delmoment testats och verifierats felfritt via mekanisk arkitekturkontroll och automatiserade enhetstester?
 
 ```json
 {
   "status": "IN_PROGRESS",
-  "current_domain": "skapa_inbjudan",
+  "current_domain": "Global",
   "next_step": "1b_kartlagga",
-  "ticket_id": "TCK-012",
+  "ticket_id": "TCK-EPIC-002",
   "active_skill": "wayfinder"
 }
 ```

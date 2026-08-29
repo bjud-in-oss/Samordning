@@ -1,7 +1,8 @@
-# Steg 2b: Evaluera yttre anpassning (TCK-012)
+# Steg 2b: Evaluera yttre anpassning (TCK-EPIC-002)
 
-## Utvärdering av visionen mot användarbehov och tillgänglighet
+## Utvärdering av epikens leverans
 
-- **Intuitiv interaktion**: Den omedelbara färgförändringen ger användaren en visuell bekräftelse på att integritetskravet är uppfyllt och att inbjudan är redo att publiceras.
-- **Enhetlighet**: Knappen i `PreviewCard.tsx` harmoniseras med knapparna i `Step2Privacy.tsx` och `CreateInvitationForm.tsx`.
-- **Tillgänglighetsgranskning**: Texten är helvit (`#ffffff`) mot varumärkesaccenten (`#5e6c5c`, `#000000`, `#8c4a27` etc.), vilket uppfyller WCAG AA-kraven i samtliga fem teman.
+Samtliga användarresor inom ramen för epiken är verifierade:
+- Webbanvändare (ledare/medlemmar) upplever korrekt färgfeedback vid publicering.
+- Administratörer upplever snabbare och smidigare SMS-kommandon via tidsfönstret.
+- Missionärer kan föra naturliga, inkrementella SMS-dialoger för inbjudningsskapande.

@@ -30,10 +30,28 @@ import { handleMissionaryChat, missionarySessions } from "./missionaryChatEngine
 
 // Deduplicering / Eko-skydd vid själv-SMS (inom 30 sekunder)
 interface SmsCacheEntry {
-  response: any;
+  response: Record<string, unknown>;
   timestamp: number;
 }
 const recentSmsCache = new Map<string, SmsCacheEntry>();
+
+// Admin 5-minuters sessionsfönster (TCK-013)
+export const ADMIN_SESSION_TTL_MS = 5 * 60 * 1000;
+export const adminSessionWindow = new Map<string, number>();
+
+export function isWithinAdminSession(phone: string, now: number = Date.now()): boolean {
+  const lastActive = adminSessionWindow.get(normalizePhone(phone));
+  if (!lastActive) return false;
+  return (now - lastActive) < ADMIN_SESSION_TTL_MS;
+}
+
+export function touchAdminSession(phone: string, now: number = Date.now()): void {
+  adminSessionWindow.set(normalizePhone(phone), now);
+}
+
+export function clearAdminSessions(): void {
+  adminSessionWindow.clear();
+}
 
 export async function handleIncomingSms(req: Request, res: Response) {
   const requestSecret = req.headers["x-api-secret"] || req.body.secret;
@@ -79,11 +97,13 @@ export async function handleIncomingSms(req: Request, res: Response) {
   // 1. If user is in an active missionary chat session, route to the chat engine directly
   const normSender = normalizePhone(sender);
   const hasActiveSession = missionarySessions.has(normSender);
+  const hasAdminSession = isAdmin && isWithinAdminSession(sender, now);
   const isWebb = trimmedText.toUpperCase().startsWith("#WEBB");
 
   if (hasActiveSession) {
     const chatResult = await handleMissionaryChat(sender, trimmedText);
     if (chatResult.handled) {
+      if (isAdmin) touchAdminSession(sender, now);
       const chatResp = { success: true, replyMessage: chatResult.replyMessage };
       recentSmsCache.set(dedupKey, { response: chatResp, timestamp: now });
       return res.json(chatResp);
@@ -93,6 +113,7 @@ export async function handleIncomingSms(req: Request, res: Response) {
   // 2. Handle Admin & System Commands (.ja [id], .nej [id], .status, .mall, .ta bort, etc)
   const cmdResult = await handleSmsCommand(sender, trimmedText, isAdmin, isTrustedOrAdmin);
   if (cmdResult.handled) {
+    if (isAdmin) touchAdminSession(sender, now);
     const resp = cmdResult.response;
     if (resp?.error) {
       return res.status(resp.status || 400).json({ error: resp.error });
@@ -102,6 +123,7 @@ export async function handleIncomingSms(req: Request, res: Response) {
 
   // 3. Handle Web Form Submissions (#WEBB)
   if (isWebb) {
+    if (isAdmin) touchAdminSession(sender, now);
     const lines = trimmedText.split("\n");
     let category = "Vara en vän";
     let time = "18:00";
@@ -155,10 +177,11 @@ export async function handleIncomingSms(req: Request, res: Response) {
     }
   }
 
-  // 4. If text starts with # or ., initiate Missionary Interactive Chat
-  if (trimmedText.startsWith("#") || trimmedText.startsWith(".")) {
+  // 4. If text starts with # or ., OR if admin is in active 5-minute session, initiate Missionary Interactive Chat
+  if (trimmedText.startsWith("#") || trimmedText.startsWith(".") || hasAdminSession) {
     const chatResult = await handleMissionaryChat(sender, trimmedText);
     if (chatResult.handled) {
+      if (isAdmin) touchAdminSession(sender, now);
       const chatResp = { success: true, replyMessage: chatResult.replyMessage };
       recentSmsCache.set(dedupKey, { response: chatResp, timestamp: now });
       return res.json(chatResp);

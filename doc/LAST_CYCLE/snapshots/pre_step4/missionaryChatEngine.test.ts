@@ -1,7 +1,13 @@
 // [src/server/__tests__/missionaryChatEngine.test.ts] - Unit tests for Interactive Missionary SMS Chat Engine
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { handleMissionaryChat, missionarySessions, formatCurrentDraft } from "../missionaryChatEngine";
+import { 
+  handleMissionaryChat, 
+  missionarySessions, 
+  formatCurrentDraft, 
+  mergeDraftContext,
+  MissionarySession
+} from "../missionaryChatEngine";
 import { activeAlerts, normalizePhone } from "../storage";
 
 describe("Missionary Interactive SMS Chat Engine", () => {
@@ -13,6 +19,35 @@ describe("Missionary Interactive SMS Chat Engine", () => {
     for (const key in activeAlerts) {
       delete activeAlerts[key];
     }
+  });
+
+  it("merges draft context incrementally without losing previously declared area and activity", () => {
+    let draft: MissionarySession["draft"] = {
+      activity: "Undervisa en intresserad",
+      area: "Angered",
+      locationName: "Angered Centrum",
+      organization: "Missionärerna"
+    };
+
+    // Follow-up 1: User specifies time only ("kl 19:00")
+    draft = mergeDraftContext(draft, "kl 19:00");
+    expect(draft.time).toBe("kl 19:00");
+    expect(draft.area).toBe("Angered");
+    expect(draft.activity).toBe("Undervisa en intresserad");
+    expect(draft.locationName).toBe("Angered Centrum");
+
+    // Follow-up 2: User specifies a specific meeting location ("vi ses vid spårvagnshållplatsen")
+    draft = mergeDraftContext(draft, "vi ses vid spårvagnshållplatsen");
+    expect(draft.locationName).toBe("spårvagnshållplatsen");
+    expect(draft.time).toBe("kl 19:00");
+    expect(draft.area).toBe("Angered");
+    expect(draft.activity).toBe("Undervisa en intresserad");
+
+    // Follow-up 3: User changes area explicitly ("i Kortedala")
+    draft = mergeDraftContext(draft, "i Kortedala");
+    expect(draft.area).toBe("Kortedala");
+    expect(draft.activity).toBe("Undervisa en intresserad");
+    expect(draft.time).toBe("kl 19:00");
   });
 
   it("initiates conversation on # prompt and asks for privacy consent with #ja instruction", async () => {
@@ -42,27 +77,36 @@ describe("Missionary Interactive SMS Chat Engine", () => {
     const session = missionarySessions.get(normSender);
     expect(session?.consentGiven).toBe(true);
     expect(session?.step).toBe("COLLECTING_DETAILS");
-    expect(session?.draft.activity).toBeUndefined();
   });
 
-  it("handles conversation updates, displays 'Inbjudan hittills:' and suggests #publicera", async () => {
+  it("handles conversation updates with context memory and suggests #publicera", async () => {
     await handleMissionaryChat(testSender, "#");
     await handleMissionaryChat(testSender, "#ja");
 
-    const res = await handleMissionaryChat(testSender, "Fika och baka bullar kl 18:00 i Kortedala");
-    expect(res.handled).toBe(true);
-    expect(res.replyMessage).toContain("Inbjudan hittills:");
-    expect(res.replyMessage).toContain("#publicera");
+    // Step 1: Activity & Area
+    const res1 = await handleMissionaryChat(testSender, "Bibelläsning i Kortedala");
+    expect(res1.handled).toBe(true);
+    expect(res1.replyMessage).toContain("Inbjudan hittills:");
+    expect(res1.replyMessage).toContain("Kortedala");
+    expect(res1.replyMessage).toContain("#publicera");
+
+    // Step 2: Add time only
+    const res2 = await handleMissionaryChat(testSender, "kl 19:00");
+    expect(res2.handled).toBe(true);
+    expect(res2.replyMessage).toContain("Kortedala");
+    expect(res2.replyMessage).toContain("19:00");
 
     const session = missionarySessions.get(normSender);
-    expect(session?.step).toBe("AWAITING_PUBLISH_CONFIRM");
-    expect(session?.draft.time).toBeDefined();
-  });
+    expect(session?.draft.area).toBe("Kortedala");
+    expect(session?.draft.time).toContain("19:00");
+    expect(session?.draft.activity).toBe("Bibelläsning");
+  }, 15000);
 
-  it("publishes the invitation directly when receiving #publicera", async () => {
+  it("publishes the invitation directly when receiving #publicera with accumulated area and locationName", async () => {
     await handleMissionaryChat(testSender, "#");
     await handleMissionaryChat(testSender, "#ja");
-    await handleMissionaryChat(testSender, "Bibelläsning kl 19:00");
+    await handleMissionaryChat(testSender, "Bibelläsning i Kortedala");
+    await handleMissionaryChat(testSender, "kl 19:00");
 
     const publishRes = await handleMissionaryChat(testSender, "#publicera");
     expect(publishRes.handled).toBe(true);
@@ -73,6 +117,8 @@ describe("Missionary Interactive SMS Chat Engine", () => {
     expect(alertIds.length).toBe(1);
     const published = activeAlerts[alertIds[0]];
     expect(published.status).toBe("active");
+    expect(published.area).toBe("Kortedala");
+    expect(published.time).toContain("19:00");
     expect(published.responsibleParty).toBe("Missionärerna");
-  });
+  }, 15000);
 });

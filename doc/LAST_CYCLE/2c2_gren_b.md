@@ -1,12 +1,8 @@
-# Steg 2c2: Arkitekturgren B (Global tema-aliasing + domänspecifik harmonisering)
+# Steg 2c2: Arkitekturgren B (Formell stängning av TCK-EPIC-002)
 
-## Förslag i Gren B: Global definiering av brand-primary och lokal harmonisering
+## Förslag i Gren B: Formell stängning och ren backlogg
 
-Baserat på kraven från Gren A:s utvärdering (2d1) adresserar Gren B risken för framtida användning av `bg-brand-primary`:
-
-1. `PreviewCard.tsx` uppdateras till att använda `bg-brand-accent hover:bg-brand-accent/90` så att komponenten är självständigt robust och fri från externa token-beroenden.
-2. `src/index.css` kompletteras med `--color-brand-primary: var(--color-primary);` under `@theme` så att båda namnkonventionerna (`brand-primary` och `brand-accent`) fungerar sömlöst i hela applikationen.
+Stäng `TCK-EPIC-002` som `Closed` i `doc/TICKETS.md` då dess tre leverabler (TCK-012, TCK-013, TCK-014) är klara och testade.
 
 ### Fördelar:
-- Total bakåt- och framåtkompatibilitet.
-- Eliminerar tysta CSS-fel permanent.
+- Tydlig och spårbar projektstatus enligt v9.6-regler för icke-kodande/Epic tickets.

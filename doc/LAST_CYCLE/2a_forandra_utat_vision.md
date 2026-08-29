@@ -1,10 +1,10 @@
-# Steg 2a: Förändra utåt (Vision för TCK-012)
+# Steg 2a: Förändra utåt (Vision för TCK-EPIC-002 Stängning)
 
-## Vision för användarupplevelse och visuell ergonomi
+## Vision för Epik-avslut
 
-När administratören eller en medlem skapar en inbjudan och bockar för integritetsbekräftelsen ska åtgärdsknappen "Publicera direkt" / "Ge en inbjudan" tydligt och distinkt tändas upp med församlingens varma signaturfärg (`bg-brand-accent` eller `bg-brand-primary`). 
+Epik `TCK-EPIC-002` ("UI-ergonomi, SMS-sessionsfönster och kontextuellt platsminne") har nått fullständig leverans:
+1. Skapa inbjudan-vyn ger tydlig visuell feedback för direktpublicering vid godkänd integritet.
+2. Administratörer har en friktionsfri 5-minuters konversationssession.
+3. Missionärer och medlemmar kan stegvis bygga inbjudningar via SMS med bibehållet plats- och tidsminne.
 
-### Visuell målbild:
-- **Inaktiverad**: Dämpad, halvtransparent grå/bläckton (`bg-brand-ink/20 text-brand-ink/50 cursor-not-allowed`) som indikerar att villkor kvarstår.
-- **Aktiverad (Integritet godkänd)**: Solid grön/bärnsten/skymningston i enlighet med aktivt tema (`bg-brand-accent hover:bg-brand-accent/90 text-white shadow-sm`), med vit text och tydlig kontrast.
-- **Ingen osynlighet**: Knappen förlorar aldrig sin bakgrund eller kontrast vid tillståndsövergången.
+Epiken kan därmed stängas formellt som `Closed` i `doc/TICKETS.md`.

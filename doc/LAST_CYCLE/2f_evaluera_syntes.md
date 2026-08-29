@@ -1,7 +1,7 @@
-# Steg 2f: Evaluera syntes (TCK-012)
+# Steg 2f: Evaluera syntes (TCK-EPIC-002)
 
 ## Strategisk utvärdering av syntesen
 
-Syntesen ger en precis och resilient lösning på UI-färgförlusten utan risk för regressionsfel.
+Epiken är fullbordad utan kvarvarande teknisk skuld eller öppna punkter.
 
 **BESLUT: GÅ_TILL_DESIGN**

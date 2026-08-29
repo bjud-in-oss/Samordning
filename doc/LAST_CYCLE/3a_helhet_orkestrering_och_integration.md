@@ -1,8 +1,7 @@
-# Steg 3a: Helhet, orkestrering och integration (TCK-012)
+# Steg 3a: Helhet, orkestrering och integration (TCK-EPIC-002)
 
-## Integration och systemhelhet
+## Systemövergripande status
 
-- **Domän**: `src/features/skapa_inbjudan/`
-- **Komponent**: `src/features/skapa_inbjudan/components/PreviewCard.tsx`
-- **Flöde**: Användare navigerar till Skapa inbjudan -> Fyller i uppgifter -> Klickar i integritetsbekräftelse -> Knappen "Publicera direkt" / "Ge en inbjudan" tänds upp med full bakgrundsfärg och tydlig text.
-- **Påverkan**: Inga förändringar i domänkontrakt eller externa gränssnitt; ren CSS/UI-korrigering.
+- `skapa_inbjudan`: Gränssnittskomponenter i `src/features/skapa_inbjudan/` återspeglar integritetsläget med korrekt färgsättning.
+- `sms_assistant`: Orkestreringen i `src/server/smsRouter.ts` och `src/server/missionaryChatEngine.ts` samverkar harmoniskt med lagringsskiktet i `src/server/storage.ts`.
+- Helheten är robust och redo för produktion.

@@ -1,17 +1,17 @@
-# Steg 1a: Orientera (TCK-EPIC-002: Epik-utvärdering & stängning)
+# Steg 1a: Orientera (TCK-015: Permanent persistens för admin-telefonnummer över serveromstarter)
 
-## Sokratiska GROW-frågor (Vektorbaserad analys)
+## Sokratiska GROW-frågor inriktade på tillståndsvektorerna (State & Resilience)
 
-1. **State**: Är alla tre delmål (UI-färgmarkering i `skapa_inbjudan`, 5-minuters sessionsfönster för admin-SMS och ackumulerande kontext- och platsminne i `sms_assistant`) fullt integrerade och verifierade mot appens tillstånd?
-2. **Contract**: Uppfyller de implementerade gränssnitten och typdefinitionerna de ställda kraven i domänfasaderna och servermotorerna utan kvarvarande avvikelser?
-3. **Resilience**: Har alla delmoment testats och verifierats felfritt via mekanisk arkitekturkontroll och automatiserade enhetstester?
+1. **State (Tillstånd & Persistens)**: Hur säkerställer vi att nyss registrerade eller borttagna administratörsnummer omedelbart och atomärt synkroniseras till både det lokala filsystemet (`data/admins.json`) och Cloud Firestore (`system_config/admins`) utan att blockera händelseloopen eller tappa RAM-konsistens?
+2. **State & Resilience (Inläsning och Flerkällssammanfogning)**: Hur ska `loadAdmins()` konstrueras så att den vid serverstart robust läser och deduplicerar telefonnummer från miljövariabler (`ADMIN_NUMBERS`), lokal diskfil (`data/admins.json`) och Firestore, även om filsystemet är tomt eller Firestore har tillfällig nätverkslatens?
+3. **Resilience (TDD & Verifierbarhet)**: Vilken specifik testmetodik i `src/server/__tests__/storage.test.ts` verifierar att sparade admin-nummer kvarstår efter att in-memory-arrayen nollställts och `loadAdmins()` anropas på nytt?
 
 ```json
 {
   "status": "IN_PROGRESS",
   "current_domain": "Global",
   "next_step": "1b_kartlagga",
-  "ticket_id": "TCK-EPIC-002",
+  "ticket_id": "TCK-015",
   "active_skill": "wayfinder"
 }
 ```

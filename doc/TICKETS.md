@@ -21,3 +21,4 @@
 | TCK-012 | skapa_inbjudan: Återställ färgmarkering för 'Publicera direkt' vid integritetsbekräftelse | Bug | skapa_inbjudan | Closed |
 | TCK-013 | sms_assistant: Implementera 5-minuters sessionsfönster för admin-SMS | Feature | Global | Closed |
 | TCK-014 | sms_assistant: Kontext- och platsminne i SMS-chatt | Feature | Global | Closed |
+| TCK-015 | sms_assistant: Permanent persistens för admin-telefonnummer över serveromstarter | Feature | Global | In Progress |

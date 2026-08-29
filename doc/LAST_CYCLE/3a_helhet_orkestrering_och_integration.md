@@ -1,7 +1,12 @@
-# Steg 3a: Helhet, orkestrering och integration (TCK-EPIC-002)
+# Steg 3a: Helhet, orkestrering och integration (TCK-015)
 
-## Systemövergripande status
+## Systemövergripande orkestrering
 
-- `skapa_inbjudan`: Gränssnittskomponenter i `src/features/skapa_inbjudan/` återspeglar integritetsläget med korrekt färgsättning.
-- `sms_assistant`: Orkestreringen i `src/server/smsRouter.ts` och `src/server/missionaryChatEngine.ts` samverkar harmoniskt med lagringsskiktet i `src/server/storage.ts`.
-- Helheten är robust och redo för produktion.
+1. **Boot-sekvens (`server.ts` & `initServerStorage`)**:
+   - Vid uppstart anropas `initServerStorage()`.
+   - `loadAdmins()` initierar omedelbar inläsning från `data/admins.json` och eventuella `ADMIN_NUMBERS`.
+   - När Firestore-anslutningen är etablerad hämtas `system_config/admins` och slås samman med minnestillståndet.
+
+2. **Administrationsmutationer (`/api/admin/members/add` & `/api/admin/members/remove`)**:
+   - När ett administratörsnummer läggs till eller tas bort uppdateras minnesarrayen `adminNumbers`.
+   - `saveAdmins()` exekveras för att omedelbart uppdatera både `data/admins.json` och Firestore.

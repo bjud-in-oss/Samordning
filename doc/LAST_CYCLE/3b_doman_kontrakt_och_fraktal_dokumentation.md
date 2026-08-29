@@ -1,6 +1,11 @@
-# Steg 3b: Domänkontrakt och fraktal dokumentation (TCK-EPIC-002)
+# Steg 3b: Domänkontrakt och fraktal dokumentation (TCK-015)
 
 ## Domänkontrakt
 
-Alla domäner (`skapa_inbjudan`, `inbjudningar`, `sms_assistant`, `anpassa`) uppfyller sina samlokaliserade `CONSTRAINTS.md` och typdefinitioner.
-Inga gränssnittsändringar krävs.
+Alla ändringar ryms inom `src/server/` utan att bryta existerande gränssnitt eller typer.
+
+### Exporter i `src/server/storage.ts`:
+- `export let adminNumbers: string[] = [];`
+- `export async function loadAdmins(): Promise<void>`
+- `export async function saveAdmins(): Promise<void>`
+- Inga props tas bort eller ändrar signatur.

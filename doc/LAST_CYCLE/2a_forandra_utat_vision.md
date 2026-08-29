@@ -1,10 +1,10 @@
-# Steg 2a: Förändra utåt (Vision för TCK-EPIC-002 Stängning)
+# Steg 2a: Förändra utåt (Vision för TCK-015)
 
-## Vision för Epik-avslut
+## Vision för permanent administratörspersistens
 
-Epik `TCK-EPIC-002` ("UI-ergonomi, SMS-sessionsfönster och kontextuellt platsminne") har nått fullständig leverans:
-1. Skapa inbjudan-vyn ger tydlig visuell feedback för direktpublicering vid godkänd integritet.
-2. Administratörer har en friktionsfri 5-minuters konversationssession.
-3. Missionärer och medlemmar kan stegvis bygga inbjudningar via SMS med bibehållet plats- och tidsminne.
+När administratörer registreras i systemet via REST API (`/api/admin/members/add`), SMS-assistenten eller initial seedning, ska behörigheten vara absolut resilient mot container- och serveromstarter.
 
-Epiken kan därmed stängas formellt som `Closed` i `doc/TICKETS.md`.
+Arkitekturen etablerar dubbel redundans:
+1. **Lokal diskpersistens (`data/admins.json`)**: Ger omedelbar, offline-säker tillgång direkt vid processstart utan nätverksberoende.
+2. **Cloud Firestore (`system_config/admins`)**: Möjliggör central molnsynkronisering och delad administratörslista mellan instanser.
+3. **Kombinerad inläsning vid boot**: Servern slår samman, normaliserar och deduplicerar nummer från miljövariabler, lokal fil och Firestore.

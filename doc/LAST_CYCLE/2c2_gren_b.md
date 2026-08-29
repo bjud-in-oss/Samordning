@@ -1,8 +1,18 @@
-# Steg 2c2: Arkitekturgren B (Formell stängning av TCK-EPIC-002)
+# Steg 2c2: Arkitekturgren B (Hybrid dubbelpersistens: Disk + Firestore med union-inläsning)
 
-## Förslag i Gren B: Formell stängning och ren backlogg
+## Förslag i Gren B: Hybrid persistensmodell
 
-Stäng `TCK-EPIC-002` som `Closed` i `doc/TICKETS.md` då dess tre leverabler (TCK-012, TCK-013, TCK-014) är klara och testade.
+1. **Skrivning (`saveAdmins`)**:
+   - Skriver atomärt och synkront till `data/admins.json`.
+   - Skriver parallellt till Firestore `system_config/admins`.
+2. **Inläsning (`loadAdmins`)**:
+   - Läser `ADMIN_NUMBERS` från miljövariabler.
+   - Läser in och parsar `data/admins.json`.
+   - Hämtar `admins`-dokumentet från Firestore.
+   - Slår ihop alla källor till en unik normaliserad uppsättning telefonnummer.
+   - Skriver tillbaka eventuellt kompletterade nummer till disk/Firestore så att båda källor hålls uppdaterade.
 
 ### Fördelar:
-- Tydlig och spårbar projektstatus enligt v9.6-regler för icke-kodande/Epic tickets.
+- Omedelbar tillgänglighet vid boot utan att invänta Firestore-anslutning.
+- Fullständig långsiktig persistens i molnet även om disk nollställs.
+- Robust mot offline-utveckling och isolerade enhetstester.

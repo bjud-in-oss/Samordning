@@ -1,8 +1,9 @@
-# Steg 2c1: Arkitekturgren A (Komplettera Epik med ytterligare under-tickets)
+# Steg 2c1: Arkitekturgren A (Enbart filbaserad persistens)
 
-## Förslag i Gren A: Håll epiken öppen och skapa fler del-tickets
+## Förslag i Gren A: Enbart lokal diskfil
 
-Skapa ytterligare tickets för framtida optimeringar inom samma tema.
+Spara och läs endast `adminNumbers` till/från `data/admins.json`.
 
-### Svagheter:
-- Alla ursprungliga mål med epiken (TCK-012, TCK-013, TCK-014) är redan fullständigt realiserade. Att hålla epiken öppen skapar otydlighet i backloggen.
+### Svagheter och risker:
+- Om applikationen körs i en serverless container eller miljö där diskstatus nollställs vid ny deployment, förloras ändringar som inte fanns i grundavbilden om molndatabasen ignoreras.
+- Synkroniserar inte administratörer mellan multipla instanser.

@@ -3,7 +3,8 @@
 ## Utvärdering av Gren A
 
 ### Svagheter och risker:
-- Onödigt att hålla en epik öppen när alla specificerade under-tickets är avslutade och verifierade.
+- Enbart lokal lagring saknar motståndskraft vid containermigrering och nyskapade miljöer.
+- Skalar inte mot distribuerade anrop och delad konfiguration.
 
 ### Kvarvarande osäkerheter & gränssnittskrav för nästa gren:
-- Gren B måste utvärdera formell stängning av epiken så att nästa epik eller funktionella område kan prioriteras rent.
+- Nästa gren måste utvärdera en hybridarkitektur (Gren B) med samtidig dubbellagring i både `data/admins.json` och Firestore, med kombinerad inläsning vid uppstart så att varken lokal offlineprestanda eller molnpersistens kompromissas.

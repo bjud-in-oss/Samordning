@@ -1,9 +1,10 @@
-# Steg 2e: Försoning och förlikning (Syntes för TCK-EPIC-002)
+# Steg 2e: Försoning och förlikning (TCK-015)
 
-## Syntes och förlikning
+## Syntes och harmonisering
 
-Vi antar Gren B i dess helhet:
-1. `TCK-EPIC-002` sätts till `Closed` i `doc/TICKETS.md`.
-2. Cykeln avslutas som icke-kodande epik-stängning.
+Vi antar Gren B i sin helhet för permanent admin-persistens:
+- `saveAdmins()` skriver till både `data/admins.json` och Firestore.
+- `loadAdmins()` slår samman `ADMIN_NUMBERS`, `data/admins.json` och Firestore med normalisering och deduplicering.
+- `src/server/__tests__/storage.test.ts` validerar omläsning och persistens efter in-memory reset.
 
 **MÄTTNAD: JA**

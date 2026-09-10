@@ -1,17 +1,20 @@
-# Steg 1a: Orientera (TCK-015: Permanent persistens för admin-telefonnummer över serveromstarter)
+# Steg 1a: Orientera (TCK-016: Integrera realtidsöversättning och Gemini Live-server)
 
-## Sokratiska GROW-frågor inriktade på tillståndsvektorerna (State & Resilience)
+## Mål
+Slå ihop översättningsrepot med vårt huvudprojekt Samordning, så att realtidsöversättningen blir en integrerad feature (`live_translation`) under `src/features/live_translation/` med komplett exportfasad och Zod-validering.
 
-1. **State (Tillstånd & Persistens)**: Hur säkerställer vi att nyss registrerade eller borttagna administratörsnummer omedelbart och atomärt synkroniseras till både det lokala filsystemet (`data/admins.json`) och Cloud Firestore (`system_config/admins`) utan att blockera händelseloopen eller tappa RAM-konsistens?
-2. **State & Resilience (Inläsning och Flerkällssammanfogning)**: Hur ska `loadAdmins()` konstrueras så att den vid serverstart robust läser och deduplicerar telefonnummer från miljövariabler (`ADMIN_NUMBERS`), lokal diskfil (`data/admins.json`) och Firestore, även om filsystemet är tomt eller Firestore har tillfällig nätverkslatens?
-3. **Resilience (TDD & Verifierbarhet)**: Vilken specifik testmetodik i `src/server/__tests__/storage.test.ts` verifierar att sparade admin-nummer kvarstår efter att in-memory-arrayen nollställts och `loadAdmins()` anropas på nytt?
+## Sokratiska GROW-frågor inriktade på tillståndsvektorerna (Contract)
+
+1. **Contract (Fasad & Exporter)**: Hur säkerställs att `src/features/live_translation/index.ts` tillhandahåller en strikt, namngiven fasad utan stjärnexporter (`export *`) för alla krokar, komponenter och domänadaptrar?
+2. **Contract (Zod-validering)**: Hur garanteras att språkkoder, sessionskonfigurationer och transportstatusar valideras vid körtid via kompletta Zod-scheman i `src/features/live_translation/domain/schema.ts`?
+3. **Contract (TDD & Arkitekturverifiering)**: Hur verifierar vi att samtliga enhetstester under `src/features/live_translation/` uppfyller FSD- och kontraktkrav utan anmärkningar via `npm run verify`?
 
 ```json
 {
   "status": "IN_PROGRESS",
-  "current_domain": "Global",
+  "current_domain": "live_translation",
   "next_step": "1b_kartlagga",
-  "ticket_id": "TCK-015",
+  "ticket_id": "TCK-016",
   "active_skill": "wayfinder"
 }
 ```

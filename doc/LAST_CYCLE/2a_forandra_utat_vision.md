@@ -1,10 +1,14 @@
-# Steg 2a: Förändra utåt (Vision för TCK-015)
+# Steg 2a: Förändra utåt (Vision för TCK-016)
 
-## Vision för permanent administratörspersistens
+## Vision för integrerad realtidsöversättning (live_translation)
 
-När administratörer registreras i systemet via REST API (`/api/admin/members/add`), SMS-assistenten eller initial seedning, ska behörigheten vara absolut resilient mot container- och serveromstarter.
+Genom att slå ihop översättningsrepot med Samordning integreras en fullfjädrad realtidsöversättningsmotor i huvudapplikationen.
 
-Arkitekturen etablerar dubbel redundans:
-1. **Lokal diskpersistens (`data/admins.json`)**: Ger omedelbar, offline-säker tillgång direkt vid processstart utan nätverksberoende.
-2. **Cloud Firestore (`system_config/admins`)**: Möjliggör central molnsynkronisering och delad administratörslista mellan instanser.
-3. **Kombinerad inläsning vid boot**: Servern slår samman, normaliserar och deduplicerar nummer från miljövariabler, lokal fil och Firestore.
+Arkitekturen etablerar:
+1. **Klientmotor (`src/features/live_translation/`)**:
+   - `LiveTranslationWidget`: Interaktiv kontrollpanel för tolksessioner, språkval och ljudenheter.
+   - Dubbla transportadaptrar: WebRTC Cloudflare Calls SFU (`CloudflareSFUAdapter`) och lokal WebSocket-fallback (`LocalWebSocketAdapter`).
+   - Web Audio API med PCM-avkodning, 24kHz Mono resamplering och jitterbuffert (`useAudioPlayer`).
+2. **Kör- och kontraktintegritet**:
+   - Zod-validering för språk och sessionskonfiguration.
+   - Strikt FSD-struktur och ren fasadexport.

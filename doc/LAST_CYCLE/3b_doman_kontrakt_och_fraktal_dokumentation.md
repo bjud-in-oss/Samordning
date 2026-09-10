@@ -1,11 +1,11 @@
-# Steg 3b: Domänkontrakt och fraktal dokumentation (TCK-015)
+# Steg 3b: Domänkontrakt och fraktal dokumentation (TCK-016)
 
 ## Domänkontrakt
 
-Alla ändringar ryms inom `src/server/` utan att bryta existerande gränssnitt eller typer.
+Samtliga implementationer ryms inom `src/features/live_translation/` med strikt typkontrakt och Zod-validering.
 
-### Exporter i `src/server/storage.ts`:
-- `export let adminNumbers: string[] = [];`
-- `export async function loadAdmins(): Promise<void>`
-- `export async function saveAdmins(): Promise<void>`
-- Inga props tas bort eller ändrar signatur.
+### Exporter i `src/features/live_translation/index.ts`:
+- `LiveTranslationWidget`
+- `useLiveTranslation`, `useAudioPlayer`, `useCloudflareSFU`, `useLocalWebSocket`
+- `SupportedLanguageSchema`, `SessionStatusSchema`, `TranslationSessionConfigSchema`
+- Inga `export *`-satser används.

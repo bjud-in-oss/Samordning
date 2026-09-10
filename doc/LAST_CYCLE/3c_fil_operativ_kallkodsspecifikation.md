@@ -1,39 +1,43 @@
-# Steg 3c: Fil-operativ källkodsspecifikation (TCK-015: Permanent persistens för admin-telefonnummer över serveromstarter)
+# Steg 3c: Fil-operativ källkodsspecifikation (TCK-016: Integrera realtidsöversättning och Gemini Live-server)
 
 ## Berörda filer och förändringsspecifikation
 
 ### Berörda relativa filvägar:
-- `src/server/__tests__/storage.test.ts`
-- `src/server/storage.ts`
-- `server.ts`
+- `src/features/live_translation/domain/__tests__/audioResampler.test.ts`
+- `src/features/live_translation/domain/__tests__/localWebSocketAdapter.test.ts`
+- `src/features/live_translation/domain/__tests__/quotaService.test.ts`
+- `src/features/live_translation/domain/__tests__/translationBridge.test.ts`
+- `src/features/live_translation/domain/__tests__/transportAdapter.test.ts`
+- `src/features/live_translation/hooks/__tests__/useAudioPlayer.test.ts`
+- `src/features/live_translation/hooks/__tests__/useCloudflareSFU.test.ts`
+- `src/features/live_translation/hooks/__tests__/useLiveTranslation.test.ts`
+- `src/features/live_translation/hooks/__tests__/useLocalWebSocket.test.ts`
+- `src/features/live_translation/components/__tests__/LiveTranslationWidget.test.tsx`
+- `src/features/live_translation/domain/types.ts`
+- `src/features/live_translation/domain/schema.ts`
+- `src/features/live_translation/domain/languages.ts`
+- `src/features/live_translation/domain/adaptiveLogic.ts`
+- `src/features/live_translation/domain/audioResampler.ts`
+- `src/features/live_translation/domain/CloudflareSFUAdapter.ts`
+- `src/features/live_translation/domain/LocalWebSocketAdapter.ts`
+- `src/features/live_translation/domain/quotaService.ts`
+- `src/features/live_translation/domain/translationBridge.ts`
+- `src/features/live_translation/domain/hotSwapManager.ts`
+- `src/features/live_translation/domain/multiBridgeOrchestrator.ts`
+- `src/features/live_translation/hooks/useAudioPlayer.ts`
+- `src/features/live_translation/hooks/useCloudflareSFU.ts`
+- `src/features/live_translation/hooks/useLiveTranslation.ts`
+- `src/features/live_translation/hooks/useLocalWebSocket.ts`
+- `src/features/live_translation/hooks/useQuotaGuard.ts`
+- `src/features/live_translation/components/LiveTranslationWidget.tsx`
+- `src/features/live_translation/components/QuotaMeter.tsx`
+- `src/features/live_translation/workers/AudioProcessor.worklet.ts`
+- `src/features/live_translation/workers/MicCapture.worklet.ts`
+- `src/features/live_translation/index.ts`
 
 ### Detaljerade källkodsinstruktioner för Steg 4:
+1. Skapa och kör enhetstester för samtliga krokar, domänklasser och widgets under `src/features/live_translation/`.
+2. Implementera domänadaptrar och Web Audio API-strömning.
+3. Exponera ren fasad i `src/features/live_translation/index.ts`.
 
-1. **`src/server/__tests__/storage.test.ts` (TDD-test först)**:
-   - Skapa ett enhetstest `"guarantees admin numbers persist across simulated server restarts by writing to disk and reloading"`:
-     - Tömmer `adminNumbers`.
-     - Lägger till ett testnummer (t.ex. `"0709998877"`).
-     - Anropar `await saveAdmins()`.
-     - Nollställer `adminNumbers.length = 0`.
-     - Anropar `await loadAdmins()`.
-     - Verifierar med `expect(adminNumbers).toContain("0709998877")`.
-
-2. **`src/server/storage.ts`**:
-   - Importera `fs` och `path` från Node.js.
-   - Definiera konstant sökväg för lokal lagring `ADMINS_FILE_PATH = path.join(process.cwd(), "data", "admins.json")`.
-   - Uppdatera `loadAdmins()`:
-     - Skapa ett `Set<string>` för kombinerade nummer.
-     - Läs in `process.env.ADMIN_NUMBERS` om det finns och lägg till alla poster normaliserade.
-     - Om `ADMINS_FILE_PATH` existerar på disk, läs in filen synkront med `fs.readFileSync`, parsa JSON-arrayen och lägg till alla poster normaliserade.
-     - Hämta från Firestore `system_config/admins` om Firestore är tillgänglig, och lägg till alla poster normaliserade.
-     - Sätt `adminNumbers = Array.from(combinedSet)`.
-     - Om diskfilen inte fanns eller Firestore innehöll nya nummer, spara det uppdaterade tillståndet.
-   - Uppdatera `saveAdmins()`:
-     - Säkerställ att mappen `data/` existerar (`fs.mkdirSync(path.dirname(ADMINS_FILE_PATH), { recursive: true })`).
-     - Skriv `JSON.stringify(adminNumbers, null, 2)` till `ADMINS_FILE_PATH`.
-     - Anropa Firestore `setDoc(doc(collection(db, "system_config"), "admins"), { numbers: adminNumbers, updatedAt: Date.now() })` om Firestore är ansluten.
-
-3. **`server.ts`**:
-   - Säkerställ att `initServerStorage()` anropas vid uppstart och att admin-inläsningen genomförs robust.
-
-**BESLUT: GODKÄND**
+BESLUT: GODKÄND

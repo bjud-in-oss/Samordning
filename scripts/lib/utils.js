@@ -1,23 +1,21 @@
 import fs from 'fs';
 import path from 'path';
 
-export function logError(title, message, state) {
-  console.error(`\n❌ [MEKANISK SPÄRR v9.5] ${title}`);
-  console.error(`   ${message}`);
-  state.hasErrors = true;
-}
+const TICKETS_PATH = path.join(process.cwd(), 'doc', 'TICKETS.md');
 
-export function getMtime(filePath) {
-  return fs.existsSync(filePath) ? fs.statSync(filePath).mtimeMs : 0;
-}
+/**
+ * Rensa avslutade biljetter ur doc/TICKETS.md vid cykelavslut.
+ */
+export function cleanClosedTickets() {
+  if (!fs.existsSync(TICKETS_PATH)) return;
+  const content = fs.readFileSync(TICKETS_PATH, 'utf-8');
+  const lines = content.split('\n');
+  
+  const activeLines = lines.filter((line) => {
+    const isTicketRow = /^\|\s*`?TCK-\d+`?/.test(line);
+    if (!isTicketRow) return true;
+    return !line.includes('Closed');
+  });
 
-export function readFile(filePath) {
-  return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
-}
-
-export function detectLanguageDriver(rootDir) {
-  if (fs.existsSync(path.join(rootDir, 'go.mod'))) return 'go';
-  if (fs.existsSync(path.join(rootDir, 'Cargo.toml'))) return 'rust';
-  if (fs.existsSync(path.join(rootDir, 'pyproject.toml')) || fs.existsSync(path.join(rootDir, 'requirements.txt'))) return 'python';
-  return 'ts';
+  fs.writeFileSync(TICKETS_PATH, activeLines.join('\n'), 'utf-8');
 }

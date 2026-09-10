@@ -12,8 +12,10 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "node scripts/verify-architecture.js && tsc --noEmit",
+    "verify": "node scripts/verify-architecture.js && vitest run",
     "test": "node scripts/verify-architecture.js && vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "tsx scripts/test-e2e.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -30,7 +32,9 @@
     "react-dom": "^19.0.1",
     "vite": "^6.2.3",
     "web-push": "^3.6.7",
-    "whatsapp-web.js": "^1.34.7"
+    "whatsapp-web.js": "^1.34.7",
+    "ws": "^8.18.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
@@ -40,6 +44,7 @@
     "@types/node": "^22.14.0",
     "@types/qrcode": "^1.5.6",
     "@types/web-push": "^3.6.4",
+    "@types/ws": "^8.5.14",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
     "jsdom": "^30.0.1",

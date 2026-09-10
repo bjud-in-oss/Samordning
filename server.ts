@@ -1,11 +1,13 @@
 // [server.ts] - Express Entry Point with Vite Integration & Serverless Cloud Functions support
 
 import express from "express";
+import http from "http";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { initServerStorage } from "./src/server/storage";
 import { setupRoutes } from "./src/server/routes";
 import { initWebPush } from "./src/main/services/pushService";
+import { setupTranslationWebSocket } from "./src/server/translationServer";
 
 const PORT = 3000;
 
@@ -24,6 +26,10 @@ export function createApp(): express.Express {
 }
 
 export const app = createApp();
+export const httpServer = http.createServer(app);
+
+// Mount WebSocketServer for translation directly on Express HTTP server at /ws/translation
+export const translationWss = setupTranslationWebSocket(httpServer);
 
 async function startServer() {
   // Serve Vite frontend in development, static build in production
@@ -41,12 +47,13 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Ge stöd Server listening on http://0.0.0.0:${PORT}`);
+  httpServer.listen(PORT, "0.0.0.0", () => {
+    console.log(`Ge stöd Server listening on http://0.0.0.0:${PORT} (WS: /ws/translation)`);
   });
 }
 
-if (process.env.FIREBASE_FUNCTION !== "true" && process.env.NODE_ENV !== "test") {
+const isDirectRun = process.argv[1] && (process.argv[1].endsWith("server.ts") || process.argv[1].endsWith("server.cjs") || process.argv[1].endsWith("server.js"));
+if (isDirectRun && process.env.FIREBASE_FUNCTION !== "true" && process.env.NODE_ENV !== "test") {
   startServer().catch(err => {
     console.error("Failed to start Express server", err);
   });

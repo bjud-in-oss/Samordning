@@ -2,6 +2,7 @@ import { ActiveAlert } from "../shared/types";
 import { activeAlerts, adminNumbers, trustedNumbers, smsDrafts, saveActiveAlerts, saveAdmins, saveTrusted, getNextFreeId, sendOutboundSms, normalizePhone } from "./storage";
 import { addSimLog, broadcastCancelPush, triggerPushAlert } from "../main/services/pushService";
 import { getCoordsForArea, calculateSecondsUntilTime, washAnnouncementText } from "../main/services/parser";
+import { startTranslationSession, stopTranslationSession } from "./translationServer";
 
 export async function handleSmsCommand(
   sender: string,
@@ -22,6 +23,31 @@ export async function handleSmsCommand(
   const fullMatch = trimmedText.match(/^[\.#]full\s+(\d+)$/i);
   const adminCmdMatch = trimmedText.match(/^[\.#]admin\s+([\+\-]?)\s*(.+)$/i);
   const betroddCmdMatch = trimmedText.match(/^[\.#]betrodd\s+([\+\-]?)\s*(.+)$/i);
+  const startTranslationMatch = trimmedText.match(/^(?:[\.#]?\s*)START\s+([A-Za-z]{2})$/i);
+  const stopTranslationMatch = trimmedText.match(/^(?:[\.#]?\s*)STOP(?:P)?(?:\s+TRANSLATION|\s+[A-Za-z]{2})?$/i);
+
+  if (startTranslationMatch) {
+    const lang = startTranslationMatch[1].toLowerCase();
+    const result = startTranslationSession(lang);
+    return {
+      handled: true,
+      response: {
+        success: true,
+        replyMessage: result.replyMessage
+      }
+    };
+  }
+
+  if (stopTranslationMatch) {
+    const result = stopTranslationSession();
+    return {
+      handled: true,
+      response: {
+        success: true,
+        replyMessage: result.replyMessage
+      }
+    };
+  }
 
   if (adminCmdMatch) {
     if (!isAdmin) return { handled: true, response: { success: false, error: "Obehörig.", status: 403 } };

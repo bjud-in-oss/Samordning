@@ -11,7 +11,8 @@ import {
   normalizePhone,
   saveActiveAlerts,
   saveAdmins,
-  saveTrusted
+  saveTrusted,
+  loadAdmins
 } from "../storage";
 import { ActiveAlert } from "../../shared/types";
 
@@ -98,5 +99,21 @@ describe("Storage & Data Management", () => {
     trustedNumbers.push("0709870000");
     saveTrusted();
     expect(trustedNumbers).toContain("0709870000");
+  });
+
+  it("guarantees admin numbers persist across simulated server restarts by writing to disk and reloading", async () => {
+    const testAdminNumber = "0709998877";
+    if (!adminNumbers.includes(testAdminNumber)) {
+      adminNumbers.push(testAdminNumber);
+    }
+    await saveAdmins();
+
+    // Simulate complete process memory wipe / restart
+    adminNumbers.length = 0;
+    expect(adminNumbers).toHaveLength(0);
+
+    // Reload from disk / storage
+    await loadAdmins();
+    expect(adminNumbers).toContain(testAdminNumber);
   });
 });

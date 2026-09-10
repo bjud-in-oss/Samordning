@@ -1,5 +1,7 @@
-// [src/server/storage.ts] - Server-side in-memory and Cloud Firestore persistent storage management
+// [src/server/storage.ts] - Server-side in-memory, disk and Cloud Firestore persistent storage management
 
+import fs from "fs";
+import path from "path";
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getFirestore, Firestore, collection, doc, setDoc, getDocs, deleteDoc, onSnapshot } from "firebase/firestore";
 import { ActiveAlert } from "../shared/types";
@@ -25,6 +27,9 @@ export const activeAlerts: Record<string, ActiveAlert> = {};
 export let adminNumbers: string[] = [];
 export let trustedNumbers: string[] = [];
 export const pairedDevices = new Set<string>();
+
+const ADMINS_FILE_PATH = path.join(process.cwd(), "data", "admins.json");
+const TRUSTED_FILE_PATH = path.join(process.cwd(), "data", "trusted.json");
 
 export const API_SECRET = process.env.SMS_WEBHOOK_SEC || process.env.SMS_WEBHOOK_SECRET || "samordning-secret-2026";
 
@@ -109,38 +114,62 @@ export function pairDeviceToken(token: string): boolean {
   return true;
 }
 
-export async function loadAdmins() {
-  const env = process.env.ADMIN_NUMBERS ? process.env.ADMIN_NUMBERS.split(',').map(n => n.trim()) : [];
-  if (env.length > 0) { adminNumbers = env; return; }
+async function loadStoredNumbers(filePath: string, docId: string, envVar?: string): Promise<string[]> {
+  const set = new Set<string>();
+  if (envVar) envVar.split(',').forEach(n => { const norm = normalizePhone(n.trim()); if (norm) set.add(norm); });
+  try {
+    if (fs.existsSync(filePath)) {
+      const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      if (Array.isArray(parsed)) parsed.forEach(n => { const norm = normalizePhone(String(n || "").trim()); if (norm) set.add(norm); });
+    }
+  } catch (err) { console.warn(`[Storage] Disk inläsning av ${docId} fel:`, err); }
+  const db = getFirestoreInstance();
+  if (db) {
+    try {
+      const snap = await getDocs(collection(db, "system_config"));
+      snap.forEach(d => {
+        if (d.id === docId && Array.isArray(d.data()?.numbers)) {
+          d.data().numbers.forEach((n: string) => { const norm = normalizePhone(String(n || "").trim()); if (norm) set.add(norm); });
+        }
+      });
+    } catch (err) { console.warn(`[Firestore] ${docId} inläsning fel:`, err); }
+  }
+  const result = Array.from(set);
+  try {
+    if (result.length > 0 && !fs.existsSync(filePath)) {
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      fs.writeFileSync(filePath, JSON.stringify(result, null, 2), "utf8");
+    }
+  } catch (_) {}
+  return result;
+}
+
+async function saveStoredNumbers(filePath: string, docId: string, numbers: string[]): Promise<void> {
+  try {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(numbers, null, 2), "utf8");
+  } catch (err) { console.warn(`[Storage] Fel vid sparande till ${filePath}:`, err); }
   const db = getFirestoreInstance();
   if (!db) return;
   try {
-    const snap = await getDocs(collection(db, "system_config"));
-    snap.forEach(d => { if (d.id === "admins" && Array.isArray(d.data()?.numbers)) adminNumbers = d.data().numbers; });
-  } catch (err) { console.warn("[Firestore] Admin fel:", err); }
+    await setDoc(doc(collection(db, "system_config"), docId), { numbers, updatedAt: Date.now() });
+  } catch (err) { console.warn(`[Firestore] ${docId} sparande fel:`, err); }
+}
+
+export async function loadAdmins() {
+  adminNumbers = await loadStoredNumbers(ADMINS_FILE_PATH, "admins", process.env.ADMIN_NUMBERS);
 }
 
 export async function saveAdmins() {
-  const db = getFirestoreInstance();
-  if (!db) return;
-  try { await setDoc(doc(collection(db, "system_config"), "admins"), { numbers: adminNumbers, updatedAt: Date.now() }); } catch (err) { console.warn(err); }
+  await saveStoredNumbers(ADMINS_FILE_PATH, "admins", adminNumbers);
 }
 
 export async function loadTrusted() {
-  const env = process.env.TRUSTED_NUMBERS ? process.env.TRUSTED_NUMBERS.split(',').map(n => n.trim()) : [];
-  if (env.length > 0) { trustedNumbers = env; return; }
-  const db = getFirestoreInstance();
-  if (!db) return;
-  try {
-    const snap = await getDocs(collection(db, "system_config"));
-    snap.forEach(d => { if (d.id === "trusted" && Array.isArray(d.data()?.numbers)) trustedNumbers = d.data().numbers; });
-  } catch (err) { console.warn("[Firestore] Trusted fel:", err); }
+  trustedNumbers = await loadStoredNumbers(TRUSTED_FILE_PATH, "trusted", process.env.TRUSTED_NUMBERS);
 }
 
 export async function saveTrusted() {
-  const db = getFirestoreInstance();
-  if (!db) return;
-  try { await setDoc(doc(collection(db, "system_config"), "trusted"), { numbers: trustedNumbers, updatedAt: Date.now() }); } catch (err) { console.warn(err); }
+  await saveStoredNumbers(TRUSTED_FILE_PATH, "trusted", trustedNumbers);
 }
 
 export function normalizePhone(num: string): string {

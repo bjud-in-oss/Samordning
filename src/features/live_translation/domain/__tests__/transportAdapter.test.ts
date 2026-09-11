@@ -77,7 +77,7 @@ describe("AudioTransportAdapter Contract & CloudflareSFUAdapter", () => {
     (window as unknown as Record<string, unknown>).WebSocket = MockWebSocket;
 
     mockFetch = vi.fn();
-    window.fetch = mockFetch;
+    window.fetch = mockFetch as unknown as typeof fetch;
     g.fetch = mockFetch;
     adapter = new CloudflareSFUAdapter("room-contract-1");
   });

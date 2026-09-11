@@ -26,6 +26,9 @@ export default defineConfig(() => {
       globals: true,
       environment: 'jsdom',
       include: ['src/**/*.test.{ts,tsx}'],
+      env: {
+        GEMINI_API_KEY: '',
+      },
     },
   };
 });

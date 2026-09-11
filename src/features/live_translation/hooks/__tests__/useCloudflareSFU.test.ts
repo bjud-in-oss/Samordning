@@ -106,7 +106,7 @@ describe('useCloudflareSFU', () => {
     w.RTCSessionDescription = MockRTCSessionDescription;
     w.MediaStream = MockMediaStream;
     mockFetch = vi.fn();
-    window.fetch = mockFetch;
+    window.fetch = mockFetch as unknown as typeof fetch;
     g.fetch = mockFetch;
   });
 

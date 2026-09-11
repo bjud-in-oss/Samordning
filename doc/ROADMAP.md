@@ -10,6 +10,7 @@
   - [x] Integrera WebSocket-server på Express HTTP-servern (sökväg `/ws/translation`).
   - [x] Implementera `INPUT_MODE=file` som strömmar `output-translated.wav` via WebSocket till anslutna klienter.
   - [x] Skapa automatiserat E2E-testskript (`scripts/test-e2e.ts` / `npm run test:e2e`) med virtuell klient.
+  - [x] vMix (virtuellt ljudkort på ljuddatorn) är primär ingångskälla för kapelljudet. Mobilmikrofon via WebSocket behålls som reserv- och lektionskanal.
 
 - [ ] **Fas 3: Gemini Live API Integration & SMS-styrning**
   - [ ] Koppla WebSocket-strömmen mot Gemini Live API (16kHz in -> 24kHz ut).

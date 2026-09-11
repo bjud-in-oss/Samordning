@@ -4,6 +4,13 @@
 Domänen `live_translation` tillhandahåller realtidsöversättning och
 simultantolkning via Google Gemini Live och Cloudflare SFU / Lokal WS.
 
+## Milstolpar & Status
+- **Transportlagret (PoC)**: Verifierat tvåvägsljud (full-duplex) över Cloudflare Tunnel & 4G/5G.
+- **Insikt**: Sändning fungerar stabilt. Okomprimerad PCM ger hackigt ljud över mobilnät; bekräftar behovet av Opus-komprimering och klientbuffert.
+- **Produktionsserver**: Implementera Opus-kodning/avkodning och WebSocket-hantering i `live_translation`.
+- **Klient (PWA)**: Integrera `AudioProcessor.worklet.ts` med adaptiv ringbuffert (100–150 ms) för slät uppspelning.
+- **Översättningsmotor**: Koppla ihop ljudströmmen med Gemini Live API för lektionsläget.
+
 ## Modulstruktur
 - `domain/types.ts`: Typer för session, ljudramar och konfiguration.
 - `domain/schema.ts`: Zod-scheman för körtidsvalidering.

@@ -15,3 +15,7 @@ simultantolkning via Google Gemini Live och Cloudflare SFU / Lokal WS.
 - `domain/translationBridge.ts`: Huvudorkestrering av audio-bro och WebSocket.
 - `hooks/useLiveTranslation.ts`: Reaktiv hook för tillstånd och kontroller.
 - `components/LiveTranslationWidget.tsx`: Åtkomligt användargränssnitt.
+
+## Testning & PoC-Tunnel
+- `npm run test:poc`: Startar fristående testserver (`scripts/test-poc-tunnel.ts`) för Cloudflare-tunnel och strömmande ljud över WebSocket med testljudfixturer (`output-translated.wav` / `test-audio-16k.wav`).
+

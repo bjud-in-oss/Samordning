@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "verify": "node scripts/verify-architecture.js && tsc --noEmit",
     "sync": "node scripts/git-push.js",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
@@ -15,7 +14,8 @@
     "verify": "node scripts/verify-architecture.js && vitest run",
     "test": "node scripts/verify-architecture.js && vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "tsx scripts/test-e2e.ts"
+    "test:e2e": "tsx scripts/test-e2e.ts",
+    "test:poc": "tsx scripts/test-poc-tunnel.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

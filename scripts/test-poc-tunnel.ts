@@ -5,7 +5,9 @@ import fs from 'fs';
 import path from 'path';
 
 const PORT = process.env.PORT || 8080;
-const TEST_WAV = path.join(process.cwd(), 'src/features/live_translation/__tests__/fixtures/output-translated.wav');
+const primaryWav = path.join(process.cwd(), 'src/features/live_translation/__tests__/fixtures/output-translated.wav');
+const fallbackWav = path.join(process.cwd(), 'src/features/live_translation/__tests__/fixtures/test-audio-16k.wav');
+const TEST_WAV = fs.existsSync(primaryWav) ? primaryWav : fallbackWav;
 
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/html' });

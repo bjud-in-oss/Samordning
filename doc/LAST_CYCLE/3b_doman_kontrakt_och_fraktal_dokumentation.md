@@ -1,11 +1,10 @@
-# Steg 3b: Domänkontrakt och fraktal dokumentation (TCK-016)
+# Steg 3b: Domän, kontrakt och fraktal dokumentation (TCK-LIVE-006)
 
-## Domänkontrakt
+## Kontrakt och typer
 
-Samtliga implementationer ryms inom `src/features/live_translation/` med strikt typkontrakt och Zod-validering.
+1. **Zod-scheman i `src/features/live_translation/domain/schema.ts`**:
+   - `AudioSourceSchema`: `z.enum(['VMIX', 'WEBSOCKET'])`.
+   - `AudioCodecSchema`: `z.enum(['PCM', 'OPUS'])`.
 
-### Exporter i `src/features/live_translation/index.ts`:
-- `LiveTranslationWidget`
-- `useLiveTranslation`, `useAudioPlayer`, `useCloudflareSFU`, `useLocalWebSocket`
-- `SupportedLanguageSchema`, `SessionStatusSchema`, `TranslationSessionConfigSchema`
-- Inga `export *`-satser används.
+2. **Fasadexport i `src/features/live_translation/index.ts`**:
+   - Exportera alla nödvändiga typer och klasser med strikt namngivna exporter.

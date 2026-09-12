@@ -1,14 +1,17 @@
-# Steg 2a: Förändra utåt (Vision för TCK-016)
+# Steg 2a: Förändra utåt (Vision för TCK-LIVE-006)
 
-## Vision för integrerad realtidsöversättning (live_translation)
+## Vision för Produktionsklar Server-växel (Fas 2)
 
-Genom att slå ihop översättningsrepot med Samordning integreras en fullfjädrad realtidsöversättningsmotor i huvudapplikationen.
+Visionen är att etablera en robust, högpresterande ljudbrygga i `server.ts` och `src/server/translationServer.ts`:
 
-Arkitekturen etablerar:
-1. **Klientmotor (`src/features/live_translation/`)**:
-   - `LiveTranslationWidget`: Interaktiv kontrollpanel för tolksessioner, språkval och ljudenheter.
-   - Dubbla transportadaptrar: WebRTC Cloudflare Calls SFU (`CloudflareSFUAdapter`) och lokal WebSocket-fallback (`LocalWebSocketAdapter`).
-   - Web Audio API med PCM-avkodning, 24kHz Mono resamplering och jitterbuffert (`useAudioPlayer`).
-2. **Kör- och kontraktintegritet**:
-   - Zod-validering för språk och sessionskonfiguration.
-   - Strikt FSD-struktur och ren fasadexport.
+1. **Dual Ingestion Engine**:
+   - Stöd för `AUDIO_SOURCE` (`VMIX` för kyrksalens ljudsystem och `WEBSOCKET` för bärbar mikrofon).
+   - Automatisk resamplering 48kHz <-> 16kHz/24kHz via `AudioResampler`.
+
+2. **Effektiv Ljudtransport**:
+   - Opus-stöd i transportlagret för minimal bandbreddsanvändning och jämn strömning över 4G/5G.
+   - Pacing anpassad till 100–150 ms ringbuffert i klientens AudioWorklet.
+
+3. **Orkestrering och Driftsäkerhet**:
+   - Full-duplex WebSocket-server tillgänglig på dedikerad port 8080 samt integrerad på port 3000 (`/ws/translation`).
+   - Automatisk 14-minuters hot-swap rotation via `HotSwapManager`.

@@ -15,6 +15,11 @@ export function createApp(): express.Express {
   const app = express();
   app.use(express.json());
 
+  // Platform & health check endpoint
+  app.get("/api/health", (_req, res) => {
+    res.json({ status: "ok" });
+  });
+
   // Initialize storage & push notification background timers
   initServerStorage();
   initWebPush();
@@ -28,6 +33,10 @@ export function createApp(): express.Express {
 export const app = createApp();
 export const httpServer = http.createServer(app);
 
+httpServer.on("error", (err) => {
+  console.error("HTTP Server Error:", err);
+});
+
 // Mount WebSocketServer for translation directly on Express HTTP server at /ws/translation
 export const translationWss = setupTranslationWebSocket(httpServer);
 
@@ -35,7 +44,10 @@ async function startServer() {
   // Serve Vite frontend in development, static build in production
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: process.env.DISABLE_HMR === "true" ? false : { server: httpServer }
+      },
       appType: "spa"
     });
     app.use(vite.middlewares);
@@ -52,8 +64,7 @@ async function startServer() {
   });
 }
 
-const isDirectRun = process.argv[1] && (process.argv[1].endsWith("server.ts") || process.argv[1].endsWith("server.cjs") || process.argv[1].endsWith("server.js"));
-if (isDirectRun && process.env.FIREBASE_FUNCTION !== "true" && process.env.NODE_ENV !== "test") {
+if (process.env.FIREBASE_FUNCTION !== "true" && process.env.NODE_ENV !== "test") {
   startServer().catch(err => {
     console.error("Failed to start Express server", err);
   });

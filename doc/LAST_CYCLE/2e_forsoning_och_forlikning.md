@@ -1,10 +1,10 @@
-# Steg 2e: Försoning och förlikning (TCK-016)
+# Steg 2e: Försoning och förlikning (TCK-LIVE-006)
 
 ## Syntes och harmonisering
 
-Integreringen av `live_translation` i Samordning harmoniseras:
-- Featurestrukturen i `src/features/live_translation/` följer FSD med domänlager, krokar, komponenter och schema.
-- Ren, namngiven export via `src/features/live_translation/index.ts`.
-- Alla enhetstester och E2E-strömningskontroller passerar utan anmärkningar.
+Målkonflikter mellan realtidskrav och tillförlitlighet har lösts:
+- `AUDIO_SOURCE` stödjer både `VMIX` (virtuellt ljudkort på kapelldatorn via 48kHz PCM + `AudioResampler`) och `WEBSOCKET` (mobilklienter).
+- Opus-transporten integreras med 20ms paketramar som matchar klientens ringbuffert på 100–150 ms utan jitter.
+- WebSocket-servern erbjuder full-duplex på port 8080 samt port 3000 (`/ws/translation`), integrerad med `TranslationBridge` och `HotSwapManager` för 14-minuters rotation.
 
 **MÄTTNAD: JA**

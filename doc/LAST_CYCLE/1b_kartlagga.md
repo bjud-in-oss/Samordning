@@ -1,23 +1,23 @@
-# Steg 1b: Kartlägga (TCK-SMS-003)
+# Steg 1b: Kartlägga (TCK-SMS-004)
 
 ## Svar på GROW-frågor
 
-1. **State & Synkronitet**:
-   *Svar*: Genom att använda `useState<string>(() => ...)` exekveras initialiseraren synkront vid mount. Om `admin_device_token` finns i `localStorage` returneras den omedelbart; annars skapas en ny token via `dev_tok_...`, sparas i `localStorage` och returneras synkront. `deviceToken` är därmed aldrig en tom sträng vid den första renderingen.
+1. **Contract**:
+   *Svar*: Serverrutterna i `adminMemberRoutes.ts` exponerar `GET /api/admin/check-pairing?token=...` och `POST /api/alerts/:id/status`. I `routes.ts` returnerar `GET /api/alerts` en lista med anslagsobjekt. Genom att uppdatera `useAdminConsole.ts` till exakt dessa URL:er och payloads skapas 100 % konformitet med serverkontraktet.
 
-2. **Contract & Separation of Concerns**:
-   *Svar*: Genom att bryta ut state och backend-anrop (`fetchAlerts`, `handleApprove`, `handleRejectOrDelete`, `checkPairingStatus`) till `src/features/sms_assistant/hooks/useAdminConsole.ts` förblir `AdminConsole.tsx` en ren presentations- och dirigentkomponent. Ett Zod-schema definieras i `src/features/sms_assistant/domain/schema.ts` för att garantera typstarka datagränser.
+2. **Effects**:
+   *Svar*: Efter ett lyckat statusanrop (`POST /api/alerts/${id}/status`) anropas `fetchAlerts()` på nytt, vilket hämtar den aktuella alert-listan från servern och applicerar filtreringen för `pending` och `active`.
 
-3. **Effects & Parningsintegritet**:
-   *Svar*: `checkPairingStatus` anropas deterministiskt med den garanterat initialiserade `deviceToken`. Om `isAdmin === true` i `localStorage` sätts `isPaired` direkt till `true` för omedelbar visning samtidigt som en bakgrundskontroll bekräftar sessionen.
+3. **Resilience**:
+   *Svar*: Befintliga `try/catch`-block med lokal `localStorage`-fallback behålls och skyddar gränssnittet mot krascher om nätverket fallerar, samtidigt som varningar loggas kontrollerat.
 
 ```json
 {
   "status": "In Progress",
   "current_domain": "sms_assistant",
   "next_step": "2a",
-  "ticket_id": "TCK-SMS-003",
+  "ticket_id": "TCK-SMS-004",
   "active_skill": "systemarkitekt",
-  "active_vectors": ["State"]
+  "active_vectors": ["Contract"]
 }
 ```

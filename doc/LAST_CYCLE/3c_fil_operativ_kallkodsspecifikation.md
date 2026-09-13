@@ -1,43 +1,50 @@
-# Steg 3c: Fil-operativ Källkodsspecifikation (TCK-SMS-003)
+# Steg 3c: Fil-operativ Källkodsspecifikation (TCK-SMS-004)
 
 ## Ändringsmanifest (Endast 1 domän: sms_assistant)
 
-### 1. Zod-schema och Datakontrakt
-- **Fil**: `src/features/sms_assistant/domain/schema.ts`
-- **Syfte**: Skapa körtidsvalidering för `sms_assistant` med Zod.
-- **Innehåll**:
-  - `AdminDeviceTokenSchema`: z.string().min(5)
-  - `AdminPairingStatusSchema`: z.object({ paired: z.boolean() })
-  - `AlertItemSchema`: z.object({...})
-
-### 2. Custom Hook för administration
-- **Fil**: `src/features/sms_assistant/hooks/useAdminConsole.ts`
-- **Syfte**: Extrahera hooks och asynkron datahantering från vyn.
+### 1. Enhetstester (TDD)
+- **Fil**: `src/features/sms_assistant/components/__tests__/AdminConsole.test.tsx`
+- **Syfte**: Verifiera att de uppdaterade API-rutterna anropas korrekt från komponenten/hooken och att parningskontroll samt interaktioner fungerar.
 - **Specifikation**:
-  - Synkron initiering av `deviceToken`:
+  - Mocka `fetch` för `/api/admin/check-pairing` och `/api/alerts`.
+  - Verifiera parningsanrop mot `/api/admin/check-pairing?token=...`.
+  - Verifiera interaktion och uppdatering via `fireEvent.click`.
+
+### 2. Custom Hook: API-ändpunkter
+- **Fil**: `src/features/sms_assistant/hooks/useAdminConsole.ts`
+- **Syfte**: Korrigera rutterna så att de matchar Express-servern i `src/server/routes.ts` och `src/server/adminMemberRoutes.ts`.
+- **Specifikation**:
+  - `checkPairingStatus`:
     ```ts
-    const [deviceToken] = useState<string>(() => {
-      let token = localStorage.getItem("admin_device_token");
-      if (!token) {
-        token = "dev_tok_" + Math.random().toString(36).substring(2, 11);
-        localStorage.setItem("admin_device_token", token);
-      }
-      return token;
+    const res = await fetch(`/api/admin/check-pairing?token=${encodeURIComponent(token)}`);
+    ```
+  - `fetchAlerts`:
+    ```ts
+    const res = await fetch("/api/alerts");
+    const data = await res.json();
+    const alerts: AlertItem[] = Array.isArray(data) ? data : [];
+    const pending = alerts.filter(
+      (item) => item.status === "pending" || item.status === "pending_review"
+    );
+    const active = alerts.filter(
+      (item) => item.status !== "pending" && item.status !== "pending_review" && item.status !== "rejected"
+    );
+    setPendingAlerts(pending);
+    setActiveAlertsList(active);
+    ```
+  - `handleApprove`:
+    ```ts
+    const res = await fetch(`/api/alerts/${encodeURIComponent(id)}/status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "active", trustSender }),
     });
     ```
-  - Hantering av `isPaired`, `checkingPairing`, `pendingAlerts`, `activeAlertsList`, `activeTab`.
-  - Funktioner: `fetchAlerts`, `handleApprove`, `handleRejectOrDelete`, `checkPairingStatus`, `handleLogout`.
-
-### 3. Komponentrefaktorisering
-- **Fil**: `src/features/sms_assistant/components/AdminConsole.tsx`
-- **Syfte**: Använda `useAdminConsole` och hålla komponenten ren, typad och fri från `fetch()` eller hook-läckage.
-- **Specifikation**:
-  - Rendera `PairingGate` med `token={deviceToken}` och `onRefresh={() => checkPairingStatus(deviceToken)}`.
-  - Rendera flikar och anslagslistor baserat på hook-tillståndet.
-
-### 4. Enhetstester (TDD)
-- **Fil**: `src/features/sms_assistant/components/__tests__/AdminConsole.test.tsx`
-- **Syfte**: Verifiera synkron `deviceToken`-initiering och komponentens rendering.
-- **Specifikation**:
-  - Verifiera att `deviceToken` skapas direkt i `localStorage` och skickas till `PairingGate`.
-  - Verifiera interaktion via `fireEvent.click`.
+  - `handleRejectOrDelete`:
+    ```ts
+    const res = await fetch(`/api/alerts/${encodeURIComponent(id)}/status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "rejected" }),
+    });
+    ```

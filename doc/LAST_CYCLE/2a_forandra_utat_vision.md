@@ -1,5 +1,4 @@
-# Steg 2a: Förändra utåt - Vision (TCK-SMS-003)
+# Steg 2a: Förändra utåt - Vision (TCK-SMS-004)
 
 ## Vision och Arkitekturell Intention
-Administrationskonsolen ska alltid starta i ett deterministiskt tillstånd. Genom att eliminera asynkron fördröjning vid skapandet av `deviceToken` elimineras flimmer, ogiltiga tomma parametrar i API-anrop och onödiga omrenderingar i `PairingGate`.
-Strukturen stärks genom ren separation mellan presentation i `AdminConsole.tsx` och tillståndshantering i `useAdminConsole.ts`.
+Administrationsgränssnittet och serverns backend-lager ska kommunicera via ett sammanhängande, enhetligt REST-kontrakt. Genom att eliminera inaktuella interna adresser (`/api/admin/alerts`, `/api/admin/approve-alert`, `/api/admin/pairing-status`) och ersätta dem med serverns faktiska rutter (`/api/alerts`, `/api/alerts/:id/status`, `/api/admin/check-pairing`), blir integrationen mellan webbklienten och servern deterministisk och fri från 404-fel.

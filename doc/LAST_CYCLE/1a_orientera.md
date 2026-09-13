@@ -1,18 +1,21 @@
-# Steg 1a: Orientera (TCK-SMS-003)
+# Steg 1a: Orientera (TCK-SMS-004)
 
 ## Mål och Omfång
-Synkronisera och säkra initieringen av `deviceToken` i `AdminConsole.tsx` (`sms_assistant`) så att komponenten aldrig renderar med en tom enhetstoken under sin initiala mount-fas.
-- Synkron lazy initializer i `useState` för att direkt läsa eller generera och persistera `admin_device_token` i `localStorage`.
-- Extrahera affärslogik och nätverksanrop till anpassad hook `useAdminConsole` för att upprätthålla rena UI-komponenter och strikt arkitektur.
-- Tillhandahålla körtidsvalidering via Zod i `src/features/sms_assistant/domain/schema.ts`.
+Synkronisera API-ändpunkterna i `useAdminConsole.ts` med Express-serverns rutter i `src/server/routes.ts` och `src/server/adminMemberRoutes.ts`:
+1. `checkPairingStatus`: Ändra anropet från `/api/admin/pairing-status` till `/api/admin/check-pairing?token=${encodeURIComponent(token)}`.
+2. `fetchAlerts`: Ändra från `/api/admin/alerts` till `/api/alerts`. Hämta arrayen och filtrera:
+   - `pending`: poster där `status === 'pending' || status === 'pending_review'`.
+   - `active`: poster där `status !== 'pending' && status !== 'pending_review' && status !== 'rejected'`.
+3. `handleApprove`: Ändra från `/api/admin/approve-alert` till `POST /api/alerts/${id}/status` med body `{ status: "active", trustSender }`.
+4. `handleRejectOrDelete`: Ändra från `/api/admin/reject-alert` / `/api/admin/delete-alert` till `POST /api/alerts/${id}/status` med body `{ status: "rejected" }`.
 
-## GROW-frågor (Risknoder: State, Contract, Effects)
+## GROW-frågor (Risknoder: Contract, Effects, Resilience)
 
-1. **State & Synkronitet**:
-   *Fråga*: Hur säkerställs att `deviceToken` omedelbart är tillgänglig vid allra första renderingscykeln utan asynkrona glapp eller race conditions mot `PairingGate`?
+1. **Contract**:
+   *Fråga*: Hur synkroniseras API-kontraktet mellan frontend-hooken `useAdminConsole` och backendens Express-rutter så att parametrar och payload-strukturer matchar serverns implementation exakt?
 
-2. **Contract & Separation of Concerns**:
-   *Fråga*: Hur bryts ansvaret för nätverksanrop och tillståndshantering ut från `AdminConsole.tsx` till `useAdminConsole.ts` så att UI-komponenten förblir under storleks- och hookgränserna med bevarat kontrakt?
+2. **Effects**:
+   *Fråga*: Hur säkerställs att godkännande eller avvisande av anslag (`POST /api/alerts/:id/status`) omedelbart propagerar och uppdaterar listorna i både aktivt tillstånd och väntande kö?
 
-3. **Effects & Parningsintegritet**:
-   *Fråga*: Hur garanteras att parningskontrollen triggas med korrekt genererad eller hämtad token vid start utan onödiga dubbelanrop eller fördröjd statusvisning?
+3. **Resilience**:
+   *Fråga*: Hur bibehålls motståndskraft och offline-fallback vid nätverksfel så att administrationskonsolen förblir användbar även om backend-tjänsten är temporärt onåbar?

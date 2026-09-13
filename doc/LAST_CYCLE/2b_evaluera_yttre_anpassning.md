@@ -1,7 +1,9 @@
-# Steg 2b: Evaluera yttre anpassning (TCK-SMS-003)
+# Steg 2b: Evaluera yttre anpassning (TCK-SMS-004)
 
 ## Yttre anpassning och Systemkoherens
-- `AdminConsoleProps` bibehåller exakt samma gränssnitt (`onBack?: () => void; onPairSuccess?: () => void;`).
-- `PairingGate` tar emot en garanterat icke-tom `deviceToken` redan vid första renderingen.
-- Inga regressioner uppstår mot överordnade vyer (`MainViewContent.tsx` eller administrationsflikar).
-- Domänen `sms_assistant` förses med ett formellt Zod-schema i `domain/schema.ts` i enlighet med systemets kontraktskrav.
+- Serverrutterna i `src/server/routes.ts` och `src/server/adminMemberRoutes.ts` förblir oförändrade och auktoritativa.
+- `useAdminConsole.ts` anpassas direkt till serverns befintliga implementation:
+  - `GET /api/admin/check-pairing?token=...`
+  - `GET /api/alerts`
+  - `POST /api/alerts/:id/status`
+- Klientgränssnittet i `AdminConsole.tsx` fortsätter att konsumera `useAdminConsole` utan några ändringar i sitt publika API eller dess props.

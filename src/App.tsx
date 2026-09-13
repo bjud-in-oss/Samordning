@@ -61,7 +61,7 @@ export default function App() {
   }, []);
 
   const [activeTab, setActiveTab] = useState<"stream" | "create">("stream");
-  const [currentView, setCurrentView] = useState<'stream' | 'settings' | 'admin'>('stream');
+  const [currentView, setCurrentView] = useState<'stream' | 'settings' | 'translation' | 'admin'>('stream');
   const [isToggling, setIsToggling] = useState<boolean>(false);
 
   const [isOnline] = useState<boolean>(true);
@@ -76,9 +76,9 @@ export default function App() {
     }
   };
 
-  const handleSaveTags = useCallback(async (tags: any) => {
+  const handleSaveTags = useCallback(async (tags: unknown) => {
     localStorage.setItem("mission_router_tags", JSON.stringify(tags));
-    setSavedTags(tags);
+    setSavedTags(tags as unknown as Record<string, unknown>);
 
     if (pushEnabled) {
       try {
@@ -153,6 +153,7 @@ export default function App() {
       <AppHeader
         currentView={currentView === 'admin' ? 'stream' : currentView}
         onToggleSettings={() => setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings')}
+        onToggleTranslation={() => setCurrentView(prev => prev === 'translation' ? 'stream' : 'translation')}
         pushEnabled={pushEnabled}
         isToggling={isToggling}
         onTogglePush={async () => {
@@ -188,7 +189,7 @@ export default function App() {
           navigateTo={navigateTo}
           uiLanguage={uiLanguage}
           currentView={currentView === 'admin' ? 'stream' : currentView}
-          setCurrentView={setCurrentView as any}
+          setCurrentView={setCurrentView as React.Dispatch<React.SetStateAction<'stream' | 'settings' | 'translation'>>}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           handleSaveTags={handleSaveTags}

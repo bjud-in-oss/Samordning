@@ -1,17 +1,13 @@
-# Steg 2a: Förändra utåt (Vision för TCK-LIVE-006)
+# Steg 2a: Förändra utåt (Vision & Användarupplevelse)
 
-## Vision för Produktionsklar Server-växel (Fas 2)
+## Visuell Design och Integration
+1. **Hörlursknapp i AppHeader**:
+   - Placeras direkt till vänster om inställningskugghjulet i den högra verktygspanelen.
+   - Ikonen `Headphones` (storlek 18) renderas med subtil övergångsfärg (`text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper`).
+   - När `currentView === 'translation'` markeras knappen aktiv med `bg-brand-paper text-brand-accent`.
+   - Touch-target hålls generös (minst 40–44px klickyta) med `p-1.5` och `rounded-xl`.
 
-Visionen är att etablera en robust, högpresterande ljudbrygga i `server.ts` och `src/server/translationServer.ts`:
-
-1. **Dual Ingestion Engine**:
-   - Stöd för `AUDIO_SOURCE` (`VMIX` för kyrksalens ljudsystem och `WEBSOCKET` för bärbar mikrofon).
-   - Automatisk resamplering 48kHz <-> 16kHz/24kHz via `AudioResampler`.
-
-2. **Effektiv Ljudtransport**:
-   - Opus-stöd i transportlagret för minimal bandbreddsanvändning och jämn strömning över 4G/5G.
-   - Pacing anpassad till 100–150 ms ringbuffert i klientens AudioWorklet.
-
-3. **Orkestrering och Driftsäkerhet**:
-   - Full-duplex WebSocket-server tillgänglig på dedikerad port 8080 samt integrerad på port 3000 (`/ws/translation`).
-   - Automatisk 14-minuters hot-swap rotation via `HotSwapManager`.
+2. **Inbäddning av LiveTranslationWidget i MainViewContent**:
+   - När direktöversättning aktiveras döljs flödet och formulären temporärt.
+   - `LiveTranslationWidget` renderas sömlöst med språkval, ljudkontroller, transportväljare (Cloudflare SFU vs lokal WebSocket) och fördröjningsmätare.
+   - Användaren kan när som helst återgå till flödet genom att klicka på hörlursknappen igen eller via eventuell tillbaka-knapp.

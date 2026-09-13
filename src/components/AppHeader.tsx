@@ -1,9 +1,10 @@
 import React from "react";
-import { Settings, Plus } from "lucide-react";
+import { Settings, Plus, Headphones } from "lucide-react";
 
 interface AppHeaderProps {
-  currentView: "stream" | "settings";
+  currentView: "stream" | "settings" | "translation";
   onToggleSettings: () => void;
+  onToggleTranslation: () => void;
   pushEnabled: boolean;
   isToggling: boolean;
   onTogglePush: () => void;
@@ -13,6 +14,7 @@ interface AppHeaderProps {
 export function AppHeader({
   currentView,
   onToggleSettings,
+  onToggleTranslation,
   pushEnabled,
   isToggling,
   onTogglePush,
@@ -51,8 +53,21 @@ export function AppHeader({
           </button>
         </div>
 
-        {/* HÖGER SIDA: Samlad styrpanel med inställningskugghjul och Bjud in-knapp */}
+        {/* HÖGER SIDA: Samlad styrpanel med hörlurar, inställningskugghjul och Bjud in-knapp */}
         <div className="flex items-center gap-2 shrink-0">
+          {/* Hörlursknapp för direktöversättning */}
+          <button
+            type="button"
+            onClick={onToggleTranslation}
+            className={`p-1.5 text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper rounded-xl transition-all cursor-pointer ${
+              currentView === 'translation' ? 'bg-brand-paper text-brand-accent' : ''
+            }`}
+            title="Direktöversättning"
+            aria-label="Direktöversättning"
+          >
+            <Headphones size={18} />
+          </button>
+
           {/* Diskret ⚙️-kugghjul direkt intill som fäller ut/stänger inställningar */}
           <button
             type="button"

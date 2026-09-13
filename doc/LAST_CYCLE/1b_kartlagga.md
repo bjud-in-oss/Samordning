@@ -1,27 +1,38 @@
-# Steg 1b: Kartlägga (TCK-LIVE-006: Dual Audio Ingestion, Opus och Resiliens i server.ts och translationServer.ts)
+# Steg 1b: Kartlägga (TCK-UI-001)
 
-## Svar på GROW-frågor mot kodbasens arkitektur
+## Analys och svar på GROW-frågor
 
-1. **State (Dual Audio Ingestion)**:
-   - `AUDIO_SOURCE` definieras i miljökonfigurationen med två lägen: `VMIX` (primär ingång för kapelljud via virtuellt ljudkort/ljudström 48kHz PCM mono) och `WEBSOCKET` (mikrofonström över WSS från mobil/PWA).
-   - Vid `AUDIO_SOURCE=VMIX` tar ingestion-modulen emot 48kHz Float32/Int16 och skickar genom `AudioResampler.downsample48kTo16k` för 16kHz Gemini ingest och `AudioResampler.upsample24kTo48k` för 48kHz uppspelningskanaler.
-   - Vid `AUDIO_SOURCE=WEBSOCKET` tar servern emot binära Opus/PCM-paket direkt från anslutna talarklienter.
+### 1. State: Vy-växling och Toggling
+- I `src/App.tsx` utökas `currentView` till att stödja `'stream' | 'settings' | 'translation' | 'admin'`.
+- När användaren klickar på hörlursknappen i `AppHeader`:
+  - Om `currentView === 'translation'` togglas den tillbaka till `'stream'`.
+  - Om `currentView !== 'translation'` sätts den till `'translation'`.
+- På samma sätt som med kugghjulet för inställningar ger detta en direkt, responsiv tvåvägsväxling.
 
-2. **Contract (Opus-komprimering & Buffert)**:
-   - Servern tillhandahåller Opus-kodning/avkodning via ett modulärt lager som kapslar paket i 20ms-ramar (480 samplar vid 24kHz / 320 samplar vid 16kHz).
-   - För klienter med `AudioProcessor.worklet.ts` garanteras 100–150 ms målbuffertstorlek genom jämn paketpacing (20ms frames) och tidsstämplar i metadata, vilket eliminerar jitter och hackigt mobilnätljud.
+### 2. Contract: Komponentgränssnitt utan Typläckage
+- I `src/components/AppHeader.tsx`:
+  - Importera `Headphones` från `lucide-react`.
+  - `currentView` typas till `"stream" | "settings" | "translation"`.
+  - Ny callback: `onToggleTranslation: () => void`.
+  - Hörlursknapp placeras i högra styrpanelen bredvid inställningskugghjulet. Aktivt läge markeras med `bg-brand-paper text-brand-accent`.
+- I `src/components/MainViewContent.tsx`:
+  - `currentView` typas till `'stream' | 'settings' | 'translation'`.
+  - `setCurrentView` typas till `React.Dispatch<React.SetStateAction<'stream' | 'settings' | 'translation'>>`.
+  - Vid `currentView === 'translation'` renderas `<LiveTranslationWidget />` importerad från `../features/live_translation`.
+- I `src/App.tsx`:
+  - `currentView` hanteras med explicit unionstyp utan `as any`.
 
-3. **Resilience (Hot-Swap & Full-Duplex orkestrering)**:
-   - Full-duplex WebSocket-servern i `translationServer.ts` utökas med stöd för att lyssna på port 8080 parallellt med Express HTTP upgrade på port 3000 (`/ws/translation`).
-   - `TranslationBridge` och `HotSwapManager` integreras i servermiljön: efter 14 minuter triggas `executeHotSwap` som upprättar en parallell standby-session med Gemini Live och överför resumption-handtag utan tystnad eller avbruten ljuduppspelning.
+### 3. Effects: Resursstädning och PWA-layout
+- `LiveTranslationWidget` har redan intern livscykelhantering (`useEffect` för frikoppling av AudioContext/WebSockets).
+- Layouten i `MainViewContent` placerar widgeten i en ren behållare som matchar övriga kort (`max-w-xl`, subtil ram, mjuk övergång).
 
 ```json
 {
   "status": "IN_PROGRESS",
-  "current_domain": "live_translation",
-  "next_step": "2a_forandra_utat_vision",
-  "ticket_id": "TCK-LIVE-006",
-  "active_skill": "wayfinder",
-  "active_vectors": ["Resilience"]
+  "current_domain": "Global",
+  "next_step": "2a",
+  "ticket_id": "TCK-UI-001",
+  "active_skill": "pwa-integration",
+  "active_vectors": ["Contract"]
 }
 ```

@@ -1,28 +1,117 @@
-# Steg 3c: Fil-operativ källkodsspecifikation (TCK-LIVE-006: Dual Audio Ingestion, Opus och Resiliens i server.ts och translationServer.ts)
+# Steg 3c: Fil-operativ Källkodsspecifikation
 
-## Berörda filer och förändringsspecifikation
+## Ändringsöversikt och Manifest
+Denna cykel (TCK-UI-001) utförs under domänen `Global` / `core` och knyter ihop `LiveTranslationWidget` med PWA-applikationens huvudvyer.
 
-### Berörda relativa filvägar:
-- `src/server/__tests__/translationServer.test.ts`
-- `src/features/live_translation/domain/__tests__/translationBridge.test.ts`
-- `src/features/live_translation/domain/__tests__/audioResampler.test.ts`
-- `src/features/live_translation/domain/schema.ts`
-- `src/features/live_translation/domain/types.ts`
-- `src/features/live_translation/domain/translationBridge.ts`
-- `src/features/live_translation/domain/hotSwapManager.ts`
-- `src/features/live_translation/index.ts`
-- `src/server/translationServer.ts`
-- `server.ts`
+Följande filer är specificerade för modifiering och tillägg i Fas 2 (Steg 4):
+1. `src/components/AppHeader.tsx`
+2. `src/components/MainViewContent.tsx`
+3. `src/App.tsx`
+4. `src/components/__tests__/AppHeader.test.tsx`
 
-### Detaljerade källkodsinstruktioner för Steg 4:
-1. **TDD Först**:
-   - Skapa/uppdatera `src/server/__tests__/translationServer.test.ts` med aktiva påståenden (`expect`) för dubbel ingestion (`VMIX` och `WEBSOCKET`), Opus-hantering samt 14-minuters hot-swap triggers.
-2. **Källkodsändringar**:
-   - `server.ts`: Läs in `AUDIO_SOURCE` och `WS_PORT` från miljövariabler, initiera och orkestrera WebSocket-servern på port 8080 samt port 3000.
-   - `src/server/translationServer.ts`:
-     - Implementera dual audio ingestion: VMIX 48kHz (med `AudioResampler.downsample48kTo16k`) vs WEBSOCKET.
-     - Implementera Opus-kodning/avkodning med 20ms paketramar för adaptiv buffertkompatibilitet (100–150 ms).
-     - Integrera `TranslationBridge` och `HotSwapManager` för proaktiv rotation efter 14 minuter.
-   - `src/features/live_translation/domain/schema.ts` & `index.ts`: Exportera uppdaterade scheman och domänklasser utan `export *`.
+---
 
-BESLUT: GODKÄND INFÖR TOKEN-GATE
+## Detaljerad filspecifikation
+
+### 1. `src/components/AppHeader.tsx`
+- **Imports**: Lägg till `Headphones` från `lucide-react`.
+- **Props-interface**:
+  ```typescript
+  interface AppHeaderProps {
+    currentView: "stream" | "settings" | "translation";
+    onToggleSettings: () => void;
+    onToggleTranslation: () => void;
+    pushEnabled: boolean;
+    isToggling: boolean;
+    onTogglePush: () => void;
+    onCreateInvitation: () => void;
+  }
+  ```
+- **JSX**: I den högra samlade styrpanelen (`flex items-center gap-2 shrink-0`), placera hörlursknappen före inställningskugghjulet:
+  ```tsx
+  {/* Hörlursknapp för direktöversättning */}
+  <button
+    type="button"
+    onClick={onToggleTranslation}
+    className={`p-1.5 text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper rounded-xl transition-all cursor-pointer ${
+      currentView === 'translation' ? 'bg-brand-paper text-brand-accent' : ''
+    }`}
+    title="Direktöversättning"
+    aria-label="Direktöversättning"
+  >
+    <Headphones size={18} />
+  </button>
+  ```
+
+---
+
+### 2. `src/components/MainViewContent.tsx`
+- **Imports**: Lägg till import av `LiveTranslationWidget`:
+  ```typescript
+  import { LiveTranslationWidget } from "../features/live_translation";
+  ```
+- **Props-interface**:
+  ```typescript
+  interface MainViewContentProps {
+    activeAlertId: string | null;
+    navigateTo: (path: string) => void;
+    uiLanguage: UiLanguage;
+    currentView: 'stream' | 'settings' | 'translation';
+    setCurrentView: React.Dispatch<React.SetStateAction<'stream' | 'settings' | 'translation'>>;
+    activeTab: "stream" | "create";
+    setActiveTab: React.Dispatch<React.SetStateAction<"stream" | "create">>;
+    handleSaveTags: (tags: any) => void;
+    savedTags: any;
+    pushEnabled: boolean;
+    handleEnablePush: () => void;
+    handleDisablePush: () => void;
+    handleStreamCountChange: (filtered: number, total: number) => void;
+    isAdmin: boolean;
+  }
+  ```
+- **JSX**: När `currentView === 'translation'` renderas widgeten:
+  ```tsx
+  {currentView === 'translation' && (
+    <div className="w-full">
+      <LiveTranslationWidget />
+    </div>
+  )}
+  ```
+
+---
+
+### 3. `src/App.tsx`
+- **State**:
+  ```typescript
+  const [currentView, setCurrentView] = useState<'stream' | 'settings' | 'translation' | 'admin'>('stream');
+  ```
+- **AppHeader-anrop**:
+  ```tsx
+  <AppHeader
+    currentView={currentView === 'admin' ? 'stream' : currentView}
+    onToggleSettings={() => setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings')}
+    onToggleTranslation={() => setCurrentView(prev => prev === 'translation' ? 'stream' : 'translation')}
+    pushEnabled={pushEnabled}
+    isToggling={isToggling}
+    onTogglePush={...}
+    onCreateInvitation={...}
+  />
+  ```
+- **MainViewContent-anrop**:
+  ```tsx
+  <MainViewContent
+    ...
+    currentView={currentView === 'admin' ? 'stream' : currentView}
+    setCurrentView={setCurrentView as any}
+    ...
+  />
+  ```
+
+---
+
+### 4. `src/components/__tests__/AppHeader.test.tsx`
+- Enhetstest med Vitest och React Testing Library.
+- Verifierar att:
+  - `Headphones`-knappen renderas.
+  - Klick på knappen anropar `onToggleTranslation`.
+  - Aktiv vy `'translation'` applicerar markeringsstil.

@@ -216,10 +216,13 @@ export function setupTranslationWebSocket(server: http.Server, port?: number): W
     } catch (err) { console.error("[TranslationServer] Upgrade fel:", err); socket.destroy(); }
   });
   const wsPort = port || (process.env.WS_PORT ? parseInt(process.env.WS_PORT, 10) : undefined);
-  if (wsPort && wsPort !== 3000 && !standaloneWss) {
+  if (wsPort && wsPort !== 3000 && wsPort !== 8080 && !standaloneWss) {
     try {
       standaloneWss = new WebSocketServer({ port: wsPort }, () => {
         console.log(`[TranslationServer] Full-duplex WebSocket öppen på port ${wsPort}`);
+      });
+      standaloneWss.on("error", (err) => {
+        console.warn(`[TranslationServer] WebSocket-port ${wsPort} inte tillgänglig:`, err.message);
       });
       standaloneWss.on("connection", (ws) => handleWsConnection(ws));
     } catch (e) { console.warn(`[TranslationServer] Kunde inte binda WS på port ${wsPort}:`, e); }

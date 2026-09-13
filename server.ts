@@ -38,9 +38,7 @@ httpServer.on("error", (err) => {
 });
 
 // Mount WebSocketServer for translation directly on Express HTTP server at /ws/translation
-// and optionally on a dedicated port (e.g. 8080) if WS_PORT is specified
-const wsPort = process.env.WS_PORT ? parseInt(process.env.WS_PORT, 10) : undefined;
-export const translationWss = setupTranslationWebSocket(httpServer, wsPort);
+export const translationWss = setupTranslationWebSocket(httpServer);
 
 async function startServer() {
   // Serve Vite frontend in development, static build in production

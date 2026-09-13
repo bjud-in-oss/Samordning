@@ -1,14 +1,9 @@
-# Steg 2b: Evaluera yttre anpassning (TCK-LIVE-006)
+# Steg 2b: Evaluera yttre anpassning
 
-## Granskning mot befintlig arkitektur och beroenden
-
-1. **Kompatibilitet med FSD och live_translation**:
-   - `AudioResampler` i `src/features/live_translation/domain/audioResampler.ts` används för linjär interpolation och filtrering mellan 48kHz, 24kHz och 16kHz.
-   - `TranslationBridge` och `HotSwapManager` ger tillförlitlig session resumption utan att bryta befintliga klienter.
-
-2. **Server-arkitektur i Cloud Run**:
-   - Port 3000 hanterar Express och HTTP-uppgradering till WebSocket (`/ws/translation`).
-   - För lokal testning och PoC-miljö kan port 8080 startas som en dedikerad full-duplex WebSocket-server när `WS_PORT=8080` eller under PoC/E2E-körning.
-
-3. **Buffert & Klientkompatibilitet**:
-   - Paketstorleken struktureras till 20 ms ramar med jämn sändningsintervall vilket perfekt matchar `AudioProcessor.worklet.ts` och dess adaptiva slew rate.
+## Granskning av gränssnitt och PWA-anpassning
+1. **Mobilvy och responsivitet**:
+   - Den övre navigeringslisten (`AppHeader`) har begränsad bredd på mobilskärmar (320–375px). Genom att placera hörlursikonen direkt intill kugghjulet med `size={18}` och `p-1.5` hålls layouten kompakt utan att titeln "Ta emot inbjudningar" eller switch-knappen trycks ihop eller radbryts felaktigt.
+2. **Tillgänglighet (A11y)**:
+   - Hörlursknappen förses med `aria-label="Direktöversättning"` och `title="Direktöversättning"` så att skärmläsare tydligt förmedlar knappens syfte.
+3. **Temakonsistens**:
+   - Använder befintliga Tailwind-klasser (`brand-ink`, `brand-paper`, `brand-accent`) och rundningsradier (`rounded-xl`) för enhetligt intryck.

@@ -3,17 +3,18 @@ import { OnboardingWizard } from "../features/anpassa";
 import { AlertDetail, ActiveStream } from "../features/inbjudningar";
 import { CreateInvitationForm } from "../features/skapa_inbjudan";
 import { UiLanguage } from "../features/mission_router";
+import { LiveTranslationWidget } from "../features/live_translation";
 
 interface MainViewContentProps {
   activeAlertId: string | null;
   navigateTo: (path: string) => void;
   uiLanguage: UiLanguage;
-  currentView: 'stream' | 'settings';
-  setCurrentView: React.Dispatch<React.SetStateAction<'stream' | 'settings'>>;
+  currentView: 'stream' | 'settings' | 'translation';
+  setCurrentView: React.Dispatch<React.SetStateAction<'stream' | 'settings' | 'translation'>>;
   activeTab: "stream" | "create";
   setActiveTab: React.Dispatch<React.SetStateAction<"stream" | "create">>;
-  handleSaveTags: (tags: any) => void;
-  savedTags: any;
+  handleSaveTags: (tags: unknown) => void;
+  savedTags: unknown;
   pushEnabled: boolean;
   handleEnablePush: () => void;
   handleDisablePush: () => void;
@@ -61,6 +62,12 @@ export function MainViewContent({
               onDisablePush={handleDisablePush}
               uiLanguage={uiLanguage || "sv"}
             />
+          </div>
+        )}
+
+        {currentView === 'translation' && (
+          <div className="w-full">
+            <LiveTranslationWidget />
           </div>
         )}
 

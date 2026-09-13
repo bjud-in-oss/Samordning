@@ -66,11 +66,18 @@ export function useAdminConsole({
 
   const fetchAlerts = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/alerts");
+      const res = await fetch("/api/alerts");
       if (!res.ok) throw new Error("Failed to fetch alerts");
       const data = await res.json();
-      setPendingAlerts(data.pending || []);
-      setActiveAlertsList(data.active || []);
+      const alerts: AlertItem[] = Array.isArray(data) ? data : [];
+      const pending = alerts.filter(
+        (item) => item.status === "pending" || item.status === "pending_review"
+      );
+      const active = alerts.filter(
+        (item) => item.status !== "pending" && item.status !== "pending_review" && item.status !== "rejected"
+      );
+      setPendingAlerts(pending);
+      setActiveAlertsList(active);
     } catch (err) {
       console.warn("Using fallback local alerts:", err);
       setPendingAlerts(parsePendingAlertsFromStorage());
@@ -82,7 +89,7 @@ export function useAdminConsole({
     async (token: string) => {
       if (!token) return;
       try {
-        const res = await fetch(`/api/admin/pairing-status?token=${encodeURIComponent(token)}`);
+        const res = await fetch(`/api/admin/check-pairing?token=${encodeURIComponent(token)}`);
         if (!res.ok) throw new Error("Pairing check error");
         const data = await res.json();
         if (data.paired) {
@@ -109,10 +116,10 @@ export function useAdminConsole({
 
   const handleApprove = async (id: string, trustSender?: boolean) => {
     try {
-      const res = await fetch("/api/admin/approve-alert", {
+      const res = await fetch(`/api/alerts/${encodeURIComponent(id)}/status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, trustSender }),
+        body: JSON.stringify({ status: "active", trustSender }),
       });
       if (!res.ok) throw new Error("Approve API failed");
       fetchAlerts();
@@ -132,11 +139,10 @@ export function useAdminConsole({
 
   const handleRejectOrDelete = async (id: string, isReject: boolean = true) => {
     try {
-      const endpoint = isReject ? "/api/admin/reject-alert" : "/api/admin/delete-alert";
-      const res = await fetch(endpoint, {
+      const res = await fetch(`/api/alerts/${encodeURIComponent(id)}/status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ status: "rejected" }),
       });
       if (!res.ok) throw new Error("Reject/Delete API failed");
       fetchAlerts();

@@ -1,132 +1,38 @@
-// [src/features/sms_assistant/components/AdminConsole.tsx] - Renodlad Admin SMS Konsol utan testskräp
-
-import React, { useState, useEffect } from "react";
-import { RefreshCw, Trash2, Calendar, MapPin, Tag } from "lucide-react";
+import React, { useState } from "react";
+import { RefreshCw, Tag, MapPin, Calendar, Trash2 } from "lucide-react";
 import { PairingGate } from "./PairingGate";
-import { PendingAlertsQueue } from "./PendingAlertsQueue";
 import { AdminConsoleHeader } from "./AdminConsoleHeader";
+import { PendingAlertsQueue } from "./PendingAlertsQueue";
 import { AdminMembersPanel } from "./AdminMembersPanel";
+import { useAdminConsole } from "../hooks/useAdminConsole";
 
 interface AdminConsoleProps {
   onBack?: () => void;
   onPairSuccess?: () => void;
 }
 
-export default function AdminConsole({ onBack, onPairSuccess }: AdminConsoleProps) {
-  const [deviceToken, setDeviceToken] = useState("");
-  const [isPaired, setIsPaired] = useState(false);
-  const [checkingPairing, setCheckingPairing] = useState(true);
-  const [pendingAlerts, setPendingAlerts] = useState<any[]>([]);
-  const [activeAlertsList, setActiveAlertsList] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<"pending" | "active" | "members">("pending");
-
-  const fetchAlerts = async () => {
-    try {
-      const res = await fetch("/api/alerts");
-      if (res.ok) {
-        const data = await res.json();
-        const pending = data.filter((a: any) => a.status === "pending" || a.status === "pending_review");
-        const active = data.filter((a: any) => a.status !== "pending" && a.status !== "pending_review" && a.status !== "rejected");
-        setPendingAlerts(pending);
-        setActiveAlertsList(active);
-      }
-    } catch (e) {
-      console.error("Fel vid hämtning av anslag", e);
-    }
-  };
-
-  useEffect(() => {
-    fetchAlerts();
-  }, []);
-
-  const handleApprove = async (id: string, trustSender: boolean = false) => {
-    try {
-      const res = await fetch(`/api/alerts/${id}/status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "active", trustSender })
-      });
-      if (res.ok) {
-        fetchAlerts();
-      }
-    } catch (e) {
-      alert("Kunde inte godkänna förslaget.");
-    }
-  };
-
-  const handleRejectOrDelete = async (id: string) => {
-    try {
-      const res = await fetch(`/api/alerts/${id}/status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "rejected" })
-      });
-      if (res.ok) {
-        fetchAlerts();
-      }
-    } catch (e) {
-      alert("Kunde inte ta bort anslaget.");
-    }
-  };
-
-  useEffect(() => {
+export function AdminConsole({ onBack, onPairSuccess }: AdminConsoleProps) {
+  const [deviceToken] = useState<string>(() => {
     let token = localStorage.getItem("admin_device_token");
     if (!token) {
       token = "dev_tok_" + Math.random().toString(36).substring(2, 11);
       localStorage.setItem("admin_device_token", token);
     }
-    setDeviceToken(token);
+    return token;
+  });
 
-    const savedAdmin = localStorage.getItem("isAdmin") === "true";
-    if (savedAdmin) {
-      setIsPaired(true);
-      setCheckingPairing(false);
-      checkPairingStatus(token, true);
-    } else {
-      checkPairingStatus(token, false);
-    }
-  }, []);
-
-  const checkPairingStatus = async (token: string, isSilent: boolean = true) => {
-    if (!isSilent) setCheckingPairing(true);
-    try {
-      const res = await fetch(`/api/admin/check-pairing?token=${encodeURIComponent(token)}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.paired) {
-          setIsPaired(true);
-          localStorage.setItem("isAdmin", "true");
-          if (onPairSuccess) onPairSuccess();
-        }
-      }
-    } catch (e) {
-      console.error("Fel vid kontroll av parning:", e);
-    } finally {
-      if (!isSilent) setCheckingPairing(false);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("isAdmin");
-    localStorage.removeItem("admin_device_token");
-    setIsPaired(false);
-    if (onBack) {
-      onBack();
-    } else {
-      window.location.href = "/";
-    }
-  };
-
-  if (checkingPairing) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-brand-bg font-sans text-brand-ink p-4">
-        <div className="flex items-center gap-3 bg-white p-6 rounded-2xl shadow-xs border border-brand-ink/10">
-          <RefreshCw className="animate-spin text-brand-accent" size={20} />
-          <span className="font-mono text-xs uppercase tracking-wider">Verifierar parning...</span>
-        </div>
-      </div>
-    );
-  }
+  const {
+    isPaired,
+    pendingAlerts,
+    activeAlertsList,
+    activeTab,
+    setActiveTab,
+    checkPairingStatus,
+    fetchAlerts,
+    handleApprove,
+    handleRejectOrDelete,
+    handleLogout,
+  } = useAdminConsole({ onBack, onPairSuccess, deviceToken });
 
   if (!isPaired) {
     return (
@@ -181,7 +87,7 @@ export default function AdminConsole({ onBack, onPairSuccess }: AdminConsoleProp
             pendingAlerts={pendingAlerts}
             onFetchPending={fetchAlerts}
             onApprove={handleApprove}
-            onReject={handleRejectOrDelete}
+            onReject={(id) => handleRejectOrDelete(id, true)}
           />
         )}
 
@@ -254,3 +160,5 @@ export default function AdminConsole({ onBack, onPairSuccess }: AdminConsoleProp
     </div>
   );
 }
+
+export default AdminConsole;

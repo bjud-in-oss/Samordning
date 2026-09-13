@@ -1,6 +1,7 @@
-# Steg 2b: Evaluera yttre anpassning (TCK-UI-002)
+# Steg 2b: Evaluera yttre anpassning (TCK-SMS-003)
 
-## Yttre anpassning och UI-koherens
-- `MainViewContent` agerar central innehållsdirigent.
-- Genom att skicka `isAdmin` till renderingsbeslutet förblir gränssnittet deklarativt och typstarkt.
-- Inga hårdkodade färger eller otillåtna hooks införs i komponenten.
+## Yttre anpassning och Systemkoherens
+- `AdminConsoleProps` bibehåller exakt samma gränssnitt (`onBack?: () => void; onPairSuccess?: () => void;`).
+- `PairingGate` tar emot en garanterat icke-tom `deviceToken` redan vid första renderingen.
+- Inga regressioner uppstår mot överordnade vyer (`MainViewContent.tsx` eller administrationsflikar).
+- Domänen `sms_assistant` förses med ett formellt Zod-schema i `domain/schema.ts` i enlighet med systemets kontraktskrav.

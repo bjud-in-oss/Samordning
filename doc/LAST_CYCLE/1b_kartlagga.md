@@ -1,29 +1,22 @@
-# Steg 1b: Kartlägga och Svara på GROW-frågor (TCK-UI-002)
+# Steg 1b: Kartlägga (TCK-SMS-003)
 
 ## Svar på GROW-frågor
 
-1. **State & RBAC**:
-   - `MainViewContent` tar redan emot `isAdmin: boolean` via sina props.
-   - När `currentView === 'translation'` görs en ren villkorlig gren: `isAdmin ? <LiveTranslationWidget /> : <LiveTranslationListenerWidget />`.
-   - React demonterar den ena komponenten och monterar den andra, vilket triggar respektive komponent/hooks `useEffect`-cleanup och stänger ned eventuella aktiva resurser.
+1. **State & Synkronitet**:
+   *Svar*: Genom att använda `useState<string>(() => ...)` exekveras initialiseraren synkront vid mount. Om `admin_device_token` finns i `localStorage` returneras den omedelbart; annars skapas en ny token via `dev_tok_...`, sparas i `localStorage` och returneras synkront. `deviceToken` är därmed aldrig en tom sträng vid den första renderingen.
 
-2. **Contract & Interface**:
-   - Båda komponenterna exporteras från `src/features/live_translation`.
-   - `MainViewContent.tsx` importerar `LiveTranslationWidget, LiveTranslationListenerWidget` från `../features/live_translation`.
-   - Inga extra props krävs för `LiveTranslationListenerWidget` vid standardanvändning.
+2. **Contract & Separation of Concerns**:
+   *Svar*: Genom att bryta ut state och backend-anrop (`fetchAlerts`, `handleApprove`, `handleRejectOrDelete`, `checkPairingStatus`) till `src/features/sms_assistant/hooks/useAdminConsole.ts` förblir `AdminConsole.tsx` en ren presentations- och dirigentkomponent. Ett Zod-schema definieras i `src/features/sms_assistant/domain/schema.ts` för att garantera typstarka datagränser.
 
-3. **Effects & Separation**:
-   - `LiveTranslationListenerWidget` anropar varken `getUserMedia` eller `GeminiSession`.
-   - Deltagare som inte är administratörer ser uteslutande lyssnargränssnittet med språkval och play/pause för mottaget tolkarljud.
-
-## Metadata Deklaration
+3. **Effects & Parningsintegritet**:
+   *Svar*: `checkPairingStatus` anropas deterministiskt med den garanterat initialiserade `deviceToken`. Om `isAdmin === true` i `localStorage` sätts `isPaired` direkt till `true` för omedelbar visning samtidigt som en bakgrundskontroll bekräftar sessionen.
 
 ```json
 {
-  "status": "PLANNED",
-  "current_domain": "Global",
+  "status": "In Progress",
+  "current_domain": "sms_assistant",
   "next_step": "2a",
-  "ticket_id": "TCK-UI-002",
+  "ticket_id": "TCK-SMS-003",
   "active_skill": "systemarkitekt",
   "active_vectors": ["State"]
 }

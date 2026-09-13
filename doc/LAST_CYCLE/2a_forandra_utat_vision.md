@@ -1,4 +1,5 @@
-# Steg 2a: Förändra utåt - Vision (TCK-UI-002)
+# Steg 2a: Förändra utåt - Vision (TCK-SMS-003)
 
-## Vision och Syfte
-Att ge mötesdeltagare på mobila enheter en ren, fokuserad upplevelse när de öppnar direktöversättningen. De möts direkt av språkväljare och lyssnarknapp, medan administratörer behåller full kontroll över tolkströmmen, hot-swap och mikrofonval via `LiveTranslationWidget`.
+## Vision och Arkitekturell Intention
+Administrationskonsolen ska alltid starta i ett deterministiskt tillstånd. Genom att eliminera asynkron fördröjning vid skapandet av `deviceToken` elimineras flimmer, ogiltiga tomma parametrar i API-anrop och onödiga omrenderingar i `PairingGate`.
+Strukturen stärks genom ren separation mellan presentation i `AdminConsole.tsx` och tillståndshantering i `useAdminConsole.ts`.

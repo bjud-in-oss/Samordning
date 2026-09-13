@@ -1,9 +1,9 @@
-# Steg 2e: Försoning och Förlikning (TCK-UI-002)
+# Steg 2e: Försoning och förlikning (TCK-SMS-003)
 
-## Analys av målkonflikter och gränsdragningar
-- **Målkonflikt**: Ska administratören också kunna lyssna som vanlig deltagare?
-  - **Förlikning**: Administratören hanterar sändning och sessioner i `LiveTranslationWidget`, medan övriga användare alltid dirigeras till den rena lyssnarkomponenten. Båda bygger på samma underliggande WebSocket-infrastruktur och ljudtjänst.
-- **Rollkontrakt**: `isAdmin` styrs från applikationens autentiserings- och behörighetslager.
-- **Arkitekturregler**: `MainViewContent` hålls rent som layoutkomponent utan egen datahämtning.
+## Målkonflikter och Lösning
+- **Konflikt**: Initialisering av `deviceToken` i `useEffect` orsakade en kortvarig period där token var en tom sträng (`""`), vilket kunde leda till att `PairingGate` renderades med tom token eller skickade ogiltiga förfrågningar.
+- **Lösning**: Lazy state initialization i `useState` garanterar synkron åtkomst till token från `localStorage` eller genererar en ny token före första paint.
+- **Konflikt**: Att lägga till logik direkt i `AdminConsole.tsx` riskerar att överstiga ramverkets gränser för filstorlek och hooks i vyn.
+- **Lösning**: Logik bryts ut till `useAdminConsole.ts` och `domain/schema.ts`, vilket ger ren modularisering och 100 % efterlevnad av kodstandarderna.
 
 MÄTTNAD: JA

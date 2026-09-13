@@ -157,6 +157,17 @@ describe("useLiveTranslation Hook", () => {
     expect(result.current.transportMode).toBe("sfu");
   });
 
+  it("initieras med transportMode 'local_ws' om VITE_AUDIO_SOURCE är 'WEBSOCKET'", () => {
+    const originalEnv = process.env.VITE_AUDIO_SOURCE;
+    process.env.VITE_AUDIO_SOURCE = "WEBSOCKET";
+    try {
+      const { result } = renderHook(() => useLiveTranslation());
+      expect(result.current.transportMode).toBe("local_ws");
+    } finally {
+      process.env.VITE_AUDIO_SOURCE = originalEnv;
+    }
+  });
+
   it("låser upp och initierar AudioContext synkront via unlockAudioContext", () => {
     const { result } = renderHook(() => useLiveTranslation());
     act(() => { result.current.unlockAudioContext(); });

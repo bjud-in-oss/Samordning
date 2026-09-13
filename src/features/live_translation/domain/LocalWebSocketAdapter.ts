@@ -3,9 +3,9 @@ import type { AudioTransportAdapter, AudioTransportStatus } from "./types";
 function getDefaultWebSocketUrl(): string {
   if (typeof window !== "undefined" && window.location) {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${protocol}//${window.location.host || "localhost:3000"}/api/ws/audio`;
+    return `${protocol}//${window.location.host || "localhost:3000"}/ws/translation`;
   }
-  return "ws://localhost:3000/api/ws/audio";
+  return "ws://localhost:3000/ws/translation";
 }
 
 export class LocalWebSocketAdapter implements AudioTransportAdapter {

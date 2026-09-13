@@ -110,7 +110,7 @@ describe("LocalWebSocketAdapter Specifications", () => {
   it("använder Dynamic Protocol Switch: wss vid HTTPS och ws vid HTTP", () => {
     const defaultHttpsAdapter = new LocalWebSocketAdapter();
     expect((defaultHttpsAdapter as unknown as { serverUrl: string }).serverUrl).toBe(
-      "wss://church-stream.local:3000/api/ws/audio"
+      "wss://church-stream.local:3000/ws/translation"
     );
 
     (window as unknown as { location: unknown }).location = {
@@ -120,7 +120,7 @@ describe("LocalWebSocketAdapter Specifications", () => {
 
     const httpAdapter = new LocalWebSocketAdapter();
     expect((httpAdapter as unknown as { serverUrl: string }).serverUrl).toBe(
-      "ws://192.168.1.100:8080/api/ws/audio"
+      "ws://192.168.1.100:8080/ws/translation"
     );
 
     const customAdapter = new LocalWebSocketAdapter("ws://custom-server:9000/stream");

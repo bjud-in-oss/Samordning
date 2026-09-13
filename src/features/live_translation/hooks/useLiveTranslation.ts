@@ -6,6 +6,13 @@ import { LocalWebSocketAdapter } from "../domain/LocalWebSocketAdapter";
 
 export type TransportMode = "sfu" | "local_ws";
 
+function getInitialTransportMode(): TransportMode {
+  const envObj = typeof import.meta !== "undefined" ? (import.meta as unknown as { env?: Record<string, string> }).env : undefined;
+  const val = (envObj?.VITE_AUDIO_SOURCE || envObj?.AUDIO_SOURCE || (typeof process !== "undefined" ? process.env?.VITE_AUDIO_SOURCE || process.env?.AUDIO_SOURCE : "")) || "";
+  const src = val.toUpperCase();
+  return src === "WEBSOCKET" || src === "LOCAL_WS" ? "local_ws" : "sfu";
+}
+
 export function useLiveTranslation() {
   const [status, setStatus] = useState<SessionStatus>("idle");
   const [targetLanguage, setTargetLanguage] = useState<SupportedLanguage>("sv");
@@ -17,7 +24,7 @@ export function useLiveTranslation() {
     { deviceId: "default", label: "Standardmikrofon" },
   ]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("default");
-  const [transportMode, setTransportModeState] = useState<TransportMode>("sfu");
+  const [transportMode, setTransportModeState] = useState<TransportMode>(getInitialTransportMode);
 
   const orchestratorRef = useRef<MultiBridgeOrchestrator | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);

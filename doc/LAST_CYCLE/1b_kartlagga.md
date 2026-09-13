@@ -1,38 +1,31 @@
-# Steg 1b: Kartlägga (TCK-UI-001)
+# Steg 1b: Kartlägga (TCK-LIVE-008)
 
 ## Analys och svar på GROW-frågor
 
-### 1. State: Vy-växling och Toggling
-- I `src/App.tsx` utökas `currentView` till att stödja `'stream' | 'settings' | 'translation' | 'admin'`.
-- När användaren klickar på hörlursknappen i `AppHeader`:
-  - Om `currentView === 'translation'` togglas den tillbaka till `'stream'`.
-  - Om `currentView !== 'translation'` sätts den till `'translation'`.
-- På samma sätt som med kugghjulet för inställningar ger detta en direkt, responsiv tvåvägsväxling.
+### 1. State: Dynamisk initiering av transportMode
+- En hjälpfunktion `getInitialTransportMode(): TransportMode` implementeras.
+- Den läser från `import.meta.env` (`VITE_AUDIO_SOURCE` / `AUDIO_SOURCE`) eller `process.env`.
+- Om värdet matchar `"WEBSOCKET"` eller `"LOCAL_WS"` (case-insensitive) returneras `"local_ws"`, annars faller det tillbaka på `"sfu"`.
+- Denna funktion anropas som lazy initializer i `useState<TransportMode>(getInitialTransportMode)` vilket garanterar att utvärderingen endast sker en gång vid montering.
 
-### 2. Contract: Komponentgränssnitt utan Typläckage
-- I `src/components/AppHeader.tsx`:
-  - Importera `Headphones` från `lucide-react`.
-  - `currentView` typas till `"stream" | "settings" | "translation"`.
-  - Ny callback: `onToggleTranslation: () => void`.
-  - Hörlursknapp placeras i högra styrpanelen bredvid inställningskugghjulet. Aktivt läge markeras med `bg-brand-paper text-brand-accent`.
-- I `src/components/MainViewContent.tsx`:
-  - `currentView` typas till `'stream' | 'settings' | 'translation'`.
-  - `setCurrentView` typas till `React.Dispatch<React.SetStateAction<'stream' | 'settings' | 'translation'>>`.
-  - Vid `currentView === 'translation'` renderas `<LiveTranslationWidget />` importerad från `../features/live_translation`.
-- I `src/App.tsx`:
-  - `currentView` hanteras med explicit unionstyp utan `as any`.
+### 2. Contract: Korrekt WebSocket-ändpunkt
+- I `src/features/live_translation/domain/LocalWebSocketAdapter.ts` uppdateras `getDefaultWebSocketUrl`:
+  - Ersätt `/api/ws/audio` med `/ws/translation`.
+  - Protokollväxling (`https:` -> `wss:`, `http:` -> `ws:`) behålls intakt.
+  - Porten och värden härleds från `window.location.host` (vilket stöder både localhost, trycloudflare.com-tunnlar och produktions-URL:er).
 
-### 3. Effects: Resursstädning och PWA-layout
-- `LiveTranslationWidget` har redan intern livscykelhantering (`useEffect` för frikoppling av AudioContext/WebSockets).
-- Layouten i `MainViewContent` placerar widgeten i en ren behållare som matchar övriga kort (`max-w-xl`, subtil ram, mjuk övergång).
+### 3. Effects & Resilience: Bakåtkompatibilitet och teststabilitet
+- Befintliga tester i `localWebSocketAdapter.test.ts` uppdateras till att förvänta sig `/ws/translation`.
+- Nya tester läggs till i `useLiveTranslation.test.ts` för att verifiera initiering via `VITE_AUDIO_SOURCE="WEBSOCKET"`.
+- När ingen miljövariabel finns bibehålls standardläget `"sfu"`.
 
 ```json
 {
   "status": "IN_PROGRESS",
-  "current_domain": "Global",
+  "current_domain": "live_translation",
   "next_step": "2a",
-  "ticket_id": "TCK-UI-001",
+  "ticket_id": "TCK-LIVE-008",
   "active_skill": "pwa-integration",
-  "active_vectors": ["Contract"]
+  "active_vectors": ["State"]
 }
 ```

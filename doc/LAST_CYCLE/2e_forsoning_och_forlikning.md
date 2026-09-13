@@ -1,9 +1,8 @@
 # Steg 2e: Försoning och förlikning
 
 ## Syntes och Avstämning
-- **Målkonflikter lösta**:
-  - Utökningen av `currentView` till `'stream' | 'settings' | 'translation'` görs konsekvent i hela komponentträdet (`App.tsx`, `AppHeader.tsx`, `MainViewContent.tsx`).
-  - Gränssnittskontraktet bevaras utan regressionsfel eller typantaganden.
-  - Befintlig PWA-funktionalitet och push-notiser förblir intakta och opåverkade.
+- Målkonflikten mellan Cloudflare SFU och lokal WebSocket-transport harmoniseras: standardläget styrs transparent av miljökonfigurationen med säker fallback till SFU.
+- Ändringen i URL från `/api/ws/audio` till `/ws/translation` matchar Express HTTP server `upgrade`-hanteraren exakt.
+- Ingen modul bryter mot radbegränsningar (<= 250 rader) eller arkitekturregler.
 
 MÄTTNAD: JA

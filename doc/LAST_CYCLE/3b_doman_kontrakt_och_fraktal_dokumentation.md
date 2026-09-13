@@ -1,36 +1,13 @@
-# Steg 3b: Domänkontrakt och fraktal dokumentation
+# Steg 3b: Domän, kontrakt och fraktal dokumentation
 
-## Typkontrakt och Signaturer
-
-### AppHeaderProps
-```typescript
-interface AppHeaderProps {
-  currentView: "stream" | "settings" | "translation";
-  onToggleSettings: () => void;
-  onToggleTranslation: () => void;
-  pushEnabled: boolean;
-  isToggling: boolean;
-  onTogglePush: () => void;
-  onCreateInvitation: () => void;
-}
-```
-
-### MainViewContentProps
-```typescript
-interface MainViewContentProps {
-  activeAlertId: string | null;
-  navigateTo: (path: string) => void;
-  uiLanguage: UiLanguage;
-  currentView: 'stream' | 'settings' | 'translation';
-  setCurrentView: React.Dispatch<React.SetStateAction<'stream' | 'settings' | 'translation'>>;
-  activeTab: "stream" | "create";
-  setActiveTab: React.Dispatch<React.SetStateAction<"stream" | "create">>;
-  handleSaveTags: (tags: unknown) => void;
-  savedTags: unknown;
-  pushEnabled: boolean;
-  handleEnablePush: () => void;
-  handleDisablePush: () => void;
-  handleStreamCountChange: (filtered: number, total: number) => void;
-  isAdmin: boolean;
-}
-```
+## Domänkontrakt och filstruktur
+1. **Domän**: `src/features/live_translation/`
+2. **Berörda filer**:
+   - `src/features/live_translation/domain/LocalWebSocketAdapter.ts`:
+     - Ändra `getDefaultWebSocketUrl` till att använda `/ws/translation`.
+   - `src/features/live_translation/hooks/useLiveTranslation.ts`:
+     - Inför `getInitialTransportMode` som kontrollerar `VITE_AUDIO_SOURCE` och `AUDIO_SOURCE`.
+     - Sätt initialt state för `transportMode` till returvärdet från `getInitialTransportMode`.
+3. **Tester**:
+   - `src/features/live_translation/domain/__tests__/localWebSocketAdapter.test.ts`: Uppdatera förväntad URL till `/ws/translation`.
+   - `src/features/live_translation/hooks/__tests__/useLiveTranslation.test.ts`: Lägg till testfall för initialisering vid konfigurerad miljövariabel.

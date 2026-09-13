@@ -1,11 +1,11 @@
-# Steg 1a: Orientera (TCK-UI-001)
+# Steg 1a: Orientera (TCK-LIVE-008)
 
 ## Domän och Mål
-- **Domän**: `Global` (integrationsvyer mellan skal och funktioner)
-- **Ticket**: TCK-UI-001 - Koppla ihop LiveTranslationWidget med huvudgränssnittet i PWA-appen
-- **Syfte**: Integrera `LiveTranslationWidget` från `@/features/live_translation` i applikationens primära layout och navigeringskontroll.
+- **Domän**: `live_translation`
+- **Ticket**: TCK-LIVE-008 - Transportläges- och WebSocket-konfiguration för direktöversättning
+- **Syfte**: Anpassa `LocalWebSocketAdapter` och `useLiveTranslation` för att använda serverns korrekta WebSocket-sökväg (`/ws/translation`) och dynamiskt initiera transportläge baserat på miljövariabeln `VITE_AUDIO_SOURCE` / `AUDIO_SOURCE`.
 
-## GROW-frågor (Risknoder: State, Contract, Effects)
-1. **Goal & State**: Hur ska applikationens vy-tillstånd (`currentView`) hantera övergången mellan flödet (`'stream'`), inställningar (`'settings'`) och direktöversättning (`'translation'`), och hur ska toggling tillbaka till huvudflödet ske?
-2. **Reality & Contract**: Vilka prop-kontrakt krävs i `AppHeaderProps` och `MainViewContentProps` för att möjliggöra växling till `'translation'` utan att bryta befintliga gränssnitt eller skapa `any`-typläckage?
-3. **Options/Will & Effects**: Hur säkerställer vi att ljudströmning och resurser i `LiveTranslationWidget` hanteras rent vid växling bort från vyn, samt att layouten följer PWA- och mobilstandarder (touch target >= 44px, designsystemets färgkoder)?
+## GROW-frågor (Risknoder: State, Contract, Effects/Resilience)
+1. **Goal & State**: Hur ska `useLiveTranslation` extrahera och utvärdera `VITE_AUDIO_SOURCE` / `AUDIO_SOURCE` så att `transportMode` initieras till `"local_ws"` utan att orsaka onödiga omrenderingar eller instabilitet i livscykeln?
+2. **Reality & Contract**: Vilken URL-struktur förväntar sig klient och server, och hur säkerställer vi att standard-URL:en i `LocalWebSocketAdapter.getDefaultWebSocketUrl()` konsekvent pekar mot `/ws/translation` oavsett om protokollväxling sker för `ws://` eller `wss://`?
+3. **Options/Will & Effects**: Hur påverkar ändringen befintliga tester och gränssnittskomponenter (`LiveTranslationWidget`), och hur säkerställs bakåtkompatibilitet när miljövariabeln inte är satt (fortsatt standard `"sfu"`)?

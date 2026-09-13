@@ -1,117 +1,65 @@
 # Steg 3c: Fil-operativ Källkodsspecifikation
 
-## Ändringsöversikt och Manifest
-Denna cykel (TCK-UI-001) utförs under domänen `Global` / `core` och knyter ihop `LiveTranslationWidget` med PWA-applikationens huvudvyer.
+## Ändringar i källkod och tester
 
-Följande filer är specificerade för modifiering och tillägg i Fas 2 (Steg 4):
-1. `src/components/AppHeader.tsx`
-2. `src/components/MainViewContent.tsx`
-3. `src/App.tsx`
-4. `src/components/__tests__/AppHeader.test.tsx`
-
----
-
-## Detaljerad filspecifikation
-
-### 1. `src/components/AppHeader.tsx`
-- **Imports**: Lägg till `Headphones` från `lucide-react`.
-- **Props-interface**:
-  ```typescript
-  interface AppHeaderProps {
-    currentView: "stream" | "settings" | "translation";
-    onToggleSettings: () => void;
-    onToggleTranslation: () => void;
-    pushEnabled: boolean;
-    isToggling: boolean;
-    onTogglePush: () => void;
-    onCreateInvitation: () => void;
+### 1. `src/features/live_translation/domain/LocalWebSocketAdapter.ts`
+Uppdatera `getDefaultWebSocketUrl`:
+```typescript
+function getDefaultWebSocketUrl(): string {
+  if (typeof window !== "undefined" && window.location) {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${window.location.host || "localhost:3000"}/ws/translation`;
   }
-  ```
-- **JSX**: I den högra samlade styrpanelen (`flex items-center gap-2 shrink-0`), placera hörlursknappen före inställningskugghjulet:
-  ```tsx
-  {/* Hörlursknapp för direktöversättning */}
-  <button
-    type="button"
-    onClick={onToggleTranslation}
-    className={`p-1.5 text-brand-ink/70 hover:text-brand-ink hover:bg-brand-paper rounded-xl transition-all cursor-pointer ${
-      currentView === 'translation' ? 'bg-brand-paper text-brand-accent' : ''
-    }`}
-    title="Direktöversättning"
-    aria-label="Direktöversättning"
-  >
-    <Headphones size={18} />
-  </button>
-  ```
+  return "ws://localhost:3000/ws/translation";
+}
+```
 
----
+### 2. `src/features/live_translation/hooks/useLiveTranslation.ts`
+Lägg till `getInitialTransportMode` och koppla till `useState`:
+```typescript
+function getInitialTransportMode(): TransportMode {
+  const getVal = (): string => {
+    if (typeof import.meta !== "undefined" && (import.meta as unknown as { env?: Record<string, string> }).env) {
+      const e = (import.meta as unknown as { env: Record<string, string> }).env;
+      return e.VITE_AUDIO_SOURCE || e.AUDIO_SOURCE || "";
+    }
+    if (typeof process !== "undefined" && process.env) {
+      return process.env.VITE_AUDIO_SOURCE || process.env.AUDIO_SOURCE || "";
+    }
+    return "";
+  };
+  const src = getVal().toUpperCase();
+  return src === "WEBSOCKET" || src === "LOCAL_WS" ? "local_ws" : "sfu";
+}
+```
+Och i hooken:
+```typescript
+const [transportMode, setTransportModeState] = useState<TransportMode>(getInitialTransportMode);
+```
 
-### 2. `src/components/MainViewContent.tsx`
-- **Imports**: Lägg till import av `LiveTranslationWidget`:
-  ```typescript
-  import { LiveTranslationWidget } from "../features/live_translation";
-  ```
-- **Props-interface**:
-  ```typescript
-  interface MainViewContentProps {
-    activeAlertId: string | null;
-    navigateTo: (path: string) => void;
-    uiLanguage: UiLanguage;
-    currentView: 'stream' | 'settings' | 'translation';
-    setCurrentView: React.Dispatch<React.SetStateAction<'stream' | 'settings' | 'translation'>>;
-    activeTab: "stream" | "create";
-    setActiveTab: React.Dispatch<React.SetStateAction<"stream" | "create">>;
-    handleSaveTags: (tags: any) => void;
-    savedTags: any;
-    pushEnabled: boolean;
-    handleEnablePush: () => void;
-    handleDisablePush: () => void;
-    handleStreamCountChange: (filtered: number, total: number) => void;
-    isAdmin: boolean;
+### 3. `src/features/live_translation/domain/__tests__/localWebSocketAdapter.test.ts`
+Uppdatera förväntad WebSocket-URL från `/api/ws/audio` till `/ws/translation`:
+```typescript
+expect((defaultHttpsAdapter as unknown as { serverUrl: string }).serverUrl).toBe(
+  "wss://church-stream.local:3000/ws/translation"
+);
+// och
+expect((defaultHttpAdapter as unknown as { serverUrl: string }).serverUrl).toBe(
+  "ws://192.168.1.100:8080/ws/translation"
+);
+```
+
+### 4. `src/features/live_translation/hooks/__tests__/useLiveTranslation.test.ts`
+Lägg till test för miljövariabelinitiering av `transportMode`:
+```typescript
+it("initieras med transportMode 'local_ws' om VITE_AUDIO_SOURCE är 'WEBSOCKET'", () => {
+  const originalEnv = process.env.VITE_AUDIO_SOURCE;
+  process.env.VITE_AUDIO_SOURCE = "WEBSOCKET";
+  try {
+    const { result } = renderHook(() => useLiveTranslation());
+    expect(result.current.transportMode).toBe("local_ws");
+  } finally {
+    process.env.VITE_AUDIO_SOURCE = originalEnv;
   }
-  ```
-- **JSX**: När `currentView === 'translation'` renderas widgeten:
-  ```tsx
-  {currentView === 'translation' && (
-    <div className="w-full">
-      <LiveTranslationWidget />
-    </div>
-  )}
-  ```
-
----
-
-### 3. `src/App.tsx`
-- **State**:
-  ```typescript
-  const [currentView, setCurrentView] = useState<'stream' | 'settings' | 'translation' | 'admin'>('stream');
-  ```
-- **AppHeader-anrop**:
-  ```tsx
-  <AppHeader
-    currentView={currentView === 'admin' ? 'stream' : currentView}
-    onToggleSettings={() => setCurrentView(prev => prev === 'settings' ? 'stream' : 'settings')}
-    onToggleTranslation={() => setCurrentView(prev => prev === 'translation' ? 'stream' : 'translation')}
-    pushEnabled={pushEnabled}
-    isToggling={isToggling}
-    onTogglePush={...}
-    onCreateInvitation={...}
-  />
-  ```
-- **MainViewContent-anrop**:
-  ```tsx
-  <MainViewContent
-    ...
-    currentView={currentView === 'admin' ? 'stream' : currentView}
-    setCurrentView={setCurrentView as any}
-    ...
-  />
-  ```
-
----
-
-### 4. `src/components/__tests__/AppHeader.test.tsx`
-- Enhetstest med Vitest och React Testing Library.
-- Verifierar att:
-  - `Headphones`-knappen renderas.
-  - Klick på knappen anropar `onToggleTranslation`.
-  - Aktiv vy `'translation'` applicerar markeringsstil.
+});
+```

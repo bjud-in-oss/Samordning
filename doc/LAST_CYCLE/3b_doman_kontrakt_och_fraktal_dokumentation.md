@@ -1,13 +1,16 @@
-# Steg 3b: Domän, kontrakt och fraktal dokumentation
+# Steg 3b: Domän, Kontrakt och Fraktal Dokumentation (TCK-LIVE-009)
 
-## Domänkontrakt och filstruktur
-1. **Domän**: `src/features/live_translation/`
-2. **Berörda filer**:
-   - `src/features/live_translation/domain/LocalWebSocketAdapter.ts`:
-     - Ändra `getDefaultWebSocketUrl` till att använda `/ws/translation`.
-   - `src/features/live_translation/hooks/useLiveTranslation.ts`:
-     - Inför `getInitialTransportMode` som kontrollerar `VITE_AUDIO_SOURCE` och `AUDIO_SOURCE`.
-     - Sätt initialt state för `transportMode` till returvärdet från `getInitialTransportMode`.
-3. **Tester**:
-   - `src/features/live_translation/domain/__tests__/localWebSocketAdapter.test.ts`: Uppdatera förväntad URL till `/ws/translation`.
-   - `src/features/live_translation/hooks/__tests__/useLiveTranslation.test.ts`: Lägg till testfall för initialisering vid konfigurerad miljövariabel.
+## Kontraktspecifikation för LiveTranslationListenerWidget
+
+```typescript
+export interface LiveTranslationListenerWidgetProps {
+  initialLanguage?: SupportedLanguage;
+  onLanguageChange?: (language: SupportedLanguage) => void;
+}
+```
+
+### Beteendekontrakt
+1. **AudioContext Aktivering**: `useAudioPlayer.initAudio()` exekveras enbart vid explicit klick på lyssnarknappen.
+2. **Dataström**: Meddelanden från `/ws/translation` vidarebefordras till `useAudioPlayer.playAudioChunk`.
+3. **Ingen Mikrofonåtkomst**: Inga anrop görs till `navigator.mediaDevices.getUserMedia`.
+4. **Zod-schemavalidering**: Språkkoder valideras mot befintligt `SupportedLanguageSchema` i `domain/schema.ts`.

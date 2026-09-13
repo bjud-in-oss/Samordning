@@ -3,7 +3,7 @@ import { OnboardingWizard } from "../features/anpassa";
 import { AlertDetail, ActiveStream } from "../features/inbjudningar";
 import { CreateInvitationForm } from "../features/skapa_inbjudan";
 import { UiLanguage } from "../features/mission_router";
-import { LiveTranslationWidget } from "../features/live_translation";
+import { LiveTranslationWidget, LiveTranslationListenerWidget } from "../features/live_translation";
 
 interface MainViewContentProps {
   activeAlertId: string | null;
@@ -67,7 +67,7 @@ export function MainViewContent({
 
         {currentView === 'translation' && (
           <div className="w-full">
-            <LiveTranslationWidget />
+            {isAdmin ? <LiveTranslationWidget /> : <LiveTranslationListenerWidget />}
           </div>
         )}
 

@@ -1,11 +1,15 @@
-# Steg 4: Producera (TCK-LIVE-008)
+# Steg 4: Producera (TCK-UI-002)
 
 ## Utförda ändringar
 
-1. **Enhetstester**:
-   - `src/features/live_translation/domain/__tests__/localWebSocketAdapter.test.ts`: Uppdaterat förväntad standard-URL till `/ws/translation`.
-   - `src/features/live_translation/hooks/__tests__/useLiveTranslation.test.ts`: Tillagt testfall för dynamisk initiering av `transportMode` via `VITE_AUDIO_SOURCE="WEBSOCKET"`.
+1. **Enhetstester (TDD)**:
+   - `src/components/__tests__/MainViewContent.test.tsx`:
+     - Skapade enhetstester som verifierar att:
+       - När `currentView === 'translation'` och `isAdmin === false`, renderas `<LiveTranslationListenerWidget />` och `<LiveTranslationWidget />` utesluts.
+       - När `currentView === 'translation'` och `isAdmin === true`, renderas `<LiveTranslationWidget />` och `<LiveTranslationListenerWidget />` utesluts.
 
-2. **Källkodsändringar**:
-   - `src/features/live_translation/domain/LocalWebSocketAdapter.ts`: Ändrat standard-URL i `getDefaultWebSocketUrl()` till `/ws/translation`.
-   - `src/features/live_translation/hooks/useLiveTranslation.ts`: Implementerat `getInitialTransportMode()` för att läsa `VITE_AUDIO_SOURCE` / `AUDIO_SOURCE` och förvälja `"local_ws"` vid värden som `"WEBSOCKET"` eller `"local_ws"`.
+2. **Produktionskällkod**:
+   - `src/components/MainViewContent.tsx`:
+     - Importerade `LiveTranslationListenerWidget` från `../features/live_translation`.
+     - Implementerade villkorlig rendering under `currentView === 'translation'`:
+       `{isAdmin ? <LiveTranslationWidget /> : <LiveTranslationListenerWidget />}`.

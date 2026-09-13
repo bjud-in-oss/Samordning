@@ -1,9 +1,20 @@
-# Steg 3a: Helhet, orkestrering och integration
+# Steg 3a: Helhet, Orkestrering och Integration (TCK-LIVE-009)
 
-## Systemintegration och orkestrering
-- **Klient-server-kontrakt**:
-  - Klienten ansluter mot `${protocol}//${host}/ws/translation`.
-  - Servern (`server.ts`) lyssnar på `server.on('upgrade', ...)` och verifierar `pathname === '/ws/translation'`.
-- **Tillståndshantering**:
-  - `useLiveTranslation` läser konfigurationen vid initialisering via `getInitialTransportMode`.
-  - Användaren kan fortfarande manuellt byta läge i UI via `setTransportMode`.
+## Systemplacering och Domänflöde
+
+```
+[Mobil Webbläsare / Lyssnare]
+           │
+           ▼
+[LiveTranslationListenerWidget.tsx] ───(initAudio, playAudioChunk)──► [useAudioPlayer.ts] (24kHz Web Audio)
+           │
+      (WebSocket)
+           │
+           ▼
+[/ws/translation (Express Server / translationServer.ts)]
+```
+
+### Integrationspunkter
+1. **Domänexport**: `src/features/live_translation/index.ts` exporterar `LiveTranslationListenerWidget`.
+2. **Koppling mot server**: WebSocket-anslutning mot `window.location.host + '/ws/translation'`.
+3. **Ljudmotor**: `useAudioPlayer` hanterar jitterbuffert och 24kHz PCM-avkodning utan klientbelastning.

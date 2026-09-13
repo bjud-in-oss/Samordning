@@ -1,31 +1,30 @@
-# Steg 1b: Kartlägga (TCK-LIVE-008)
+# Steg 1b: Kartlägga och Svara på GROW-frågor (TCK-UI-002)
 
-## Analys och svar på GROW-frågor
+## Svar på GROW-frågor
 
-### 1. State: Dynamisk initiering av transportMode
-- En hjälpfunktion `getInitialTransportMode(): TransportMode` implementeras.
-- Den läser från `import.meta.env` (`VITE_AUDIO_SOURCE` / `AUDIO_SOURCE`) eller `process.env`.
-- Om värdet matchar `"WEBSOCKET"` eller `"LOCAL_WS"` (case-insensitive) returneras `"local_ws"`, annars faller det tillbaka på `"sfu"`.
-- Denna funktion anropas som lazy initializer i `useState<TransportMode>(getInitialTransportMode)` vilket garanterar att utvärderingen endast sker en gång vid montering.
+1. **State & RBAC**:
+   - `MainViewContent` tar redan emot `isAdmin: boolean` via sina props.
+   - När `currentView === 'translation'` görs en ren villkorlig gren: `isAdmin ? <LiveTranslationWidget /> : <LiveTranslationListenerWidget />`.
+   - React demonterar den ena komponenten och monterar den andra, vilket triggar respektive komponent/hooks `useEffect`-cleanup och stänger ned eventuella aktiva resurser.
 
-### 2. Contract: Korrekt WebSocket-ändpunkt
-- I `src/features/live_translation/domain/LocalWebSocketAdapter.ts` uppdateras `getDefaultWebSocketUrl`:
-  - Ersätt `/api/ws/audio` med `/ws/translation`.
-  - Protokollväxling (`https:` -> `wss:`, `http:` -> `ws:`) behålls intakt.
-  - Porten och värden härleds från `window.location.host` (vilket stöder både localhost, trycloudflare.com-tunnlar och produktions-URL:er).
+2. **Contract & Interface**:
+   - Båda komponenterna exporteras från `src/features/live_translation`.
+   - `MainViewContent.tsx` importerar `LiveTranslationWidget, LiveTranslationListenerWidget` från `../features/live_translation`.
+   - Inga extra props krävs för `LiveTranslationListenerWidget` vid standardanvändning.
 
-### 3. Effects & Resilience: Bakåtkompatibilitet och teststabilitet
-- Befintliga tester i `localWebSocketAdapter.test.ts` uppdateras till att förvänta sig `/ws/translation`.
-- Nya tester läggs till i `useLiveTranslation.test.ts` för att verifiera initiering via `VITE_AUDIO_SOURCE="WEBSOCKET"`.
-- När ingen miljövariabel finns bibehålls standardläget `"sfu"`.
+3. **Effects & Separation**:
+   - `LiveTranslationListenerWidget` anropar varken `getUserMedia` eller `GeminiSession`.
+   - Deltagare som inte är administratörer ser uteslutande lyssnargränssnittet med språkval och play/pause för mottaget tolkarljud.
+
+## Metadata Deklaration
 
 ```json
 {
-  "status": "IN_PROGRESS",
-  "current_domain": "live_translation",
+  "status": "PLANNED",
+  "current_domain": "Global",
   "next_step": "2a",
-  "ticket_id": "TCK-LIVE-008",
-  "active_skill": "pwa-integration",
+  "ticket_id": "TCK-UI-002",
+  "active_skill": "systemarkitekt",
   "active_vectors": ["State"]
 }
 ```

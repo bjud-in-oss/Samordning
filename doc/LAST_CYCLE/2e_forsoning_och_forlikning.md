@@ -1,8 +1,9 @@
-# Steg 2e: Försoning och förlikning
+# Steg 2e: Försoning och Förlikning (TCK-UI-002)
 
-## Syntes och Avstämning
-- Målkonflikten mellan Cloudflare SFU och lokal WebSocket-transport harmoniseras: standardläget styrs transparent av miljökonfigurationen med säker fallback till SFU.
-- Ändringen i URL från `/api/ws/audio` till `/ws/translation` matchar Express HTTP server `upgrade`-hanteraren exakt.
-- Ingen modul bryter mot radbegränsningar (<= 250 rader) eller arkitekturregler.
+## Analys av målkonflikter och gränsdragningar
+- **Målkonflikt**: Ska administratören också kunna lyssna som vanlig deltagare?
+  - **Förlikning**: Administratören hanterar sändning och sessioner i `LiveTranslationWidget`, medan övriga användare alltid dirigeras till den rena lyssnarkomponenten. Båda bygger på samma underliggande WebSocket-infrastruktur och ljudtjänst.
+- **Rollkontrakt**: `isAdmin` styrs från applikationens autentiserings- och behörighetslager.
+- **Arkitekturregler**: `MainViewContent` hålls rent som layoutkomponent utan egen datahämtning.
 
 MÄTTNAD: JA

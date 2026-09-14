@@ -5,7 +5,6 @@ import {
   activeAlerts, 
   adminNumbers, 
   trustedNumbers, 
-  pairedDevices,
   normalizePhone, 
   saveActiveAlerts, 
   saveAdmins, 
@@ -13,16 +12,6 @@ import {
 } from "./storage";
 
 export function setupAdminMemberRoutes(app: express.Express) {
-  // Check if device token has been paired via SMS (#PAIR)
-  app.get("/api/admin/check-pairing", (req, res) => {
-    const token = req.query.token as string;
-    if (!token || !token.trim()) {
-      return res.json({ paired: false });
-    }
-    const isPaired = pairedDevices.has(token.trim());
-    return res.json({ paired: isPaired });
-  });
-
   // Get Admin and Trusted Members list
   app.get("/api/admin/members", (req, res) => {
     res.json({
@@ -88,8 +77,9 @@ export function setupAdminMemberRoutes(app: express.Express) {
       delete activeAlerts[id];
     } else {
       alert.status = status;
-      if (trustSender && (alert as any).sender) {
-        const senderNorm = normalizePhone((alert as any).sender);
+      const alertWithSender = alert as { sender?: string };
+      if (trustSender && alertWithSender.sender) {
+        const senderNorm = normalizePhone(alertWithSender.sender);
         if (senderNorm && !trustedNumbers.some(n => normalizePhone(n) === senderNorm)) {
           trustedNumbers.push(senderNorm);
           saveTrusted();

@@ -1,50 +1,30 @@
-# Steg 3c: Fil-operativ Källkodsspecifikation (TCK-SMS-004)
+# Steg 3c: Fil-operativ Källkodsspecifikation (TCK-SMS-005)
 
-## Ändringsmanifest (Endast 1 domän: sms_assistant)
+## Ändringsmanifest
 
 ### 1. Enhetstester (TDD)
-- **Fil**: `src/features/sms_assistant/components/__tests__/AdminConsole.test.tsx`
-- **Syfte**: Verifiera att de uppdaterade API-rutterna anropas korrekt från komponenten/hooken och att parningskontroll samt interaktioner fungerar.
+- **Fil**: src/server/__tests__/pairingSync.test.ts
+- **Syfte**: Verifiera skiftlägesoberoende parning, realtidssynk och fallback i minnet.
 - **Specifikation**:
-  - Mocka `fetch` för `/api/admin/check-pairing` och `/api/alerts`.
-  - Verifiera parningsanrop mot `/api/admin/check-pairing?token=...`.
-  - Verifiera interaktion och uppdatering via `fireEvent.click`.
+  - Testa pairDeviceToken med blandade versaler och verifiera att både original och gemener finns i pairedDevices.
+  - Testa asynkron Firestore-fallback och cachenivåer.
+  - Verifiera att tomma eller ogiltiga tokens avvisas korrekt.
 
-### 2. Custom Hook: API-ändpunkter
-- **Fil**: `src/features/sms_assistant/hooks/useAdminConsole.ts`
-- **Syfte**: Korrigera rutterna så att de matchar Express-servern i `src/server/routes.ts` och `src/server/adminMemberRoutes.ts`.
+### 2. Server Storage
+- **Fil**: src/server/storage.ts
+- **Syfte**: Uppdatera pairDeviceToken och registrera onSnapshot-lyssnare på paired_devices.
 - **Specifikation**:
-  - `checkPairingStatus`:
-    ```ts
-    const res = await fetch(`/api/admin/check-pairing?token=${encodeURIComponent(token)}`);
-    ```
-  - `fetchAlerts`:
-    ```ts
-    const res = await fetch("/api/alerts");
-    const data = await res.json();
-    const alerts: AlertItem[] = Array.isArray(data) ? data : [];
-    const pending = alerts.filter(
-      (item) => item.status === "pending" || item.status === "pending_review"
-    );
-    const active = alerts.filter(
-      (item) => item.status !== "pending" && item.status !== "pending_review" && item.status !== "rejected"
-    );
-    setPendingAlerts(pending);
-    setActiveAlertsList(active);
-    ```
-  - `handleApprove`:
-    ```ts
-    const res = await fetch(`/api/alerts/${encodeURIComponent(id)}/status`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "active", trustSender }),
-    });
-    ```
-  - `handleRejectOrDelete`:
-    ```ts
-    const res = await fetch(`/api/alerts/${encodeURIComponent(id)}/status`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "rejected" }),
-    });
-    ```
+  - pairDeviceToken: Spara både original och lowercase i pairedDevices och i Firestore.
+  - initServerStorage(): Lägg till onSnapshot-lyssnare på paired_devices som lägger till både doc.id och doc.id.toLowerCase() vid added och modified.
+
+### 3. Server Routes
+- **Fil**: src/server/routes.ts
+- **Syfte**: Gör /api/admin/check-pairing asynkron med Firestore-fallback.
+- **Specifikation**:
+  - Om token finns i minnet (original eller lowercase), returnera { paired: true, verified: true }.
+  - Om ej i minnet, gör Firestore-uppslag mot paired_devices, cacha vid träff och returnera { paired: true, verified: true }.
+  - Returnera annars { paired: false, verified: false }.
+
+### 4. Admin Member Routes
+- **Fil**: src/server/adminMemberRoutes.ts
+- **Syfte**: Ta bort dubblerad /api/admin/check-pairing route och åtgärda as any typningar.

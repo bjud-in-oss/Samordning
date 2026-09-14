@@ -11,8 +11,10 @@ import {
   normalizePhone, 
   saveActiveAlerts,
   saveAdmins,
-  saveTrusted
+  saveTrusted,
+  getFirestoreInstance
 } from "./storage";
+import { collection, getDocs } from "firebase/firestore";
 import { handleIncomingSms } from "./smsRoutes";
 import { handleIncomingEmail } from "./emailRoutes";
 import { setupSimRoutes } from "./simRoutes";
@@ -27,11 +29,29 @@ import { setupAdminMemberRoutes } from "./adminMemberRoutes";
 
 export function setupRoutes(app: express.Express) {
   // Check device pairing status endpoint
-  app.get("/api/admin/check-pairing", (req, res) => {
+  app.get("/api/admin/check-pairing", async (req, res) => {
     const token = String(req.query.token || "").trim();
-    if (token && pairedDevices.has(token)) {
+    if (!token) return res.json({ paired: false, verified: false });
+
+    if (pairedDevices.has(token) || pairedDevices.has(token.toLowerCase())) {
       return res.json({ paired: true, verified: true });
     }
+
+    const db = getFirestoreInstance();
+    if (db) {
+      try {
+        const snap = await getDocs(collection(db, "paired_devices"));
+        let found = false;
+        snap.forEach(d => {
+          if (d.id === token || d.id.toLowerCase() === token.toLowerCase()) {
+            found = true;
+            pairedDevices.add(token);
+          }
+        });
+        if (found) return res.json({ paired: true, verified: true });
+      } catch (err) { console.warn(err); }
+    }
+
     return res.json({ paired: false, verified: false });
   });
 
@@ -93,9 +113,10 @@ export function setupRoutes(app: express.Express) {
     try {
       const washed = await runGeminiWash(text.trim());
       res.json(washed);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Wash error:", err);
-      res.status(500).json({ error: "Kunde inte analysera inbjudan med AI: " + err.message });
+      const message = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: "Kunde inte analysera inbjudan med AI: " + message });
     }
   });
 

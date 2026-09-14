@@ -63,9 +63,10 @@ export async function handleIncomingEmail(req: express.Request, res: express.Res
     addSimLog("system", `NY INBJUDAN SKAPAD VIA E-POST: "${newAnnouncement.scrubbedText.substring(0, 50)}..." i [${newAnnouncement.area}].`);
     return res.json({ success: true, id });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Failed to process incoming email:", err);
-    addSimLog("system", `Fel vid bearbetning av e-post: ${err.message}`);
+    const message = err instanceof Error ? err.message : String(err);
+    addSimLog("system", `Fel vid bearbetning av e-post: ${message}`);
     return res.status(500).json({ error: "Internal server error" });
   }
 }

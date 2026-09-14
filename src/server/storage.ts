@@ -109,8 +109,11 @@ export function pairDeviceToken(token: string): boolean {
   if (!token || !token.trim()) return false;
   const clean = token.trim();
   pairedDevices.add(clean);
+  pairedDevices.add(clean.toLowerCase());
   const db = getFirestoreInstance();
-  if (db) setDoc(doc(collection(db, "paired_devices"), clean), { token: clean, pairedAt: Date.now() }).catch(console.warn);
+  if (db) {
+    setDoc(doc(collection(db, "paired_devices"), clean), { token: clean, pairedAt: Date.now() }).catch(console.warn);
+  }
   return true;
 }
 
@@ -140,7 +143,9 @@ async function loadStoredNumbers(filePath: string, docId: string, envVar?: strin
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
       fs.writeFileSync(filePath, JSON.stringify(result, null, 2), "utf8");
     }
-  } catch (_) {}
+  } catch (err) {
+    console.warn(`[Storage] Kunde inte skriva initial fallback till ${filePath}:`, err);
+  }
   return result;
 }
 
@@ -191,6 +196,17 @@ export function initServerStorage() {
 
   const db = getFirestoreInstance();
   if (db) {
+    try {
+      onSnapshot(collection(db, "paired_devices"), (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added" || change.type === "modified") {
+            pairedDevices.add(change.doc.id);
+            pairedDevices.add(change.doc.id.toLowerCase());
+          }
+        });
+      }, console.warn);
+    } catch (err) { console.warn(err); }
+
     try {
       onSnapshot(collection(db, "alerts"), (snapshot) => {
         snapshot.docChanges().forEach((change) => {

@@ -1,23 +1,23 @@
-# Steg 1b: Kartlägga (TCK-SMS-004)
+# Steg 1b: Kartlägga (TCK-SMS-005)
 
 ## Svar på GROW-frågor
 
-1. **Contract**:
-   *Svar*: Serverrutterna i `adminMemberRoutes.ts` exponerar `GET /api/admin/check-pairing?token=...` och `POST /api/alerts/:id/status`. I `routes.ts` returnerar `GET /api/alerts` en lista med anslagsobjekt. Genom att uppdatera `useAdminConsole.ts` till exakt dessa URL:er och payloads skapas 100 % konformitet med serverkontraktet.
+1. **State**:
+   *Svar*: Genom att pairDeviceToken sparar både clean och clean.toLowerCase() i in-memory Set samt persisterar clean till Firestore under paired_devices, och att initServerStorage registrerar en realtids onSnapshot-lyssnare som lägger till både exakt och lowercase-id vid added/modified, hålls tillståndet 100 % konsekvent i alla instanser.
 
-2. **Effects**:
-   *Svar*: Efter ett lyckat statusanrop (`POST /api/alerts/${id}/status`) anropas `fetchAlerts()` på nytt, vilket hämtar den aktuella alert-listan från servern och applicerar filtreringen för `pending` och `active`.
+2. **Contract**:
+   *Svar*: Den dubblerade ändpunkten i adminMemberRoutes.ts avlägsnas. Huvudrutten i routes.ts görs asynkron och returnerar alltid { paired: boolean, verified: boolean }, vilket exakt matchar useAdminConsole och det överenskomna REST-kontraktet.
 
 3. **Resilience**:
-   *Svar*: Befintliga `try/catch`-block med lokal `localStorage`-fallback behålls och skyddar gränssnittet mot krascher om nätverket fallerar, samtidigt som varningar loggas kontrollerat.
+   *Svar*: Parningskontrollen testar först snabbminnet i minnet. Om token saknas görs ett säkert try/catch-skyddat asynkront anrop till Firestore via getDocs(collection(db, "paired_devices")). Om Firestore är onåbar loggas en varning via console.warn och servern svarar defensivt med { paired: false, verified: false } utan att krascha.
 
 ```json
 {
   "status": "In Progress",
-  "current_domain": "sms_assistant",
+  "current_domain": "Global",
   "next_step": "2a",
-  "ticket_id": "TCK-SMS-004",
+  "ticket_id": "TCK-SMS-005",
   "active_skill": "systemarkitekt",
-  "active_vectors": ["Contract"]
+  "active_vectors": ["Resilience"]
 }
 ```

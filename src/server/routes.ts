@@ -1,7 +1,5 @@
 // [src/server/routes.ts] - Express API Routes Registration
-
 app.get("/favicon.ico", (_req, res) => res.status(204).end());
-
 import express from "express";
 import { 
   activeAlerts, 

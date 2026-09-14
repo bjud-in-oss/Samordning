@@ -12,8 +12,14 @@ import {
   saveActiveAlerts,
   saveAdmins,
   saveTrusted,
-  loadAdmins
+  loadAdmins,
+  loadPairedDevices,
+  firestoreDisabled,
+  handleFirestoreError,
+  getFirestoreInstance,
+  PAIRED_FILE_PATH
 } from "../storage";
+import fs from "fs";
 import { ActiveAlert } from "../../shared/types";
 
 describe("Storage & Data Management", () => {
@@ -115,5 +121,30 @@ describe("Storage & Data Management", () => {
     // Reload from disk / storage
     await loadAdmins();
     expect(adminNumbers).toContain(testAdminNumber);
+  });
+
+  it("handles firestore permission error by disabling firestore and persisting paired devices to disk", async () => {
+    // Test handleFirestoreError switches firestoreDisabled to true
+    handleFirestoreError({ code: "permission-denied", message: "Missing or insufficient permissions" }, "test");
+    expect(getFirestoreInstance()).toBeNull();
+
+    const uniqueToken = "test-token-resilience-" + Date.now();
+    const paired = pairDeviceToken(uniqueToken);
+    expect(paired).toBe(true);
+    expect(pairedDevices.has(uniqueToken)).toBe(true);
+    expect(pairedDevices.has(uniqueToken.toLowerCase())).toBe(true);
+
+    // Verify written to disk file
+    expect(fs.existsSync(PAIRED_FILE_PATH)).toBe(true);
+    const content = JSON.parse(fs.readFileSync(PAIRED_FILE_PATH, "utf8"));
+    expect(Array.isArray(content)).toBe(true);
+    expect(content).toContain(uniqueToken);
+
+    // Verify reloading from disk
+    pairedDevices.clear();
+    expect(pairedDevices.has(uniqueToken)).toBe(false);
+    await loadPairedDevices();
+    expect(pairedDevices.has(uniqueToken)).toBe(true);
+    expect(pairedDevices.has(uniqueToken.toLowerCase())).toBe(true);
   });
 });

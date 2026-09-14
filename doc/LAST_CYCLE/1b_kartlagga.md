@@ -1,22 +1,22 @@
-# Steg 1b: Kartlägga (TCK-SMS-005)
+# Steg 1b: Kartlägga (TCK-SMS-006)
 
 ## Svar på GROW-frågor
 
 1. **State**:
-   *Svar*: Genom att pairDeviceToken sparar både clean och clean.toLowerCase() i in-memory Set samt persisterar clean till Firestore under paired_devices, och att initServerStorage registrerar en realtids onSnapshot-lyssnare som lägger till både exakt och lowercase-id vid added/modified, hålls tillståndet 100 % konsekvent i alla instanser.
+   *Svar*: Genom att `pairDeviceToken` sparar både original och `.toLowerCase()` i in-memory Setet `pairedDevices` och synkroniserar till `data/paired_devices.json`, samt att `loadPairedDevices()` initialt läser in denna diskfil, förblir tillståndet intakt över omstarter även vid saknad databasbehörighet.
 
 2. **Contract**:
-   *Svar*: Den dubblerade ändpunkten i adminMemberRoutes.ts avlägsnas. Huvudrutten i routes.ts görs asynkron och returnerar alltid { paired: boolean, verified: boolean }, vilket exakt matchar useAdminConsole och det överenskomna REST-kontraktet.
+   *Svar*: Ändpunkten `/api/admin/check-pairing` i `src/server/routes.ts` inspekterar minnes-Setet `pairedDevices` direkt. Om koden (eller dess gemena variant) finns, returneras `{ paired: true, verified: true }` omedelbart utan att invänta Firestore-uppslag.
 
 3. **Resilience**:
-   *Svar*: Parningskontrollen testar först snabbminnet i minnet. Om token saknas görs ett säkert try/catch-skyddat asynkront anrop till Firestore via getDocs(collection(db, "paired_devices")). Om Firestore är onåbar loggas en varning via console.warn och servern svarar defensivt med { paired: false, verified: false } utan att krascha.
+   *Svar*: I `initServerStorage()` sparas unsubscribe-funktionerna från `onSnapshot`. Vid fel (såsom `permission-denied`) anropas unsubscribe genast för att avbryta gRPC-strömmens återanslutningsloop. En ren logg skrivs en gång: `[Firestore] Ingen databasbehörighet. Kör i helt lokalt RAM- och disk-läge.`. Alla övriga Firestore-anrop fångar behörighetsfel defensivt utan att störa konsolen.
 
 ```json
 {
   "status": "In Progress",
   "current_domain": "Global",
   "next_step": "2a",
-  "ticket_id": "TCK-SMS-005",
+  "ticket_id": "TCK-SMS-006",
   "active_skill": "systemarkitekt",
   "active_vectors": ["Resilience"]
 }

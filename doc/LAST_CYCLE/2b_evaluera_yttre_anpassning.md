@@ -1,12 +1,14 @@
-# Steg 2b: Evaluera yttre anpassning (TCK-SMS-005)
+# Steg 2b: Evaluera yttre anpassning (TCK-SMS-006)
 
 ## Utvärdering av Beroenden och Risker
 
-1. **Firestore-beroende**: Firestore kan vara offline eller ha begränsad nätverksåtkomst under testning eller lokal utveckling.
-   - *Åtgärd*: Snabbminnet (pairedDevices) svarar omedelbart om token redan finns. Firestore-anropet omsluts av try/catch med säker fallback.
+1. **gRPC/Firestore Återanslutningsbeteende**:
+   - *Risk*: Standardbeteendet i Firestore SDK vid strömfel är aggressiv återanslutning som fyller loggarna med `GrpcConnection RPC 'Write' stream error`.
+   - *Lösning*: Omedelbart anrop till returnerad `unsub()` vid fel callback.
 
-2. **Kontraktsduplicering**: Förekomsten av samma route i två router-filer skapar osäkerhet kring vilken hanterare som svarar.
-   - *Åtgärd*: Radera rutten i adminMemberRoutes.ts och centralisera den i routes.ts.
+2. **Skrivfel mot disk**:
+   - *Risk*: `data/`-katalogen kanske inte finns skapad vid första skrivning.
+   - *Lösning*: Säkerställ `fs.mkdirSync(path.dirname(...), { recursive: true })` före skrivning.
 
-3. **Skiftlägeskonsistens**:
-   - *Åtgärd*: Både token och dess gemena variant sparas i minnet och matchas mot databasdokumentens ID:n.
+3. **Loggningsdisciplin**:
+   - *Lösning*: En `hasLoggedPermissionNotice`-flagga säkerställer att informationsmeddelandet endast skrivs ut en enda gång under serverns livstid.

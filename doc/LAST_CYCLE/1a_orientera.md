@@ -1,13 +1,16 @@
-# Steg 1a: Orientera (TCK-SMS-005)
+# Steg 1a: Orientera (TCK-SMS-006)
 
 ## Ärendebeskrivning
-Säkerställ realtidssynkronisering och Firestore-fallback för enhetsparning:
-1. Uppdatera pairDeviceToken i src/server/storage.ts att spara både exakt kod och lowercase.
-2. Lägg till onSnapshot-lyssnare på paired_devices i initServerStorage().
-3. Gör /api/admin/check-pairing async i src/server/routes.ts med direkt Firestore-sökning som fallback.
-4. Ta bort den dubblerade /api/admin/check-pairing från src/server/adminMemberRoutes.ts.
+Tysta Firestore-behörighetsfel i storage.ts och säkra lokal fallback:
+1. I `src/server/storage.ts`:
+   - I `initServerStorage()`: Om `onSnapshot` ger ett fel (t.ex. `permission-denied`), stäng av lyssnaren omedelbart så att den inte hamnar i en oändlig reconnect-loop. Logga enbart en ren informationstext en gång:
+     "[Firestore] Ingen databasbehörighet. Kör i helt lokalt RAM- och disk-läge."
+   - I `loadPairedDevices()`, `loadAdmins()`, `loadTrusted()` och `loadActiveAlerts()`: Fånga behörighetsfel tyst utan terminal-spam och behåll alltid den lokala datan från disk/RAM.
+   - I `pairDeviceToken()`: Spara alltid koden i minnes-Setet `pairedDevices` (både original och `.toLowerCase()`) samt skriv till en lokal diskfil `data/paired_devices.json`.
+2. I `src/server/routes.ts`:
+   - Se till att `/api/admin/check-pairing` kontrollerar `pairedDevices.has(token)` i minnet först. Finns den i minnet, svara direkt med `{ paired: true, verified: true }` utan väntetid.
 
 ## GROW-frågor
-1. **State**: Hur garanteras att pairedDevices i minnet alltid speglar Firestore i realtid och hanterar eventuella skillnader i skiftläge vid registrering och sökning?
-2. **Contract**: Hur bibehålls strikt kontraktsefterlevnad när /api/admin/check-pairing görs asynkron och dubbletten i adminMemberRoutes.ts avvecklas?
-3. **Resilience**: Hur skyddas systemet mot nätverksavbrott eller saknad Firestore-anslutning utan att orsaka ohanterade serverundantag?
+1. **State**: Hur garanteras att parningskoder och administratörsnummer kvarstår och laddas pålitligt från lokal disk (`data/paired_devices.json`, `data/admins.json`, etc.) när Firestore-behörigheter saknas?
+2. **Contract**: Hur säkerställs att `/api/admin/check-pairing` omedelbart svarar med `{ paired: true, verified: true }` vid träff i minnet utan att blockeras av onödiga nätverks- eller databasanrop?
+3. **Resilience**: Hur förhindras oändliga reconnect-loopar och terminal-spam från Firestore-lyssnare (`onSnapshot`) vid `permission-denied` genom omedelbar avregistrering och diskret felloggning?

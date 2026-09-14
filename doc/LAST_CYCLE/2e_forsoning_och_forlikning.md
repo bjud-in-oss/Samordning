@@ -1,13 +1,13 @@
-# Steg 2e: Försoning och Förlikning (TCK-SMS-005)
+# Steg 2e: Försoning och Förlikning (TCK-SMS-006)
 
 ## Målkonflikter och Beslut
 
-1. **Prestanda vs Konsistens**:
-   - Beslut: In-memory Set används som primär cache. Vid cachemiss görs ett asynkront Firestore-uppslag och cachen fylls på vid träff. Detta minimerar databasläsningar och garanterar millisekundssvar.
+1. **Databasövervakning vs Ren terminal**:
+   - Beslut: Avbryt omedelbart Firestore-lyssnare om databasen avvisar behörighet. Informera tydligt en gång och övergå sömlöst till lokal disk/RAM-drift.
 
-2. **Routingrenhet**:
-   - Beslut: Konsolidera all parningsverifiering i routes.ts och avlägsna dubbletten från adminMemberRoutes.ts.
+2. **Parningslatens vs Färskhet**:
+   - Beslut: In-memory `pairedDevices` prioriteras alltid först för ögonblicklig respons.
 
-Alla målkonflikter är lösta och arkitekturkontraktet är låst.
+Alla målkonflikter är lösta och kontraktet är låst.
 
 MÄTTNAD: JA

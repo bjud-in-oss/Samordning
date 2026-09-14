@@ -1,5 +1,7 @@
 // [src/server/routes.ts] - Express API Routes Registration
 
+app.get("/favicon.ico", (_req, res) => res.status(204).end());
+
 import express from "express";
 import { 
   activeAlerts, 
@@ -28,6 +30,7 @@ import { runGeminiWash } from "../main/services/parser";
 import { setupAdminMemberRoutes } from "./adminMemberRoutes";
 
 export function setupRoutes(app: express.Express) {
+  app.get("/favicon.ico", (_req, res) => res.status(204).end());
   // Check device pairing status endpoint
   app.get("/api/admin/check-pairing", async (req, res) => {
     const token = String(req.query.token || "").trim();

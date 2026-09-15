@@ -82,7 +82,7 @@ export async function handleIncomingSms(req: Request, res: Response) {
   const isTrusted = trustedNumbers.some(num => normalizePhone(num) === normalizePhone(sender));
   const isTrustedOrAdmin = isAdmin || isTrusted;
 
-  const pairMatch = trimmedText.match(/^[\.#]PAIR\s*(.*)$/i);
+  const pairMatch = trimmedText.match(/^[\.#]PAIR\s+([^\s]+)/i);
   if (pairMatch) {
     const token = pairMatch[1].trim();
     if (token) {

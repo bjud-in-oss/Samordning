@@ -17,7 +17,11 @@ export default defineConfig(() => {
     server: {
       allowedHosts: ['.trycloudflare.com', 'localhost'],
       hmr: process.env.DISABLE_HMR !== 'true',
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      
+	
+      watch: {
+        ignored: ['**/data/**'], // Ignorera ändringar i data-mappen så att sidan inte laddas om vid parning
+      },
     },
     test: {
       globals: true,

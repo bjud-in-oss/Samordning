@@ -1,0 +1,109 @@
+import React from "react";
+import { OnboardingWizard } from "../features/anpassa";
+import { AlertDetail, ActiveStream } from "../features/inbjudningar";
+import { CreateInvitationForm } from "../features/skapa_inbjudan";
+import { UiLanguage } from "../features/mission_router";
+import { LiveTranslationWidget, LiveTranslationListenerWidget } from "../features/live_translation";
+
+interface MainViewContentProps {
+  activeAlertId: string | null;
+  navigateTo: (path: string) => void;
+  uiLanguage: UiLanguage;
+  currentView: 'stream' | 'settings' | 'translation';
+  setCurrentView: React.Dispatch<React.SetStateAction<'stream' | 'settings' | 'translation'>>;
+  activeTab: "stream" | "create";
+  setActiveTab: React.Dispatch<React.SetStateAction<"stream" | "create">>;
+  handleSaveTags: (tags: unknown) => void;
+  savedTags: unknown;
+  pushEnabled: boolean;
+  handleEnablePush: () => void;
+  handleDisablePush: () => void;
+  handleStreamCountChange: (filtered: number, total: number) => void;
+  isAdmin: boolean;
+}
+
+export function MainViewContent({
+  activeAlertId,
+  navigateTo,
+  uiLanguage,
+  currentView,
+  setCurrentView,
+  activeTab,
+  setActiveTab,
+  handleSaveTags,
+  savedTags,
+  pushEnabled,
+  handleEnablePush,
+  handleDisablePush,
+  handleStreamCountChange,
+  isAdmin
+}: MainViewContentProps) {
+  if (activeAlertId) {
+    return (
+      <AlertDetail
+        alertId={activeAlertId}
+        onBack={() => navigateTo("/")}
+        uiLanguage={uiLanguage || "sv"}
+      />
+    );
+  }
+
+  return (
+    <div className="animate-in fade-in duration-200 space-y-6">
+      <div className="w-full">
+        {currentView === 'settings' && (
+          <div className="bg-white rounded-3xl w-full p-6 shadow-sm border border-brand-ink/5">
+            <OnboardingWizard
+              onSave={(tags) => handleSaveTags(tags)}
+              onClose={() => setCurrentView('stream')}
+              savedTags={savedTags}
+              pushEnabled={pushEnabled}
+              onEnablePush={handleEnablePush}
+              onDisablePush={handleDisablePush}
+              uiLanguage={uiLanguage || "sv"}
+            />
+          </div>
+        )}
+
+        {currentView === 'translation' && (() => {
+          const isSpeakerRoute = typeof window !== "undefined" && window.location && (
+            (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "") &&
+            (window.location.pathname.includes("/tala") || window.location.pathname.includes("/speak"))
+          );
+          return (
+            <div className="w-full">
+              {(isAdmin || isSpeakerRoute) ? <LiveTranslationWidget /> : <LiveTranslationListenerWidget />}
+            </div>
+          );
+        })()}
+
+        {currentView === 'stream' && activeTab === "stream" && (
+          <ActiveStream
+            onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
+            uiLanguage={uiLanguage || "sv"}
+            savedTags={savedTags}
+            onStreamCountChange={handleStreamCountChange}
+            inlineCreate={false}
+            isAdmin={isAdmin}
+            pushEnabled={pushEnabled}
+            onOpenSettings={() => setCurrentView('settings')}
+          />
+        )}
+
+        {currentView === 'stream' && activeTab === "create" && (
+          <ActiveStream
+            onSelectAlert={(id) => navigateTo(`/larm/${id}`)}
+            uiLanguage={uiLanguage || "sv"}
+            savedTags={savedTags}
+            onStreamCountChange={handleStreamCountChange}
+            inlineCreate={true}
+            isAdmin={isAdmin}
+            pushEnabled={pushEnabled}
+            onBack={() => setActiveTab("stream")}
+            onOpenSettings={() => setCurrentView('settings')}
+          />
+        )}
+      </div>
+    </div>
+  );
+}

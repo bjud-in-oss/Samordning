@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@300;400;500;600;700&family=Space+Mono&display=swap');
+@import "tailwindcss";
+
+:root, [data-theme="default"] {
+  /* Standard: Varm församlingston */
+  --color-primary: #5e6c5c;
+  --color-secondary: #2d6a7f;
+  --color-accent: #5e6c5c;
+  --color-bg: #fdfcf9;
+  --color-text: #1c1c1a;
+  --color-paper: #f2efeb;
+  --color-border: rgba(28, 28, 26, 0.1);
+  --color-error: #a85d5d;
+  --color-ocean: #2d6a7f;
+
+  /* Specifika komponent- och modalvariabler */
+  --color-btn-invite-bg: #5e6c5c;
+  --color-btn-invite-hover: #4f5b4d;
+  --color-btn-invite-text: #ffffff;
+  --color-modal-bg: #ffffff;
+  --color-modal-overlay: rgba(0, 0, 0, 0.55);
+  --color-modal-border: rgba(28, 28, 26, 0.1);
+  --color-stream-card-bg: #ffffff;
+  --color-stream-card-border: rgba(28, 28, 26, 0.08);
+  --color-stream-tag-bg: #f2efeb;
+  --color-stream-tag-text: #1c1c1a;
+}
+
+[data-theme="high-contrast"] {
+  /* Högkontrast / Tillgänglighet (Maximal läsbarhet & skärpa) */
+  --color-primary: #000000;
+  --color-secondary: #002b55;
+  --color-accent: #000000;
+  --color-bg: #ffffff;
+  --color-text: #000000;
+  --color-paper: #ececec;
+  --color-border: #000000;
+  --color-error: #b70000;
+  --color-ocean: #003366;
+
+  /* Specifika komponent- och modalvariabler */
+  --color-btn-invite-bg: #000000;
+  --color-btn-invite-hover: #222222;
+  --color-btn-invite-text: #ffffff;
+  --color-modal-bg: #ffffff;
+  --color-modal-overlay: rgba(0, 0, 0, 0.85);
+  --color-modal-border: #000000;
+  --color-stream-card-bg: #ffffff;
+  --color-stream-card-border: #000000;
+  --color-stream-tag-bg: #ececec;
+  --color-stream-tag-text: #000000;
+}
+
+[data-theme="autumn"] {
+  /* Säsong: Höst (Varma jordnära bärnstenstoner) */
+  --color-primary: #8c4a27;
+  --color-secondary: #ad5d32;
+  --color-accent: #8c4a27;
+  --color-bg: #faf6f0;
+  --color-text: #2c1e19;
+  --color-paper: #f0e6dc;
+  --color-border: rgba(44, 30, 25, 0.14);
+  --color-error: #a83a32;
+  --color-ocean: #5a6e3e;
+
+  /* Specifika komponent- och modalvariabler */
+  --color-btn-invite-bg: #8c4a27;
+  --color-btn-invite-hover: #753d1f;
+  --color-btn-invite-text: #ffffff;
+  --color-modal-bg: #ffffff;
+  --color-modal-overlay: rgba(44, 30, 25, 0.6);
+  --color-modal-border: rgba(44, 30, 25, 0.15);
+  --color-stream-card-bg: #ffffff;
+  --color-stream-card-border: rgba(44, 30, 25, 0.1);
+  --color-stream-tag-bg: #f0e6dc;
+  --color-stream-tag-text: #2c1e19;
+}
+
+[data-theme="spring"] {
+  /* Säsong: Vår (Ljusgröna friska toner) */
+  --color-primary: #2d6e3e;
+  --color-secondary: #3b824e;
+  --color-accent: #2d6e3e;
+  --color-bg: #f6fbf7;
+  --color-text: #182b1d;
+  --color-paper: #e6f2e8;
+  --color-border: rgba(24, 43, 29, 0.14);
+  --color-error: #b73239;
+  --color-ocean: #2e8b78;
+
+  /* Specifika komponent- och modalvariabler */
+  --color-btn-invite-bg: #2d6e3e;
+  --color-btn-invite-hover: #245831;
+  --color-btn-invite-text: #ffffff;
+  --color-modal-bg: #ffffff;
+  --color-modal-overlay: rgba(24, 43, 29, 0.55);
+  --color-modal-border: rgba(24, 43, 29, 0.15);
+  --color-stream-card-bg: #ffffff;
+  --color-stream-card-border: rgba(24, 43, 29, 0.1);
+  --color-stream-tag-bg: #e6f2e8;
+  --color-stream-tag-text: #182b1d;
+}
+
+[data-theme="winter"] {
+  /* Säsong: Vinter / Sval (Nordisk skymningsblå) */
+  --color-primary: #27567b;
+  --color-secondary: #3b749e;
+  --color-accent: #27567b;
+  --color-bg: #f4f8fc;
+  --color-text: #132230;
+  --color-paper: #e3edf7;
+  --color-border: rgba(19, 34, 48, 0.14);
+  --color-error: #a83535;
+  --color-ocean: #1f4f73;
+
+  /* Specifika komponent- och modalvariabler */
+  --color-btn-invite-bg: #27567b;
+  --color-btn-invite-hover: #1f4563;
+  --color-btn-invite-text: #ffffff;
+  --color-modal-bg: #ffffff;
+  --color-modal-overlay: rgba(19, 34, 48, 0.6);
+  --color-modal-border: rgba(19, 34, 48, 0.15);
+  --color-stream-card-bg: #ffffff;
+  --color-stream-card-border: rgba(19, 34, 48, 0.1);
+  --color-stream-tag-bg: #e3edf7;
+  --color-stream-tag-text: #132230;
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-brand-bg: var(--color-bg);
+  --color-brand-ink: var(--color-text);
+  --color-brand-accent: var(--color-accent);
+  --color-brand-paper: var(--color-paper);
+  --color-brand-error: var(--color-error);
+  --color-brand-ocean: var(--color-ocean);
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-btn-invite-bg: var(--color-btn-invite-bg);
+  --color-btn-invite-hover: var(--color-btn-invite-hover);
+  --color-btn-invite-text: var(--color-btn-invite-text);
+  --color-modal-bg: var(--color-modal-bg);
+  --color-modal-overlay: var(--color-modal-overlay);
+  --color-modal-border: var(--color-modal-border);
+  --color-stream-card-bg: var(--color-stream-card-bg);
+  --color-stream-card-border: var(--color-stream-card-border);
+  --color-stream-tag-bg: var(--color-stream-tag-bg);
+  --color-stream-tag-text: var(--color-stream-tag-text);
+}
+
+html, body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+

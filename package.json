@@ -15,7 +15,8 @@
     "test": "node scripts/verify-architecture.js && vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "tsx scripts/test-e2e.ts",
-    "test:poc": "tsx scripts/test-poc-tunnel.ts"
+    "test:poc": "tsx scripts/test-poc-tunnel.ts",
+    "test:live": "tsx scripts/test-gemini-stream.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

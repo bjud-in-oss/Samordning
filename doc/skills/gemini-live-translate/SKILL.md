@@ -147,7 +147,7 @@ Vid mottagande av WebSocket-meddelanden MÅSTE du validera objektträdet defensi
 
 ## 7. KRAV FÖR SÄKERHET: Ephemeral Tokens & WebSocket-anslutning
 Exponera ALDRIG statiska API-nycklar i klientkod. Skapa ett tillfälligt token via backend mot `ai.authTokens.create(...)` (`v1alpha`).
-* **MANDAT:** Skicka ALLTID med `uses: 1` och en giltig `expireTime` (t.ex. 30 minuter i framtiden) tillsammans med låsta `liveConnectConstraints`.
+* **MANDAT:** Skicka ALLTID med `uses: 50` och en giltig `expireTime` (t.ex. 30 minuter i framtiden) tillsammans med låsta `liveConnectConstraints`.
 * **Token-format:** `@google/genai` returnerar resursnamn i formatet `authTokens/<token_id>` (skiftlägesoberoende hantering rekommenderas för att stödja både `authTokens/` och `auth_tokens/`).
 
 ### WebSocket-endpoints enligt officiell standard:
@@ -167,22 +167,15 @@ const ai = new GoogleGenAI({});
 const expireTime = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 const token = await ai.authTokens.create({
   config: {
-    uses: 1,
+    uses: 50,
     expireTime: expireTime,
     liveConnectConstraints: {
-      model: "models/gemini-3.5-live-translate-preview",
-      config: {
-        responseModalities: ["AUDIO"],
-        translationConfig: {
-          targetLanguageCode: "sv",
-          echoTargetLanguage: false
-        }
-      }
+      model: "models/gemini-3.5-live-translate-preview"
     },
     httpOptions: { apiVersion: "v1alpha" }
   }
 });
-// Skicka token.name ("authTokens/...") till klienten
+// Skicka token.name ("authTokens/...") eller rent token-id till klienten
 ```
 
 ---

@@ -1,28 +1,11 @@
 // [src/server/routes.ts] - Express API Routes Registration
 import express from "express";
-import { 
-  activeAlerts, 
-  adminNumbers, 
-  trustedNumbers,
-  pairedDevices, 
-  pairDeviceToken, 
-  API_SECRET, 
-  normalizePhone, 
-  saveActiveAlerts,
-  saveAdmins,
-  saveTrusted,
-  getFirestoreInstance
-} from "./storage";
+import { activeAlerts, adminNumbers, trustedNumbers, pairedDevices, pairDeviceToken, API_SECRET, normalizePhone, saveActiveAlerts, saveAdmins, saveTrusted, getFirestoreInstance } from "./storage";
 import { handleIncomingSms } from "./smsRoutes";
 import { handleIncomingEmail } from "./emailRoutes";
 import { setupSimRoutes } from "./simRoutes";
-import { 
-  getVapidPublicKey, 
-  subscriptions, 
-  saveSubscriptions 
-} from "../main/services/pushService";
+import { getVapidPublicKey, subscriptions, saveSubscriptions } from "../main/services/pushService";
 import { runGeminiWash } from "../main/services/parser";
-
 import { setupAdminMemberRoutes } from "./adminMemberRoutes";
 
 export function setupRoutes(app: express.Express) {
@@ -218,8 +201,13 @@ export function setupRoutes(app: express.Express) {
         throw new Error("Kunde inte skapa sessionstoken från Gemini API.");
       }
 
+      const cleanToken = tokenObj.name.replace(/^auth_?tokens\//i, "");
+
       return res.json({
         token: tokenObj.name,
+        name: tokenObj.name,
+        tokenId: cleanToken,
+        cleanToken,
         expireTime: (tokenObj as { expireTime?: string }).expireTime,
         model: "models/gemini-3.5-live-translate-preview"
       });
@@ -238,21 +226,10 @@ export function setupRoutes(app: express.Express) {
     }
 
     const compliantAlert = {
-      id: alert.id,
-      type: alert.type,
-      scrubbedText: alert.scrubbedText,
-      area: alert.area,
-      time: alert.time,
-      gender: alert.gender,
-      language: alert.language,
-      locationName: alert.locationName,
-      cloakedCoords: alert.cloakedCoords,
-      timestamp: alert.timestamp,
-      responsibleParty: alert.responsibleParty,
-      contactType: alert.contactType,
-      contactValue: alert.contactValue,
-      category: alert.category,
-      isFull: !!alert.isFull,
+      id: alert.id, type: alert.type, scrubbedText: alert.scrubbedText, area: alert.area, time: alert.time,
+      gender: alert.gender, language: alert.language, locationName: alert.locationName, cloakedCoords: alert.cloakedCoords,
+      timestamp: alert.timestamp, responsibleParty: alert.responsibleParty, contactType: alert.contactType,
+      contactValue: alert.contactValue, category: alert.category, isFull: !!alert.isFull,
       totalActiveAlerts: Object.keys(activeAlerts).length
     };
 

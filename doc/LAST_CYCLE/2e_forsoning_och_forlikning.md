@@ -1,17 +1,18 @@
-# Steg 2e: Försoning och förlikning (TCK-LT-015)
+# Steg 2e: Försoning och förlikning (TCK-LT-016)
 
 ## Målharmonisering
-1. **Regel för `isEphemeral`**:
-   - I både `connect()` och `executeHotSwap()` i `src/features/live_translation/domain/translationBridge.ts`:
-     ```ts
-     const isEphemeral = !this.currentApiKey.startsWith("AIza") && /^auth_?tokens\//i.test(this.currentApiKey);
-     ```
-   - Denna logik uppfyller alla tre krav:
-     1. Den utvärderas ENBART till `true` om `this.currentApiKey` matchar `/^auth_?tokens\//i`.
-     2. Om `this.currentApiKey` startar med `"AIza"` är den ALLTID `false`, även med `tokenProvider`.
-     3. När `isEphemeral` är `false` dirigeras anslutningen till v1beta `BidiGenerateContent?key=...`.
-2. **Enhetstester**:
-   - Testerna i `translationBridge.test.ts` utökas med ett specifikt påstående för en `tokenProvider` som returnerar `"AIzaSy..."` och bekräftar att anslutningen går till `BidiGenerateContent?key=...`.
-   - Båda filerna hålls under 250 rader.
+1. **SKILL.md**:
+   - I Sektion 7: Ersätt `uses: 1` med `uses: 50`.
+   - Korrigera kodexemplet så att `liveConnectConstraints` endast innehåller `{ model: "models/gemini-3.5-live-translate-preview" }` utan överflödigt `config`-underobjekt.
+2. **Server `src/server/routes.ts`**:
+   - Säkerställ `ai.authTokens.create` med `uses: 50`, `expireTime` och `liveConnectConstraints: { model: "models/gemini-3.5-live-translate-preview" }`.
+   - Returnera `{ token: tokenObj.name, name: tokenObj.name, tokenId: cleanToken, cleanToken, expireTime, model }`.
+3. **Klient `src/features/live_translation/domain/translationBridge.ts`**:
+   - Skala av prefixet via `const cleanToken = this.currentApiKey.replace(/^auth_?tokens\//i, "");` vid bygge av `wsUrl` i både `connect()` och `executeHotSwap()`.
+   - Håll radantalet strikt under 250 rader.
+4. **Integrationstest `scripts/test-gemini-stream.ts`**:
+   - Implementera skarp testsekvens: Skapa ephemeral token -> Anslut WebSocket till `BidiGenerateContentConstrained` -> Skicka `setup` -> Bekräfta `setupComplete` -> Avsluta rent med kod 0.
+5. **Kommando `package.json`**:
+   - Lägg till `"test:live": "tsx scripts/test-gemini-stream.ts"` under `"scripts"`.
 
 MÄTTNAD: JA

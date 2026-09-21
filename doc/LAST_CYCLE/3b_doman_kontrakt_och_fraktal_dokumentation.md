@@ -1,12 +1,26 @@
-# Steg 3b: Domän, kontrakt och fraktal dokumentation (TCK-LT-015)
+# Steg 3b: Domän, kontrakt och fraktal dokumentation (TCK-LT-016)
 
-## Kontrakt för API-nyckel och Token-dirigering
+## Kontrakt och datastrukturer
 
-### Regler för `isEphemeral`
-| Nyckelformat | `tokenProvider` angiven? | `isEphemeral` | Mål-URL |
-| :--- | :--- | :--- | :--- |
-| `AIzaSy...` | Nej | `false` | `v1beta ... BidiGenerateContent?key=AIzaSy...` |
-| `AIzaSy...` | Ja | `false` | `v1beta ... BidiGenerateContent?key=AIzaSy...` |
-| `authTokens/...` | Nej / Ja | `true` | `v1alpha ... BidiGenerateContentConstrained?access_token=...` |
-| `auth_tokens/...` | Nej / Ja | `true` | `v1alpha ... BidiGenerateContentConstrained?access_token=...` |
-| `test-key` | Nej / Ja | `false` | `v1beta ... BidiGenerateContent?key=test-key` |
+### 1. `/api/translation/token` JSON Response
+```typescript
+interface EphemeralTokenResponse {
+  token: string;      // Fullständigt resursnamn (t.ex. "auth_tokens/xyz")
+  tokenId: string;    // Rent token-id (t.ex. "xyz")
+  name: string;       // Fullständigt resursnamn
+  cleanToken: string; // Rent token-id
+  expireTime?: string;
+  model: "models/gemini-3.5-live-translate-preview";
+}
+```
+
+### 2. URL-kontrakt för `TranslationBridge`
+- **Om `isEphemeral === true`**:
+  ```
+  wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=${encodeURIComponent(cleanToken)}
+  ```
+  där `cleanToken = currentApiKey.replace(/^auth_?tokens\//i, "")`.
+- **Om `isEphemeral === false`**:
+  ```
+  wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(currentApiKey)}
+  ```

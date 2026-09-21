@@ -1,11 +1,11 @@
-# Steg 3a: Helhet, orkestrering och integration (TCK-LT-015)
+# Steg 3a: Helhet, orkestrering och integration (TCK-LT-016)
 
 ## Orkestreringsöversikt
-1. **Live Translation Gateway Integration**:
-   - `TranslationBridge` instansieras antingen med en statisk nyckel (t.ex. konfigurerad `AIza...`) eller en dynamisk asynkron `tokenProvider`.
-   - `connect()` anropar `resolveApiKey()` om `tokenProvider` finns.
-   - När `this.currentApiKey` är satt, utvärderas `isEphemeral`:
-     - Om `authTokens/...` eller `auth_tokens/...`: anslut mot `v1alpha ... BidiGenerateContentConstrained?access_token=...`.
-     - Annars (inklusive `"AIza..."`): anslut mot `v1beta ... BidiGenerateContent?key=...`.
-2. **Hot Swap och återanslutning**:
-   - `executeHotSwap()` tillämpar exakt samma logik för att förhindra felaktig endpoint vid sessionrotering.
+1. **Full livscykel för Ephemeral Token**:
+   - Backend anropar Gemini API via `@google/genai` för att skapa ett tidsbegränsat token (`uses: 50`, `expireTime: now + 30m`, `liveConnectConstraints: { model: "models/gemini-3.5-live-translate-preview" }`).
+   - Servern returnerar JSON med tokenets namn och rena id.
+   - Frontend (`useLiveTranslation` / `TranslationBridge`) tar emot tokenet och identifierar det som efemärt.
+   - `TranslationBridge` skalar av `authTokens/` eller `auth_tokens/` och skickar det rena id:t som query-parameter `access_token` mot `v1alpha ... BidiGenerateContentConstrained`.
+   - Gemini Live API godkänner handskakningen och sänder `setupComplete`.
+2. **Integrationstest i testpipelinen**:
+   - `pnpm test:live` exekverar skriptet som verifierar hela handskakningsflödet i en skarp miljö.

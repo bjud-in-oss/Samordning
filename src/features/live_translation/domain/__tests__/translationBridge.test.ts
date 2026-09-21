@@ -157,13 +157,14 @@ describe("TranslationBridge Specifications", () => {
     expect(mockClose).toHaveBeenCalled();
   });
 
-  it("använder BidiGenerateContentConstrained och access_token vid ephemeral token", () => {
+  it("använder BidiGenerateContentConstrained och rent access_token vid ephemeral token", () => {
     const bridge = createBridge("auth_tokens/test_ephemeral_token_123", "en");
     bridge.connect();
     vi.advanceTimersByTime(10);
     const ws = MockWebSocket.instances[0]!;
     expect(ws.url).toContain("BidiGenerateContentConstrained");
-    expect(ws.url).toContain("access_token=auth_tokens%2Ftest_ephemeral_token_123");
+    expect(ws.url).toContain("access_token=test_ephemeral_token_123");
+    expect(ws.url).not.toContain("auth_tokens");
   });
 
   it("ger tydligt felmeddelande och status 'error' vid autentiseringsfel", () => {
@@ -206,7 +207,7 @@ describe("TranslationBridge Specifications", () => {
     expect(bridge.apiKey).toBe("authTokens/ephemeral_token_v1");
     vi.advanceTimersByTime(10);
     const ws1 = MockWebSocket.instances[0]!;
-    expect(ws1.url).toContain("access_token=authTokens%2Fephemeral_token_v1");
+    expect(ws1.url).toContain("access_token=ephemeral_token_v1");
     if (ws1.onmessage) ws1.onmessage({ data: JSON.stringify({ goAway: { timeLeft: 3000 } }) });
     await vi.advanceTimersByTimeAsync(1500);
     expect(tokenProvider).toHaveBeenCalledTimes(2);
@@ -220,7 +221,7 @@ describe("TranslationBridge Specifications", () => {
     expect(MockWebSocket.instances.length).toBe(1);
     const ws = MockWebSocket.instances[0]!;
     expect(ws.url).toContain("BidiGenerateContentConstrained");
-    expect(ws.url).toContain("access_token=authTokens%2FcamelCaseEphemeral123");
+    expect(ws.url).toContain("access_token=camelCaseEphemeral123");
     expect(ws.url).not.toContain("?key=");
   });
 

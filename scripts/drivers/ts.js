@@ -128,7 +128,7 @@ export async function verifyTypeScriptCodebase({
 
             const hasAiImport = /(@google\/genai|openai|fetch\(['"]\/api\/ai)/i.test(content);
             const isInsideAiZone = relPath.includes(`domain${path.sep}ai_zones`);
-            const isServerCode = path.relative(ROOT_DIR, fullPath).startsWith('server');
+            const isServerCode = relPath.startsWith('server' + path.sep) || path.relative(ROOT_DIR, fullPath).startsWith('server');
 
             if (hasAiImport && !isInsideAiZone && !isServerCode) {
               logError('AI-ISOLERINGSÖVERTRÄDELSE', `${path.relative(ROOT_DIR, fullPath)} innehåller AI-anrop utanför domain/ai_zones/.`);

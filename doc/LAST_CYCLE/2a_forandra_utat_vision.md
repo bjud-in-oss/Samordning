@@ -1,11 +1,11 @@
-# Steg 2a: Förändra utåt – Vision (TCK-LT-015)
+# Steg 2a: Förändra utåt – Vision (TCK-LT-016)
 
-## Vision för robust API-nyckel och Ephemeral Token dirigering
-1. **Kristallklar auktoriseringsdirigering**:
-   - Skilj med absolut precision mellan standard API-nycklar (`AIza...`) och efemära tokens (`authTokens/...`, `auth_tokens/...`).
-   - Standard API-nycklar dirigeras odelat till standard Live API v1beta med `?key=`.
-   - Efemära tokens dirigeras till v1alpha `BidiGenerateContentConstrained` med `?access_token=`.
-2. **Robusthet i hybridmiljöer**:
-   - Även om applikationen använder en dynamisk nyckelleverantör (`tokenProvider`) som returnerar en standardnyckel ("AIza..."), dirigeras anslutningen till rätt Google API-gateway.
-3. **Resiliens och Fail Fast**:
-   - 100 % täckning i enhetstester och strikt efterlevnad av ADR-018 (< 250 rader per fil).
+## Vision för synkroniserade Ephemeral Tokens och skarpa integrationstester
+1. **Full överensstämmelse mellan specifikation och kod**:
+   - `SKILL.md` speglar exakt verkligheten: `uses: 50` och rent `liveConnectConstraints`-objekt.
+   - Serverns route `/api/translation/token` producerar konforma tokens med begränsningar för översättningsmodellen och exponerar både resursnamn och ren identifierare.
+2. **Korrekt access token URL-formatering**:
+   - Google Generative Language API kräver det rena token-id:t (utan resursvägen `authTokens/` eller `auth_tokens/`) i URL-parametern `access_token=`.
+   - `TranslationBridge` skalar av prefixet vid anslutning och hot-swap.
+3. **Verifierbarhet och skarp testbarhet**:
+   - `test:live` erbjuder ett deterministiskt och direkt sätt att verifiera anslutningen mot Geminis produktions-API utan manuella handpåläggningar.

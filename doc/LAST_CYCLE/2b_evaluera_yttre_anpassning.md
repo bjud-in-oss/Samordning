@@ -1,9 +1,9 @@
-# Steg 2b: Evaluera yttre anpassning (TCK-LT-015)
+# Steg 2b: Evaluera yttre anpassning (TCK-LT-016)
 
-## Konsekvensanalys för anslutningar
-1. **Google Gemini Live API specifikation**:
-   - `BidiGenerateContentConstrained` accepterar uteslutande korta, begränsade sessionstokens via `access_token=`. Om en vanlig API-nyckel ("AIza...") skickas dit avvisas anslutningen med autentiseringsfel ("Expected OAuth 2 access token...").
-   - Genom att kräva att `isEphemeral` enbart är sann för faktiska ephemeral tokens elimineras felaktig dirigering.
-2. **Bakåtkompatibilitet**:
-   - Befintliga tester för `authTokens/` och `auth_tokens/` förblir oförändrat giltiga.
-   - Testsituationer med testnycklar (t.ex. `"test-key"`) behandlas som icke-ephemeral och ansluter via standard endpoint `?key=test-key`.
+## Yttre anpassning och API-kontrakt
+1. **Google Live API Gateway Beteende**:
+   - Om `access_token=auth_tokens%2F...` skickas avvisar Gemini med felmeddelande eller ogiltig token ("Invalid authentication").
+   - När enbart det rena id:t skickas (`access_token=a99b540...`) verifieras token korrekt och servern svarar med `setupComplete`.
+2. **Paket och skript**:
+   - Lägga till `test:live`: `"tsx scripts/test-gemini-stream.ts"` i `package.json` under `scripts`.
+   - Ger utvecklare och CI möjligheten att validera integrationen mot live API:t med ett enkelt kommando.

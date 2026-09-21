@@ -69,7 +69,7 @@ export class TranslationBridge {
       return;
     }
 
-    const isEphemeral = Boolean(this.tokenProvider || /^auth_?tokens\//i.test(this.currentApiKey) || (!this.currentApiKey.startsWith("AIza") && this.currentApiKey !== "demo_key"));
+    const isEphemeral = !this.currentApiKey.startsWith("AIza") && /^auth_?tokens\//i.test(this.currentApiKey);
     const wsUrl = isEphemeral
       ? `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=${encodeURIComponent(this.currentApiKey)}`
       : `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(this.currentApiKey)}`;
@@ -204,7 +204,7 @@ export class TranslationBridge {
       return;
     }
 
-    const isEphemeral = Boolean(this.tokenProvider || /^auth_?tokens\//i.test(this.currentApiKey) || (!this.currentApiKey.startsWith("AIza") && this.currentApiKey !== "demo_key"));
+    const isEphemeral = !this.currentApiKey.startsWith("AIza") && /^auth_?tokens\//i.test(this.currentApiKey);
     const wsUrl = isEphemeral
       ? `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=${encodeURIComponent(this.currentApiKey)}`
       : `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(this.currentApiKey)}`;

@@ -1,9 +1,9 @@
-# Steg 2b: Evaluera yttre anpassning (TCK-LT-014)
+# Steg 2b: Evaluera yttre anpassning (TCK-LT-015)
 
-## Konsekvensanalys
+## Konsekvensanalys för anslutningar
 1. **Google Gemini Live API specifikation**:
-   - `BidiGenerateContentSetup` kräver att transkriptionskonfigurationer (`inputAudioTranscription`, `outputAudioTranscription`) ligger direkt på rotnivån av `setup`, inte nästlade inuti `generationConfig`.
-   - Ephemeral tokens skapade med `ai.authTokens.create(...)` har formatet `authTokens/<id>` och kräver anslutning till `v1alpha ... BidiGenerateContentConstrained?access_token=...`.
-2. **Bakåtkompatibilitet och samverkan**:
-   - Den uppdaterade dokumentationen och källkoden stödjer både statiska API-nycklar (`AIza...`) och efemära tokens (`authTokens/` och `auth_tokens/`).
-   - Inga externa beroenden bryts; stabiliteten i realtidstolkningen säkras fullt ut.
+   - `BidiGenerateContentConstrained` accepterar uteslutande korta, begränsade sessionstokens via `access_token=`. Om en vanlig API-nyckel ("AIza...") skickas dit avvisas anslutningen med autentiseringsfel ("Expected OAuth 2 access token...").
+   - Genom att kräva att `isEphemeral` enbart är sann för faktiska ephemeral tokens elimineras felaktig dirigering.
+2. **Bakåtkompatibilitet**:
+   - Befintliga tester för `authTokens/` och `auth_tokens/` förblir oförändrat giltiga.
+   - Testsituationer med testnycklar (t.ex. `"test-key"`) behandlas som icke-ephemeral och ansluter via standard endpoint `?key=test-key`.

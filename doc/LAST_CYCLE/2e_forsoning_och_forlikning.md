@@ -1,16 +1,17 @@
-# Steg 2e: Försoning och förlikning (TCK-LT-014)
+# Steg 2e: Försoning och förlikning (TCK-LT-015)
 
 ## Målharmonisering
-1. **Färdigheter installerade och harmoniserade**:
-   - `gemini-api-dev` och `gemini-live-api-dev` finns under `.agents/skills/` och `doc/skills/`.
-   - `doc/skills/gemini-live-translate/SKILL.md` har uppdaterats för att korrigera `setup`-strukturen och WebSocket-URL:er för ephemeral tokens.
-2. **Källkod och tester (`src/features/live_translation/`)**:
-   - `translationBridge.ts` bekräftas följa `gemini-live-api-dev`:
-     - Skiftlägesoberoende `isEphemeral` i `connect()` och `executeHotSwap()`.
-     - `setup`-payloaden har `model`, `generationConfig`, `inputAudioTranscription: {}` och `outputAudioTranscription: {}` på rotnivå.
-     - Filstorleken hålls strikt under 250 rader.
-   - `translationBridge.test.ts`:
-     - Verifierar setup-payloadens struktur och ephemeral token-dirigering.
-     - Hålls strikt under 250 rader.
+1. **Regel för `isEphemeral`**:
+   - I både `connect()` och `executeHotSwap()` i `src/features/live_translation/domain/translationBridge.ts`:
+     ```ts
+     const isEphemeral = !this.currentApiKey.startsWith("AIza") && /^auth_?tokens\//i.test(this.currentApiKey);
+     ```
+   - Denna logik uppfyller alla tre krav:
+     1. Den utvärderas ENBART till `true` om `this.currentApiKey` matchar `/^auth_?tokens\//i`.
+     2. Om `this.currentApiKey` startar med `"AIza"` är den ALLTID `false`, även med `tokenProvider`.
+     3. När `isEphemeral` är `false` dirigeras anslutningen till v1beta `BidiGenerateContent?key=...`.
+2. **Enhetstester**:
+   - Testerna i `translationBridge.test.ts` utökas med ett specifikt påstående för en `tokenProvider` som returnerar `"AIzaSy..."` och bekräftar att anslutningen går till `BidiGenerateContent?key=...`.
+   - Båda filerna hålls under 250 rader.
 
 MÄTTNAD: JA

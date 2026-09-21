@@ -1,12 +1,11 @@
-# Steg 3a: Helhet, orkestrering och integration (TCK-LT-014)
+# Steg 3a: Helhet, orkestrering och integration (TCK-LT-015)
 
 ## Orkestreringsöversikt
-1. **Agent Skills Arkitektur**:
-   - Kodassistenter och agenter har tillgång till de officiella Google Gemini-instruktionerna under `.agents/skills/` och `doc/skills/`:
-     - `gemini-api-dev`: Täcker Gemini SDK, modeller, streaming, strukturerad utdata och agenter.
-     - `gemini-live-api-dev`: Täcker WebSocket streaming, live translation, ephemeral tokens, VAD och sessionResumption.
-     - `gemini-live-translate`: Domänspecifik integration för tal-till-tal tolkning med `gemini-3.5-live-translate-preview`.
-2. **Körtidsorkestrering**:
-   - Tolkningssession startas med `TranslationBridge`.
-   - `connect()` bygger officiell WebSocket URL beroende på `isEphemeral`.
-   - Vid öppnad anslutning skickas `BidiGenerateContentSetup` enligt den officiella schemat.
+1. **Live Translation Gateway Integration**:
+   - `TranslationBridge` instansieras antingen med en statisk nyckel (t.ex. konfigurerad `AIza...`) eller en dynamisk asynkron `tokenProvider`.
+   - `connect()` anropar `resolveApiKey()` om `tokenProvider` finns.
+   - När `this.currentApiKey` är satt, utvärderas `isEphemeral`:
+     - Om `authTokens/...` eller `auth_tokens/...`: anslut mot `v1alpha ... BidiGenerateContentConstrained?access_token=...`.
+     - Annars (inklusive `"AIza..."`): anslut mot `v1beta ... BidiGenerateContent?key=...`.
+2. **Hot Swap och återanslutning**:
+   - `executeHotSwap()` tillämpar exakt samma logik för att förhindra felaktig endpoint vid sessionrotering.

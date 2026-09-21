@@ -42,17 +42,12 @@ describe("TranslationBridge Specifications", () => {
     expect(MockWebSocket.instances.length).toBe(1);
     const ws = MockWebSocket.instances[0]!;
     vi.advanceTimersByTime(10);
-
     expect(ws.send).toHaveBeenCalled();
     const payload = JSON.parse(ws.send.mock.calls[0][0]);
-    expect(payload.setup).toBeDefined();
     expect(payload.setup.contextWindowCompressionConfig).toBeUndefined();
     expect(payload.setup.inputAudioTranscription).toEqual({});
     expect(payload.setup.outputAudioTranscription).toEqual({});
-    expect(payload.setup.generationConfig).toEqual({
-      responseModalities: ["AUDIO"],
-      translationConfig: { targetLanguageCode: "sv", echoTargetLanguage: false },
-    });
+    expect(payload.setup.generationConfig).toEqual({ responseModalities: ["AUDIO"], translationConfig: { targetLanguageCode: "sv", echoTargetLanguage: false } });
     expect(Object.keys(payload.setup.generationConfig).sort()).toEqual(["responseModalities", "translationConfig"].sort());
   });
 
@@ -192,17 +187,13 @@ describe("TranslationBridge Specifications", () => {
     expect(ws.url).not.toContain("BidiGenerateContentConstrained");
     expect(ws.url).not.toContain("access_token=");
     vi.advanceTimersByTime(10);
-
     expect(ws.send).toHaveBeenCalled();
     const payload = JSON.parse(ws.send.mock.calls[0][0]);
     expect(payload.setup.model).toBe("models/gemini-3.5-live-translate-preview");
     expect(payload.setup.contextWindowCompressionConfig).toBeUndefined();
     expect(payload.setup.inputAudioTranscription).toEqual({});
     expect(payload.setup.outputAudioTranscription).toEqual({});
-    expect(payload.setup.generationConfig).toEqual({
-      responseModalities: ["AUDIO"],
-      translationConfig: { targetLanguageCode: "es", echoTargetLanguage: false },
-    });
+    expect(payload.setup.generationConfig).toEqual({ responseModalities: ["AUDIO"], translationConfig: { targetLanguageCode: "es", echoTargetLanguage: false } });
     expect(Object.keys(payload.setup.generationConfig).sort()).toEqual(["responseModalities", "translationConfig"].sort());
   });
 
@@ -242,5 +233,16 @@ describe("TranslationBridge Specifications", () => {
     expect(tokenProvider).toHaveBeenCalledTimes(1);
     expect(onError).toHaveBeenCalledWith(expect.stringContaining("tokenProvider"));
     expect(MockWebSocket.instances.length).toBe(prevCount);
+  });
+
+  it("dirigerar till standard API-nyckel url även om tokenProvider returnerar en AIza-nyckel", async () => {
+    const tokenProvider = vi.fn(async () => "AIzaSyDynamicKeyFromProvider999");
+    const bridge = createBridge(tokenProvider, "es");
+    await bridge.connect();
+    expect(MockWebSocket.instances.length).toBe(1);
+    const ws = MockWebSocket.instances[0]!;
+    expect(ws.url).toContain("BidiGenerateContent?key=AIzaSyDynamicKeyFromProvider999");
+    expect(ws.url).not.toContain("BidiGenerateContentConstrained");
+    expect(ws.url).not.toContain("access_token=");
   });
 });

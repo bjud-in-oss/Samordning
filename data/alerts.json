@@ -1,0 +1,23 @@
+{
+  "1": {
+    "id": "1",
+    "type": "leader_invitation",
+    "rawText": "Bibelläsning kl 19:00",
+    "scrubbedText": "Bibelläsning kl 19:00",
+    "area": "",
+    "time": "kl 19:00",
+    "gender": "Alla",
+    "language": "Svenska",
+    "locationName": "",
+    "coords": null,
+    "cloakedCoords": null,
+    "timestamp": 1787657938088,
+    "responsibleParty": "Missionärerna",
+    "contactType": "sms",
+    "contactValue": "+46701234567",
+    "expiryTimestamp": 1787672338088,
+    "category": "Få näring av Guds ord",
+    "isFull": false,
+    "status": "active"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Remix Älska, dela och bjud in",
+  "description": "Stateless routing system connecting WhatsApp missionary alerts with Web Push notifications for local volunteers.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
